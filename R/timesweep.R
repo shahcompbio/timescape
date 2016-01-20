@@ -1,12 +1,14 @@
-#' <Add Title>
+#' Timesweeps
 #'
-#' <Add Description>
-#'
-#' @import htmlwidgets, jsonlite
+#' \code{timesweep} generates patient clonal timesweeps.
 #'
 #' @param patient Patient name.
-#' @param clonal.prev.csv.
+#' @param clonal.prev.csv Path to clonal prevalence csv file.
 #' @param tree.gml Path to GML file.
+#' @param node.col Named character vector with the keys as node labels and 
+#'   values as colors.
+#' @param width Width of the plot. 
+#' @param height Height of the plot.
 #' @export
 timesweep <- function(patient, clonal.prev.csv, tree.gml, node.col, width = NULL, 
                       height = NULL) {
@@ -19,10 +21,9 @@ timesweep <- function(patient, clonal.prev.csv, tree.gml, node.col, width = NULL
   if (missing(node.col)) {
     node.col.JSON <- "NA"
   } else {
-    node.col.JSON <- jsonlite::toJSON(data.frame(node_label = names(node.col), 
+    node.col.JSON <- jsonlite::toJSON(data.frame(node_label = names(node.col),
                                                  col = node.col)) 
   }
-  print(node.col.JSON)
 
   # forward options using x
   x = list(
