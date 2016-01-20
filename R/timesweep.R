@@ -5,22 +5,31 @@
 #' @import htmlwidgets, jsonlite
 #'
 #' @param patient Patient name.
-#' @param clonal_prev_csv.
-#' @param tree_gml Path to GML file.
+#' @param clonal.prev.csv.
+#' @param tree.gml Path to GML file.
 #' @export
-timesweep <- function(patient, clonal_prev_csv, tree_gml, width = NULL, 
+timesweep <- function(patient, clonal.prev.csv, tree.gml, node.col, width = NULL, 
                       height = NULL) {
 
   # parse csv
-  clonal_prev_data = read.csv(clonal_prev_csv)
-  clonal_prev_JSON <- jsonlite::toJSON(clonal_prev_data)
-  gmlString <- paste(readLines(tree_gml), collapse=" ")
+  clonal.prev.data = read.csv(clonal.prev.csv)
+  clonal.prev.JSON <- jsonlite::toJSON(clonal.prev.data)
+  gmlString <- paste(readLines(tree.gml), collapse=" ")
+
+  if (missing(node.col)) {
+    node.col.JSON <- "NA"
+  } else {
+    node.col.JSON <- jsonlite::toJSON(data.frame(node_label = names(node.col), 
+                                                 col = node.col)) 
+  }
+  print(node.col.JSON)
 
   # forward options using x
   x = list(
     patient = patient,
-    clonal_prev_data = clonal_prev_JSON,
-    tree_gml = gmlString
+    clonal_prev_JSON = clonal.prev.JSON,
+    tree_gml = gmlString,
+    node_col_JSON = node.col.JSON
   )
 
   # create widget

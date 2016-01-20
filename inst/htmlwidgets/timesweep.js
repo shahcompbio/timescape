@@ -157,7 +157,7 @@ HTMLWidgets.widget({
 
     // for each time point, for each genotype, get cellular prevalence
     var cp_data = {};
-    $.each(x.clonal_prev_data, function(idx, hit) { // for each hit (genotype/timepoint combination)
+    $.each(x.clonal_prev_JSON, function(idx, hit) { // for each hit (genotype/timepoint combination)
         // only parse data for a particular patient
         if (hit["patient_name"] == x.patient) {
             cp_data[hit["timepoint"]] = cp_data[hit["timepoint"]] || {};
@@ -235,9 +235,26 @@ HTMLWidgets.widget({
     vizObj.data.separate_bezier_paths = separate_bezier_paths;
 
     // get colour assignment based on tree hierarchy
-    var colour_palette = _getColourPalette();
-    var chains = _getLinearTreeSegments(vizObj.data.treeStructure, {}, "");
-    var colour_assignment = _colourTree(vizObj, chains, vizObj.data.treeStructure, colour_palette, {}, "Greys");
+    var colour_assignment;
+    // if unspecified, use default
+    if (x.node_col_JSON == "NA") {
+        var colour_palette = _getColourPalette();
+        var chains = _getLinearTreeSegments(vizObj.data.treeStructure, {}, "");
+        colour_assignment = _colourTree(vizObj, chains, vizObj.data.treeStructure, colour_palette, {}, "Greys");
+    }
+    // otherwise, use specified colours
+    else {
+        colour_assignment = {};
+        x.node_col_JSON.forEach(function(col, col_idx) {
+            var col_value = col.col;
+            if (col_value.length > 7) { // remove any alpha that may be present in the hex value
+                col_value = col_value.substring(0,7);
+            }
+            colour_assignment[col.node_label] = col_value;
+        });
+        colour_assignment['Root'] = "#000000";
+    }
+
 
     // plot timesweep data
     var switchView = true;
