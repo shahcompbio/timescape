@@ -1,6 +1,6 @@
 Commands in R :
 
-setwd("<mydirectory>/timesweep_htmlwidget/")
+setwd("<my_directory>/timesweep/")
 devtools::install()
 library(timesweep)
 timesweep("FL2005”,”<my_clonal_dynamics_csv_file>“,”<my_tree_gml_file>”)
