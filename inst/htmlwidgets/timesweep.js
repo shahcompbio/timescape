@@ -6,22 +6,23 @@ HTMLWidgets.widget({
 
   initialize: function(el, width, height) {
     
-    // --- Private Module Properties ---
+
+    // defaults
     var defaults = {
         paddingGeneral: 15,
         legendWidth: 100,
         legendHeight: 160,
         treeHeight: 100,
         treeWidth: 100,
-        xAxisWidth: 375,
         xAxisHeight: 30,
         yAxisWidth: 20,
-        yAxisHeight: 279,
         smallMargin: 5,
         transitionSpeed: 200,
         isPopOverVisible: false,
         button: false,
-        gridsterBaseDimension: 120
+        gridsterBaseDimension: 120,
+        switchView: true,
+        panel_width: 30
     };
 
     // global variable vizObj
@@ -34,12 +35,12 @@ HTMLWidgets.widget({
     vizObj.view.config = config;
     var dim = vizObj.view.config;
 
-    var nextColour;
-
     dim.canvasSVGWidth = width - dim.paddingGeneral - dim.paddingGeneral;
     dim.canvasSVGHeight = height - dim.paddingGeneral - dim.paddingGeneral;
     dim.tsSVGHeight = dim.canvasSVGHeight - dim.xAxisHeight - dim.smallMargin;
     dim.tsSVGWidth = dim.canvasSVGWidth - dim.legendWidth - dim.yAxisWidth - dim.smallMargin - dim.paddingGeneral;
+    dim.xAxisWidth = dim.tsSVGWidth;
+    dim.yAxisHeight = dim.tsSVGHeight;
 
     var canvasSVG = d3.select(el)
         .append("svg:svg")  
@@ -91,9 +92,7 @@ HTMLWidgets.widget({
     vizObj.view.tsSVGWidth = dim.tsSVGWidth;
     vizObj.view.tsSVGHeight = dim.tsSVGHeight;
 
-    return {
-        // TODO: add instance fields as required
-    }
+    return {}
     
   },
 
@@ -247,6 +246,9 @@ HTMLWidgets.widget({
         colour_assignment = {};
         x.node_col_JSON.forEach(function(col, col_idx) {
             var col_value = col.col;
+            if (col_value[0] != "#") { // append a hashtag if necessary
+                col_value = "#".concat(col_value);
+            }
             if (col_value.length > 7) { // remove any alpha that may be present in the hex value
                 col_value = col_value.substring(0,7);
             }
@@ -257,7 +259,6 @@ HTMLWidgets.widget({
 
 
     // plot timesweep data
-    var switchView = true;
     vizObj.view.tsSVG
         .selectAll('.tsPlot')
         .data(vizObj.data.bezier_paths, function(d) {
@@ -269,7 +270,7 @@ HTMLWidgets.widget({
         .attr('fill', function(d) { return colour_assignment[d.gtype]; }) 
         .on('click', function() {
             // transition to separate timesweep view
-            if (switchView) {
+            if (dim.switchView) {
                 var sweeps = vizObj.view.tsSVG
                     .selectAll('.tsPlot')
                     .data(vizObj.data.separate_bezier_paths, function(d) {
@@ -313,7 +314,7 @@ HTMLWidgets.widget({
                     .duration(1000)
                     .attrTween("d", _pathTween("move"));
             }
-            switchView = !switchView;
+            dim.switchView = !dim.switchView;
             
         });
 
@@ -334,7 +335,6 @@ HTMLWidgets.widget({
         .style('pointer-events', 'none');
 
     // plot time point guide side panel as background for cellular prevalence labels
-    var panel_width = 30;
     vizObj.view.tsSVG
         .selectAll('.tpGuidePanel')
         .data(vizObj.data.timepoints)
@@ -350,13 +350,13 @@ HTMLWidgets.widget({
             // if the time point *is* the last
             if (index >= vizObj.data.timepoints.length - 1) {
                 // shift it to the left so the full label is visible
-                x_val -= panel_width;
+                x_val -= dim.panel_width;
             }
 
             return x_val; 
         })
         .attr('y', 0)
-        .attr('width', panel_width)
+        .attr('width', dim.panel_width)
         .attr('height', dim.tsSVGHeight)
         .attr('fill', 'white')
         .attr('fill-opacity', 0)
@@ -385,7 +385,7 @@ HTMLWidgets.widget({
             var index = vizObj.data.timepoints.indexOf(d.tp); 
 
             var x_val = (index / (vizObj.data.timepoints.length-1)) * (dim.tsSVGWidth);
-            var text_margin = (panel_width - this.getBBox().width)/2; // margin between text and edge of panel
+            var text_margin = (dim.panel_width - this.getBBox().width)/2; // margin between text and edge of panel
 
             // if the time point is not the last
             if (index < vizObj.data.timepoints.length - 1) {
@@ -442,7 +442,7 @@ HTMLWidgets.widget({
         .attr('font-size', '11px')
         .text(function(d) { return d; })
         .on('mouseover', function(d) {
-            if (switchView) {
+            if (dim.switchView) {
                 d3.selectAll(".label.tp_" + d + '.' + patientID_class).attr('opacity', 1);
             } 
             else {
@@ -452,7 +452,7 @@ HTMLWidgets.widget({
             d3.selectAll(".tpGuidePanel.tp_" + d + '.' + patientID_class).attr('fill-opacity', 0.45);
         })
         .on('mouseout', function(d) {
-            if (switchView) {
+            if (dim.switchView) {
                 d3.selectAll(".label.tp_" + d + '.' + patientID_class).attr('opacity', 0);
             } 
             else {
@@ -465,7 +465,7 @@ HTMLWidgets.widget({
     // plot y-axis title
     vizObj.view.yAxisSVG
         .append('text')
-        .attr('class', 'axisTitle')
+        .attr('class', 'axisTitle yAxis')
         .attr('x', 0)
         .attr('y', 0)
         .attr('dy', '.35em')
@@ -479,7 +479,7 @@ HTMLWidgets.widget({
     // plot x-axis title
     vizObj.view.xAxisSVG
         .append('text')
-        .attr('class', 'axisTitle')
+        .attr('class', 'axisTitle xAxis')
         .attr('x', dim.yAxisWidth + dim.smallMargin + dim.xAxisWidth/2)
         .attr('y', 25)
         .attr('text-anchor', 'middle')
@@ -1498,6 +1498,184 @@ HTMLWidgets.widget({
 
   resize: function(el, width, height, instance) {
 
+    var dim = vizObj.view.config;
+
+    dim.canvasSVGWidth = width - dim.paddingGeneral - dim.paddingGeneral;
+    dim.canvasSVGHeight = height - dim.paddingGeneral - dim.paddingGeneral;
+    dim.tsSVGHeight = dim.canvasSVGHeight - dim.xAxisHeight - dim.smallMargin;
+    dim.tsSVGWidth = dim.canvasSVGWidth - dim.legendWidth - dim.yAxisWidth - dim.smallMargin - dim.paddingGeneral;
+    dim.xAxisWidth = dim.tsSVGWidth;
+    dim.yAxisHeight = dim.tsSVGHeight;
+
+    var canvasSVG = d3.select(".canvasSVG")
+        .attr("width", dim.canvasSVGWidth) 
+        .attr("height", dim.canvasSVGHeight);
+
+    var xAxisSVG = d3.select(".xAxisSVG")    
+        .attr("transform", "translate(" + 0 + "," + (dim.tsSVGHeight + dim.smallMargin) + ")");
+
+    var tsLegendSVG = d3.select(".tsLegendSVG")
+        .attr("transform", "translate(" + (dim.yAxisWidth + dim.smallMargin + dim.tsSVGWidth + dim.paddingGeneral) + "," + 0 + ")");
+
+
+    var tsTree = d3.select(".tsTreeSVG")
+        .attr("transform", "translate(" + (dim.yAxisWidth + dim.smallMargin + dim.tsSVGWidth + dim.paddingGeneral) + "," + 
+            (dim.tsSVGHeight - dim.treeHeight) + ")");
+
+    
+    // SET CONTENT
+
+
+    // get bezier paths
+    vizObj.data.bezier_paths = _getBezierPaths(vizObj.data.traditional_paths, dim.tsSVGWidth, dim.tsSVGHeight);
+
+    // get separate bezier paths
+    vizObj.data.separate_bezier_paths = _getBezierPaths(vizObj.data.separate_paths, dim.tsSVGWidth, dim.tsSVGHeight);
+
+    // plot timesweep data
+    var newTsPlot = d3.selectAll('.tsPlot')
+        .data(vizObj.data.bezier_paths, function(d) {
+            return d.gtype;
+        });
+    newTsPlot.enter().append('path');
+    newTsPlot.exit().remove();
+    newTsPlot
+        .attr('d', function(d) { return d.path});
+
+    // plot time point guides
+    d3.selectAll('.tpGuide')
+        .attr('x1', function(d, i) { return (i / (vizObj.data.timepoints.length - 1)) * dim.tsSVGWidth; })
+        .attr('x2', function(d, i) { return (i / (vizObj.data.timepoints.length - 1)) * dim.tsSVGWidth; })
+        .attr('y2', dim.tsSVGHeight);
+
+    // plot time point guide side panel as background for cellular prevalence labels
+    d3.selectAll('.tpGuidePanel')
+        .attr('x', function(d) {
+            // index of this time point relative to others
+            var index = vizObj.data.timepoints.indexOf(d); 
+
+            // if the time point is not the last
+            var x_val = (index / (vizObj.data.timepoints.length-1)) * (dim.tsSVGWidth);
+            
+            // if the time point *is* the last
+            if (index >= vizObj.data.timepoints.length - 1) {
+                // shift it to the left so the full label is visible
+                x_val -= dim.panel_width;
+            }
+
+            return x_val; 
+        })
+        .attr('height', dim.tsSVGHeight);
+
+    // plot cellular prevalence labels at each time point - traditional timesweep view
+    d3.selectAll('.label')
+        .attr('x', function(d) { 
+
+            // index of this time point relative to others
+            var index = vizObj.data.timepoints.indexOf(d.tp); 
+
+            var x_val = (index / (vizObj.data.timepoints.length-1)) * (dim.tsSVGWidth);
+            var text_margin = (dim.panel_width - this.getBBox().width)/2; // margin between text and edge of panel
+
+            // if the time point is not the last
+            if (index < vizObj.data.timepoints.length - 1) {
+                // move it to the right 
+                x_val += text_margin;
+            }
+
+            // if the time point *is* the last
+            else {
+                // shift it to the left
+                x_val -= (text_margin + this.getBBox().width);
+            }
+
+            return x_val; 
+        })
+        .attr('y', function(d) { return (1 - d.middle)*dim.tsSVGHeight; })
+        .attr('dy', function(d) {
+
+            // if the label, when centered vertically...
+            // ... is cut off at the top, shift down
+            if (((dim.tsSVGHeight-(d.top*dim.tsSVGHeight)) + (d.cp*dim.tsSVGHeight)) < this.getBBox().height) {
+                d3.select(this).attr('y', '1px');
+                return '.71em';
+            }
+
+            // ... is cut off at the bottom, shift up
+            else if (((d.bottom*dim.tsSVGHeight) + (d.cp*dim.tsSVGHeight)) < this.getBBox().height) {
+                d3.select(this).attr('y', dim.tsSVGHeight);
+                return '-1px';
+            }
+
+            // ... is not cut off, center vertically
+            return '.35em';
+        });
+
+    // PLOT AXES
+
+    // plot x-axis labels
+    d3.selectAll('.xAxisLabels')
+        .attr('x', function(d, i) { 
+            return (i / (vizObj.data.timepoints.length-1)) * (dim.tsSVGWidth) + dim.smallMargin + dim.yAxisWidth; 
+        });
+
+    // plot y-axis title
+    d3.select('.axisTitle.yAxis')
+        .attr('x', 0)
+        .attr('y', 0)
+        .transition()
+        .duration(300)
+        .attr('transform', function() {
+            console.log(dim.tsSVGHeight);
+            return "translate(" + (dim.yAxisWidth/2) + ", " + (dim.tsSVGHeight/2) + ") rotate(-90)";
+        });
+
+    // plot x-axis title
+    d3.select('.axisTitle.xAxis')
+        .attr('x', dim.yAxisWidth + dim.smallMargin + dim.xAxisWidth/2);
+    
+    // FUNCTIONS
+
+    /* function to convert straight paths for each genotype to bezier curve paths
+    * @param {Object} paths -- straight path for each genotype
+    * @param {Number} tsSVGWidth -- width of the timesweep svg
+    * @param {Number} tsSVGHeight -- height of the timesweep svg
+    */
+    function _getBezierPaths(paths, tsSVGWidth, tsSVGHeight) {
+
+        var bezier_paths = [];
+
+        // for each genotype's path
+        $.each(paths, function(path_idx, cur_path) { 
+
+            var path = cur_path['path'];
+            var bezier_path = "";
+
+            // for each point in the path, get its diagonal to the next point
+            for (var i = 0; i < path.length-1; i++) {
+                var xsource = path[i].x * tsSVGWidth,
+                    xtarget = path[i+1].x * tsSVGWidth,
+                    ysource = (1-path[i].y) * tsSVGHeight,
+                    ytarget = (1-path[i+1].y) * tsSVGHeight;
+
+                // diagonal line generator for bezier curve between two points
+                var diagonal = d3.svg.diagonal()
+                    .source(function() { return {"y": xsource, "x": ysource }; })
+                    .target(function() { return {"y": xtarget, "x": ytarget};})
+                    .projection(function(d) { return [d.y, d.x] });
+
+                // for this genotype, append the bezier curve connecting this point and the next 
+                bezier_path = (i == 0) ? bezier_path + diagonal() : bezier_path + "L" + diagonal().substring(1);
+            }
+
+            bezier_paths.push({"gtype": cur_path['gtype'], "path": bezier_path});
+        })
+
+        return bezier_paths;
+    }
+   
+    return {}
+    
   }
 
 });
