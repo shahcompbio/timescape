@@ -474,7 +474,9 @@ HTMLWidgets.widget({
         .attr('font-size', '15px')
         .attr('font-weight', 'bold')
         .attr('transform', "translate(" + (dim.yAxisWidth/2) + ", " + (dim.tsSVGHeight/2) + ") rotate(-90)")
-        .text("Relative Cellular Prevalence");
+        .text(function() { 
+            return (x.yaxis_title == "NA") ? "Relative Cellular Prevalence" : x.yaxis_title;
+        });
 
     // plot x-axis title
     vizObj.view.xAxisSVG
@@ -486,8 +488,9 @@ HTMLWidgets.widget({
         .attr('font-family', 'sans-serif')
         .attr('font-size', '15px')
         .attr('font-weight', 'bold')
-        .text("Time Point");
-
+        .text(function() { 
+            return (x.xaxis_title == "NA") ? "Time Point" : x.xaxis_title;
+        });
 
     // PLOT LEGEND
 
@@ -1626,7 +1629,6 @@ HTMLWidgets.widget({
         .transition()
         .duration(300)
         .attr('transform', function() {
-            console.log(dim.tsSVGHeight);
             return "translate(" + (dim.yAxisWidth/2) + ", " + (dim.tsSVGHeight/2) + ") rotate(-90)";
         });
 

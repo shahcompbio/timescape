@@ -7,10 +7,12 @@
 #' @param tree.gml Path to GML file.
 #' @param node.col Named character vector with the keys as node labels and 
 #'   values as colors.
+#' @param xaxis.title x-axis title. 
+#' @param yaxis.title y-axis title.
 #' @param width Width of the plot. 
 #' @param height Height of the plot.
 #' @export
-timesweep <- function(patient, clonal.prev.csv, tree.gml, node.col, width = NULL, 
+timesweep <- function(patient, clonal.prev.csv, tree.gml, node.col, xaxis.title, yaxis.title, width = NULL, 
                       height = NULL) {
 
   # parse csv
@@ -25,12 +27,22 @@ timesweep <- function(patient, clonal.prev.csv, tree.gml, node.col, width = NULL
                                                  col = node.col)) 
   }
 
+  if (missing(xaxis.title)) {
+    xaxis.title <- "NA"
+  } 
+
+  if (missing(yaxis.title)) {
+    yaxis.title <- "NA"
+  } 
+
   # forward options using x
   x = list(
     patient = patient,
     clonal_prev_JSON = clonal.prev.JSON,
     tree_gml = gmlString,
-    node_col_JSON = node.col.JSON
+    node_col_JSON = node.col.JSON,
+    xaxis_title = xaxis.title,
+    yaxis_title = yaxis.title
   )
 
   # create widget
