@@ -246,6 +246,9 @@ HTMLWidgets.widget({
         colour_assignment = {};
         x.node_col_JSON.forEach(function(col, col_idx) {
             var col_value = col.col;
+            if (col_value[0] != "#") { // append a hashtag if necessary
+                col_value = "#".concat(col_value);
+            }
             if (col_value.length > 7) { // remove any alpha that may be present in the hex value
                 col_value = col_value.substring(0,7);
             }
