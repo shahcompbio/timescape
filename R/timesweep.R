@@ -12,6 +12,10 @@
 #' @param width Width of the plot. 
 #' @param height Height of the plot.
 #' @export
+#' @examples
+#' library("timesweep")
+#' timesweep("SAMPLE_PATIENT", system.file("extdata", "clonal_dynamics.csv", package = "timesweep"), 
+#'            system.file("extdata", "tree.gml", package = "timesweep"))
 timesweep <- function(patient, clonal.prev.csv, tree.gml, node.col, xaxis.title, yaxis.title, width = NULL, 
                       height = NULL) {
 
