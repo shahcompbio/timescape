@@ -365,7 +365,7 @@ HTMLWidgets.widget({
     // plot cellular prevalence labels at each time point - traditional timesweep view
     var labels = vizObj.data.ts_labels.concat(vizObj.data.ts_sep_labels);
     vizObj.view.tsSVG
-        .selectAll('.label')
+        .selectAll('.label,.sepLabel')
         .data(labels)
         .enter().append('text')
         .attr('font-family', 'sans-serif')
@@ -1536,10 +1536,19 @@ HTMLWidgets.widget({
     vizObj.data.separate_bezier_paths = _getBezierPaths(vizObj.data.separate_paths, dim.tsSVGWidth, dim.tsSVGHeight);
 
     // plot timesweep data
-    var newTsPlot = d3.selectAll('.tsPlot')
+    var newTsPlot;
+
+    if (dim.switchView) {
+        newTsPlot = d3.selectAll('.tsPlot')
         .data(vizObj.data.bezier_paths, function(d) {
             return d.gtype;
         });
+    } else {
+        newTsPlot = d3.selectAll('.tsPlot')
+        .data(vizObj.data.separate_bezier_paths, function(d) {
+            return d.gtype;
+        });
+    }
     newTsPlot.enter().append('path');
     newTsPlot.exit().remove();
     newTsPlot
@@ -1571,7 +1580,7 @@ HTMLWidgets.widget({
         .attr('height', dim.tsSVGHeight);
 
     // plot cellular prevalence labels at each time point - traditional timesweep view
-    d3.selectAll('.label')
+    d3.selectAll('.label,.sepLabel')
         .attr('x', function(d) { 
 
             // index of this time point relative to others
