@@ -22,7 +22,8 @@ HTMLWidgets.widget({
         button: false,
         gridsterBaseDimension: 120,
         switchView: true,
-        panel_width: 30
+        panel_width: 30,
+        centredView: true
     };
 
     // global variable vizObj
@@ -169,6 +170,11 @@ HTMLWidgets.widget({
     timepoints.unshift("N");
     vizObj.data.timepoints = timepoints;
 
+    // genotypes
+    vizObj.data.genotypes = Object.keys(nodesObj).map(function(node, idx) {
+        return nodesObj[node];
+    });
+
     // depth first search of tree to get proper order of genotypes at each time point
     timesweep_data = {};
 
@@ -182,18 +188,31 @@ HTMLWidgets.widget({
     vizObj.data.emergence_values = emergence_values;
 
     // reorder the tree according to the genotypes' emergent cellular prevalence values
-    _reorderTree(vizObj, vizObj.data.treeStructure);
+    _reorderTree(vizObj, vizObj.data.treeStructure); // TODO is this working?????
     
     // traverse the tree to sort the genotypes into a final vertical stacking order (incorporating hierarchy)
     var gTypeStackOrder = [];
     _vStackOrder(vizObj.data.treeStructure, emergence_values, gTypeStackOrder)
     vizObj.data.gTypeStackOrder = gTypeStackOrder;
 
+
     // --> TRADITIONAL TIMESWEEP VIEW (HIERARCHICAL GENOTYPES) <-- //
+
+    // ------> STACKED
 
     // get cellular prevalences for each genotype in a stack, one stack for each time point
     var gTypeStacks = _getGenotypeStacks(vizObj);
-    vizObj.data.gTypeStacks = gTypeStacks;
+    vizObj.data.gTypeStacks = gTypeStacks; 
+
+    // ------> CENTRED
+
+    // get layout of each genotype at each timepoint
+    var layout = {};
+    $.each(vizObj.data.timepoints, function(tp_idx, tp) { // for each time point
+        _getLayout(vizObj, vizObj.data.treeStructure, tp, layout, 0);
+    })
+    vizObj.data.layout = layout;    
+
 
     // get cellular prevalence labels for each genotype at each time point 
     var ts_labels = _getTraditionalCPLabels(vizObj);
@@ -259,16 +278,24 @@ HTMLWidgets.widget({
 
 
     // plot timesweep data
+    var patientID_class = 'patientID_' + vizObj.data.patient_id
     vizObj.view.tsSVG
         .selectAll('.tsPlot')
         .data(vizObj.data.bezier_paths, function(d) {
             return d.gtype;
         })
         .enter().append('path')
-        .attr('class', 'tsPlot')
-        .attr('d', function(d) { return d.path})
+        .attr('class', function() { return 'tsPlot ' + patientID_class; })
+        .attr('d', function(d) { return d.path; })
         .attr('fill', function(d) { return colour_assignment[d.gtype]; }) 
+        .attr('stroke', function(d) { return colour_assignment[d.gtype]; })
         .on('click', function() {
+            // hide any cellular prevalence labels
+            d3.selectAll(".label, .sepLabel")
+                .attr('opacity', 0);
+            d3.selectAll(".labelCirc, .sepLabelCirc")
+                .attr('fill-opacity', 0);
+
             // transition to separate timesweep view
             if (dim.switchView) {
                 var sweeps = vizObj.view.tsSVG
@@ -316,10 +343,81 @@ HTMLWidgets.widget({
             }
             dim.switchView = !dim.switchView;
             
+        })
+        .on('mouseover', function(d) {
+            var curGtype = d.gtype;
+
+            // dim other genotypes
+            d3.selectAll('.tsPlot.' + patientID_class)
+                .attr('fill', function(d) { 
+                    if (d.gtype != curGtype) {
+                        return 'grey';
+                    }
+                    return colour_assignment[d.gtype];
+                })
+                .attr('stroke', function(d) { 
+                    if (d.gtype != curGtype) {
+                        return 'white';
+                    }
+                    return colour_assignment[d.gtype];
+                });
+
+            // traditional view
+            if (dim.switchView) { 
+                // show labels
+                d3.selectAll(".label.gtype_" + curGtype + '.' + patientID_class)
+                    .attr('opacity', 1);
+
+                // show label backgrounds
+                d3.selectAll(".labelCirc.gtype_" + curGtype)
+                    .attr('fill-opacity', 0.5);                
+            }
+
+            // separate genotypes view
+            else { 
+                // show labels
+                d3.selectAll(".sepLabel.gtype_" + curGtype + '.' + patientID_class)
+                    .attr('opacity', 1);
+
+                // show label backgrounds
+                d3.selectAll(".sepLabelCirc.gtype_" + curGtype)
+                    .attr('fill-opacity', 0.5);                
+            }
+
+        })
+        .on('mouseout', function(d) {
+            var curGtype = d.gtype;
+
+            // reset colours
+            d3.selectAll('.tsPlot.' + patientID_class)
+                .attr('fill', function(d) { return colour_assignment[d.gtype]; }) 
+                .attr('stroke', function(d) { return colour_assignment[d.gtype]; });
+
+            // traditional view
+            if (dim.switchView) {
+                // hide labels
+                d3.selectAll(".label.gtype_" + curGtype + '.' + patientID_class)
+                    .attr('opacity', 0);
+
+                // hide label backgrounds
+                d3.selectAll(".labelCirc.gtype_" + curGtype)
+                    .attr('fill-opacity', 0);
+            }
+
+            // separate genotypes view
+            else {
+                // hide labels
+                d3.selectAll(".sepLabel.gtype_" + curGtype + '.' + patientID_class)
+                    .attr('opacity', 0);
+
+                // hide label backgrounds
+                d3.selectAll(".sepLabelCirc.gtype_" + curGtype)
+                    .attr('fill-opacity', 0);
+            }
+
         });
 
     // plot time point guides
-    var patientID_class = 'patientID_' + vizObj.data.patient_id
     vizObj.view.tsSVG
         .selectAll('.tpGuide')
         .data(vizObj.data.timepoints)
@@ -334,47 +432,69 @@ HTMLWidgets.widget({
         .attr('stroke-width', '1.5px')
         .style('pointer-events', 'none');
 
-    // plot time point guide side panel as background for cellular prevalence labels
-    vizObj.view.tsSVG
-        .selectAll('.tpGuidePanel')
-        .data(vizObj.data.timepoints)
-        .enter().append('rect')
-        .attr('class', function(d) { return 'tpGuidePanel tp_' + d + ' ' + patientID_class; })
-        .attr('x', function(d) {
-            // index of this time point relative to others
-            var index = vizObj.data.timepoints.indexOf(d); 
+    // plot cellular prevalence labels at each time point - traditional timesweep view 
+    var labels = vizObj.data.ts_labels.concat(vizObj.data.ts_sep_labels);
+    var fontSize = 11;
+    var circleR = 20;
 
-            // if the time point is not the last
+    var labelG = vizObj.view.tsSVG
+        .selectAll('.gLabel')
+        .data(labels)
+        .enter().append('g')
+        .attr('class', 'gLabel');
+
+    labelG
+        .append('circle')
+        .attr('class', function(d) { 
+            if (d.type == "traditional") {
+                return 'labelCirc tp_' + d.tp + ' gtype_' + d.gtype + ' ' + patientID_class; 
+            }
+            return 'sepLabelCirc tp_' + d.tp + ' gtype_' + d.gtype + ' ' + patientID_class; 
+        }) 
+        .attr('cx', function(d) { 
+
+            // index of this time point relative to others
+            var index = vizObj.data.timepoints.indexOf(d.tp); 
+
             var x_val = (index / (vizObj.data.timepoints.length-1)) * (dim.tsSVGWidth);
-            
-            // if the time point *is* the last
-            if (index >= vizObj.data.timepoints.length - 1) {
-                // shift it to the left so the full label is visible
-                x_val -= dim.panel_width;
+
+            // if the time point is the last
+            if (index == vizObj.data.timepoints.length - 1) {
+                // shift it to the left
+                x_val -= circleR;
             }
 
             return x_val; 
         })
-        .attr('y', 0)
-        .attr('width', dim.panel_width)
-        .attr('height', dim.tsSVGHeight)
+        .attr('cy', function(d) { 
+            // if the label, when centered vertically...
+            // ... is cut off at the top, shift down
+            if (((dim.tsSVGHeight-(d.middle*dim.tsSVGHeight)) + ((d.cp/2)*dim.tsSVGHeight)) < circleR) {
+                return 1 + circleR;
+            }
+
+            // ... is cut off at the bottom, shift up
+            else if (((d.middle*dim.tsSVGHeight) + ((d.cp/2)*dim.tsSVGHeight)) < circleR) {
+                return dim.tsSVGHeight - 1 - circleR;
+            }
+
+            // ... is not cut off, center vertically
+            return (1 - d.middle)*dim.tsSVGHeight; 
+        })
+        .attr('r', circleR)
         .attr('fill', 'white')
         .attr('fill-opacity', 0)
         .style('pointer-events', 'none');
 
-    // plot cellular prevalence labels at each time point - traditional timesweep view
-    var labels = vizObj.data.ts_labels.concat(vizObj.data.ts_sep_labels);
-    vizObj.view.tsSVG
-        .selectAll('.label,.sepLabel')
-        .data(labels)
-        .enter().append('text')
+    labelG
+        .append('text')
         .attr('font-family', 'sans-serif')
-        .attr('font-size', '11px')
+        .attr('font-size', fontSize)
         .attr('class', function(d) { 
             if (d.type == "traditional") {
-                return 'label tp_' + d.tp + ' ' + patientID_class; 
+                return 'label tp_' + d.tp + ' gtype_' + d.gtype + ' ' + patientID_class; 
             }
-            return 'sepLabel tp_' + d.tp + ' ' + patientID_class; 
+            return 'sepLabel tp_' + d.tp + ' gtype_' + d.gtype + ' ' + patientID_class; 
         }) 
         .text(function(d) {
             return (Math.round(d.cp * 100) / 1).toString();
@@ -385,18 +505,11 @@ HTMLWidgets.widget({
             var index = vizObj.data.timepoints.indexOf(d.tp); 
 
             var x_val = (index / (vizObj.data.timepoints.length-1)) * (dim.tsSVGWidth);
-            var text_margin = (dim.panel_width - this.getBBox().width)/2; // margin between text and edge of panel
 
-            // if the time point is not the last
-            if (index < vizObj.data.timepoints.length - 1) {
-                // move it to the right 
-                x_val += text_margin;
-            }
-
-            // if the time point *is* the last
-            else {
+            // if the time point is the last
+            if (index == vizObj.data.timepoints.length - 1) {
                 // shift it to the left
-                x_val -= (text_margin + this.getBBox().width);
+                x_val -= circleR;
             }
 
             return x_val; 
@@ -404,25 +517,45 @@ HTMLWidgets.widget({
         .attr('y', function(d) { return (1 - d.middle)*dim.tsSVGHeight; })
         .attr('dy', function(d) {
 
-            // if the label, when centered vertically...
-            // ... is cut off at the top, shift down
-            if (((dim.tsSVGHeight-(d.top*dim.tsSVGHeight)) + (d.cp*dim.tsSVGHeight)) < this.getBBox().height) {
-                d3.select(this).attr('y', '1px');
-                return '.71em';
+            if (d.type == "traditional") {
+                // if the label, when centered vertically...
+                // ... is cut off at the top, shift down
+                if (((dim.tsSVGHeight-(d.middle*dim.tsSVGHeight)) + ((d.cp/2)*dim.tsSVGHeight)) < circleR) {
+                    d3.select(this).attr('y', 1 + circleR);
+                }
+
+                // ... is cut off at the bottom, shift up
+                else if (((d.middle*dim.tsSVGHeight) + ((d.cp/2)*dim.tsSVGHeight)) < circleR) {
+                    d3.select(this).attr('y', dim.tsSVGHeight - 1 - circleR);
+                }
+
+                // ... is not cut off, center vertically
+                return '.35em';
+            }
+            else {
+                // if the label, when centered vertically...
+                // ... is cut off at the top, shift down
+                if (((dim.tsSVGHeight-(d.top*dim.tsSVGHeight)) + ((d.cp/2)*dim.tsSVGHeight)) < circleR) {
+                    d3.select(this).attr('y', '1px');
+                    return '.71em';
+                }
+
+                // ... is cut off at the bottom, shift up
+                else if (((d.bottom*dim.tsSVGHeight) + ((d.cp/2)*dim.tsSVGHeight)) < circleR) {
+                    d3.select(this).attr('y', dim.tsSVGHeight);
+                    return '-1px';
+                }
+
+                // ... is not cut off, center vertically
+                return '.35em';
             }
 
-            // ... is cut off at the bottom, shift up
-            else if (((d.bottom*dim.tsSVGHeight) + (d.cp*dim.tsSVGHeight)) < this.getBBox().height) {
-                d3.select(this).attr('y', dim.tsSVGHeight);
-                return '-1px';
-            }
-
-            // ... is not cut off, center vertically
-            return '.35em';
         })
         .attr('fill', 'black')
         .attr('opacity', 0)
+        .attr('text-anchor', 'middle')
         .style('pointer-events', 'none');
+
 
     // PLOT AXES
 
@@ -442,24 +575,10 @@ HTMLWidgets.widget({
         .attr('font-size', '11px')
         .text(function(d) { return d; })
         .on('mouseover', function(d) {
-            if (dim.switchView) {
-                d3.selectAll(".label.tp_" + d + '.' + patientID_class).attr('opacity', 1);
-            } 
-            else {
-                d3.selectAll(".sepLabel.tp_" + d + '.' + patientID_class).attr('opacity', 1);
-            }
             d3.selectAll(".tpGuide.tp_" + d + '.' + patientID_class).attr('stroke-opacity', 1); 
-            d3.selectAll(".tpGuidePanel.tp_" + d + '.' + patientID_class).attr('fill-opacity', 0.45);
         })
         .on('mouseout', function(d) {
-            if (dim.switchView) {
-                d3.selectAll(".label.tp_" + d + '.' + patientID_class).attr('opacity', 0);
-            } 
-            else {
-                d3.selectAll(".sepLabel.tp_" + d + '.' + patientID_class).attr('opacity', 0);
-            }
             d3.selectAll(".tpGuide.tp_" + d + '.' + patientID_class).attr('stroke-opacity', 0);
-            d3.selectAll(".tpGuidePanel.tp_" + d + '.' + patientID_class).attr('fill-opacity', 0);
         });
 
     // plot y-axis title
@@ -536,7 +655,6 @@ HTMLWidgets.widget({
 
     // PLOT TREE GLYPH
 
-
     // plot tree title
     vizObj.view.tsTree
         .append('text')
@@ -601,6 +719,93 @@ HTMLWidgets.widget({
 
 
     // FUNCTIONS
+
+    /*
+    * function to get the layout of the timesweep
+    * @param {Object} vizObj
+    * @param {Object} curNode -- current node in the tree
+    * @param {Number} yBottom -- where is the bottom of this genotype, in the y-dimension
+    */
+    function _getLayout(vizObj, curNode, tp, layout, yBottom) {
+        var cp_data = vizObj.data.cp_data;
+        var timepoints = vizObj.data.timepoints;
+        var next_tp = timepoints[timepoints.indexOf(tp)+1];
+        var prev_tp = timepoints[timepoints.indexOf(tp)-1];
+        var gtype = curNode.id;
+        var curDescendants = vizObj.data.treeDescendantsArr[gtype];
+        var gTypeAndDescendants = ($.extend([], curDescendants)); 
+        gTypeAndDescendants.push(gtype); // genotype and descendants
+        var gTypes_curTP = Object.keys(cp_data[tp]); // genotypes with cp data at the CURRENT time point
+        var gTypes_prevTP = (cp_data[prev_tp]) ? Object.keys(cp_data[prev_tp]) : undefined; // genotypes with cp data at the PREVIOUS time point
+        var cur_cp = cp_data[tp][gtype];
+
+        layout[tp] = layout[tp] || {};
+
+        // if the genotype or any descendants exist at this timepoint
+        if ((cur_cp || (_getIntersection(curDescendants, gTypes_curTP).length > 0)) 
+            && curNode.id != "Root") {
+
+            // get the width of this genotype at this time point, including all descendants
+            var width = _calculateWidth(vizObj, tp, gtype);
+
+            // if this genotype or any descendants emerge at the previous time point
+            if (gTypes_prevTP && _getIntersection(gTypeAndDescendants, gTypes_prevTP).length == 0) {
+
+                layout[prev_tp][gtype] = {
+                    "width": 0,
+                    "middle": yBottom + (width/2),
+                    "bottom": yBottom + (width/2),
+                    "top": yBottom + (width/2),
+                    "cp": 0,
+                    "state": "emerges"
+                };
+            }
+
+            // set this genotype in the layout 
+            layout[tp][gtype] = {
+                "width": width,
+                "middle": yBottom + (width/2),
+                "bottom": yBottom,
+                "top": yBottom + width,
+                "cp": cur_cp,
+                "state": "present"
+            }
+        }
+
+        // for each child, get its layout
+        var nChildren = curNode.children.length;
+        var childCP = 0; // cumulative amount of cellular prevalence in the children
+        if (nChildren > 0) {
+            for (var i = 0; i < nChildren; i++) {
+                var childYBottom = (cur_cp) ? (((i+1)/(nChildren+1)) * cur_cp) + childCP + yBottom : yBottom;
+                _getLayout(vizObj, curNode.children[i], tp, layout, childYBottom);
+                childCP += _calculateWidth(vizObj, tp, curNode.children[i].id);
+            }
+        }
+    };
+
+    /* function to get the width of this genotype at this time point, including all descendants
+    * @param {Object} vizObj
+    * @param {String} tp -- current time point
+    * @param {String} gtype -- current genotype
+    */
+    function _calculateWidth(vizObj, tp, gtype) {
+        var cp_data = vizObj.data.cp_data;
+        var cur_cp = cp_data[tp][gtype];
+        var curDescendants = vizObj.data.treeDescendantsArr[gtype];
+
+        // width starts out as the cellular prevalence for this genotype at this time point
+        var width = cur_cp || 0;
+
+        // for each descendant, add its cellular prevalence at this time to the genotype's width
+        $.each(curDescendants, function(desc_idx, desc) {
+            if (cp_data[tp][desc]) {
+                width += cp_data[tp][desc];
+            }
+        })
+
+        return width;
+    }
 
     /* function to find a node by its name - if the node doesn't exist, it will be created and added to the list of nodes
     * @param {Array} list - list of nodes
@@ -814,7 +1019,7 @@ HTMLWidgets.widget({
     */
     function _reorderTree(vizObj, curNode) {
 
-        // if the current node has doesn't have children
+        // if the current node has children
         if (curNode.children.length >= 1) {
 
             // reorder the children according to their emergent cellular prevalence
@@ -1076,35 +1281,54 @@ HTMLWidgets.widget({
     * @param {Object} vizObj
     */
     function _getTraditionalCPLabels(vizObj) {
-        var gTypeStacks = vizObj.data.gTypeStacks;
+        var gTypeStacks = (dim.centredView) ? vizObj.data.layout : vizObj.data.gTypeStacks;
 
         var labels = [];
 
         // for each time point
         Object.keys(gTypeStacks).forEach(function(tp, tp_idx) {
+            if (tp != "N") {
 
-            // for each genotype
-            Object.keys(gTypeStacks[tp]).forEach(function(gtype, gtype_idx) {
+                // for each genotype
+                Object.keys(gTypeStacks[tp]).forEach(function(gtype, gtype_idx) {
 
-                // data for this genotype at this time point
-                var data = gTypeStacks[tp][gtype];
+                    if (gtype != "Root") {
 
-                // if the genotype exists at this time point (isn't emerging or disappearing / replaced)
-                if (data.bottom != data.top_no_descendants) {
+                        // data for this genotype at this time point
+                        var data = gTypeStacks[tp][gtype];
 
-                    // add its information to the l
-                    var label = {};
-                    label['tp'] = tp;
-                    label['gtype'] = gtype;
-                    label['cp'] = data.top_no_descendants-data.bottom;
-                    label['top'] = data.top_no_descendants;
-                    label['bottom'] = data.bottom;
-                    label['middle'] = (data.top_no_descendants + data.bottom)/2;
-                    label['type'] = "traditional";
-                    labels.push(label);
-                }
-                
-            })
+                        // if the genotype exists at this time point (isn't emerging or disappearing / replaced)
+                        if (data.bottom != data.top_no_descendants) {
+
+                            // add its information 
+                            var label = {};
+
+                            if (dim.centredView) { // centred view
+                                label['tp'] = tp;
+                                label['gtype'] = gtype;
+                                label['cp'] = data.cp;
+                                label['top'] = data.top;
+                                label['bottom'] = data.top - (data.cp/2);
+                                label['middle'] = data.top - (data.cp/4);
+                                label['type'] = "traditional";
+                            }
+                            else { // stacked view
+                                label['tp'] = tp;
+                                label['gtype'] = gtype;
+                                label['cp'] = data.top_no_descendants-data.bottom;
+                                label['top'] = data.top_no_descendants;
+                                label['bottom'] = data.bottom;
+                                label['middle'] = (data.top_no_descendants + data.bottom)/2;
+                                label['type'] = "traditional";
+                            }
+                            
+                            labels.push(label);
+
+                        }
+                    }
+                    
+                })
+            }
         });
 
         return labels;
@@ -1129,15 +1353,18 @@ HTMLWidgets.widget({
                 var cp = path[j]["cp"];
                 var tp = path[j]["tp"];
 
-                // if the genotype exists at this time point (isn't emerging or disappearing / replaced)
-                if (cp) {
-                    var label = {};
-                    label['tp'] = tp;
-                    label['cp'] = cp;
-                    label['middle'] = midpoint;
-                    label['gtype'] = gtype;
-                    label['type'] = "separate";
-                    labels.push(label);
+                if (tp != "N") {
+
+                    // if the genotype exists at this time point (isn't emerging or disappearing / replaced)
+                    if (cp) {
+                        var label = {};
+                        label['tp'] = tp;
+                        label['cp'] = cp;
+                        label['middle'] = midpoint;
+                        label['gtype'] = gtype;
+                        label['type'] = "separate";
+                        labels.push(label);
+                    }
                 }
             }
         }
@@ -1159,7 +1386,7 @@ HTMLWidgets.widget({
             var pot_ancestor = treeAncestorsArr[gtype][i]
 
             // if this ancestor emerged here as well, increase the # ancestors for this genotype
-            if (gTypeStacks[tp][pot_ancestor]["state"] == "emerges") {
+            if (gTypeStacks[tp][pot_ancestor] && gTypeStacks[tp][pot_ancestor]["state"] == "emerges") {
                 ancestors.push(pot_ancestor);
             }
         }
@@ -1171,7 +1398,7 @@ HTMLWidgets.widget({
     * @param {Object} vizObj
     */
     function _shiftEmergence(vizObj) {
-        var gTypeStacks = vizObj.data.gTypeStacks,
+        var gTypeStacks = (dim.centredView) ? vizObj.data.layout : vizObj.data.gTypeStacks,
             gTypeStackOrder = vizObj.data.gTypeStackOrder,
             timepoints = vizObj.data.timepoints,
             treeAncestorsArr = vizObj.data.treeAncestorsArr,
@@ -1245,7 +1472,7 @@ HTMLWidgets.widget({
     * @param {Object} vizObj
     */
     function _getTraditionalPaths(vizObj) {
-        var gTypeStacks = vizObj.data.gTypeStacks,
+        var gTypeStacks = (dim.centredView) ? vizObj.data.layout : vizObj.data.gTypeStacks,
             timepoints = vizObj.data.timepoints,
             gTypeStackOrder = vizObj.data.gTypeStackOrder;
 
@@ -1332,7 +1559,7 @@ HTMLWidgets.widget({
         var timepoints = vizObj.data.timepoints,
             gTypeStackOrder = vizObj.data.gTypeStackOrder,
             genotype_cp = vizObj.data.genotype_cp,
-            gTypeStacks = vizObj.data.gTypeStacks,
+            gTypeStacks = (dim.centredView) ? vizObj.data.layout : vizObj.data.gTypeStacks,
             padding = 0.03,
             ts_sep_labels = vizObj.data.ts_sep_labels,
             paths = [];
@@ -1559,25 +1786,6 @@ HTMLWidgets.widget({
         .attr('x1', function(d, i) { return (i / (vizObj.data.timepoints.length - 1)) * dim.tsSVGWidth; })
         .attr('x2', function(d, i) { return (i / (vizObj.data.timepoints.length - 1)) * dim.tsSVGWidth; })
         .attr('y2', dim.tsSVGHeight);
-
-    // plot time point guide side panel as background for cellular prevalence labels
-    d3.selectAll('.tpGuidePanel')
-        .attr('x', function(d) {
-            // index of this time point relative to others
-            var index = vizObj.data.timepoints.indexOf(d); 
-
-            // if the time point is not the last
-            var x_val = (index / (vizObj.data.timepoints.length-1)) * (dim.tsSVGWidth);
-            
-            // if the time point *is* the last
-            if (index >= vizObj.data.timepoints.length - 1) {
-                // shift it to the left so the full label is visible
-                x_val -= dim.panel_width;
-            }
-
-            return x_val; 
-        })
-        .attr('height', dim.tsSVGHeight);
 
     // plot cellular prevalence labels at each time point - traditional timesweep view
     d3.selectAll('.label,.sepLabel')
