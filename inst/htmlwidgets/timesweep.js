@@ -23,7 +23,9 @@ HTMLWidgets.widget({
         gridsterBaseDimension: 120,
         switchView: true,
         panel_width: 30,
-        centredView: true
+        centredView: true,
+        fontSize: 11,
+        circleR: 20
     };
 
     // global variable vizObj
@@ -434,8 +436,6 @@ HTMLWidgets.widget({
 
     // plot cellular prevalence labels at each time point - traditional timesweep view 
     var labels = vizObj.data.ts_labels.concat(vizObj.data.ts_sep_labels);
-    var fontSize = 11;
-    var circleR = 20;
 
     var labelG = vizObj.view.tsSVG
         .selectAll('.gLabel')
@@ -461,7 +461,7 @@ HTMLWidgets.widget({
             // if the time point is the last
             if (index == vizObj.data.timepoints.length - 1) {
                 // shift it to the left
-                x_val -= circleR;
+                x_val -= dim.circleR;
             }
 
             return x_val; 
@@ -469,19 +469,19 @@ HTMLWidgets.widget({
         .attr('cy', function(d) { 
             // if the label, when centered vertically...
             // ... is cut off at the top, shift down
-            if (((dim.tsSVGHeight-(d.middle*dim.tsSVGHeight)) + ((d.cp/2)*dim.tsSVGHeight)) < circleR) {
-                return 1 + circleR;
+            if (((dim.tsSVGHeight-(d.middle*dim.tsSVGHeight)) + ((d.cp/2)*dim.tsSVGHeight)) < dim.circleR) {
+                return 1 + dim.circleR;
             }
 
             // ... is cut off at the bottom, shift up
-            else if (((d.middle*dim.tsSVGHeight) + ((d.cp/2)*dim.tsSVGHeight)) < circleR) {
-                return dim.tsSVGHeight - 1 - circleR;
+            else if (((d.middle*dim.tsSVGHeight) + ((d.cp/2)*dim.tsSVGHeight)) < dim.circleR) {
+                return dim.tsSVGHeight - 1 - dim.circleR;
             }
 
             // ... is not cut off, center vertically
             return (1 - d.middle)*dim.tsSVGHeight; 
         })
-        .attr('r', circleR)
+        .attr('r', dim.circleR)
         .attr('fill', 'white')
         .attr('fill-opacity', 0)
         .style('pointer-events', 'none');
@@ -489,7 +489,7 @@ HTMLWidgets.widget({
     labelG
         .append('text')
         .attr('font-family', 'sans-serif')
-        .attr('font-size', fontSize)
+        .attr('font-size', dim.fontSize)
         .attr('class', function(d) { 
             if (d.type == "traditional") {
                 return 'label tp_' + d.tp + ' gtype_' + d.gtype + ' ' + patientID_class; 
@@ -509,7 +509,7 @@ HTMLWidgets.widget({
             // if the time point is the last
             if (index == vizObj.data.timepoints.length - 1) {
                 // shift it to the left
-                x_val -= circleR;
+                x_val -= dim.circleR;
             }
 
             return x_val; 
@@ -520,13 +520,13 @@ HTMLWidgets.widget({
             if (d.type == "traditional") {
                 // if the label, when centered vertically...
                 // ... is cut off at the top, shift down
-                if (((dim.tsSVGHeight-(d.middle*dim.tsSVGHeight)) + ((d.cp/2)*dim.tsSVGHeight)) < circleR) {
-                    d3.select(this).attr('y', 1 + circleR);
+                if (((dim.tsSVGHeight-(d.middle*dim.tsSVGHeight)) + ((d.cp/2)*dim.tsSVGHeight)) < dim.circleR) {
+                    d3.select(this).attr('y', 1 + dim.circleR);
                 }
 
                 // ... is cut off at the bottom, shift up
-                else if (((d.middle*dim.tsSVGHeight) + ((d.cp/2)*dim.tsSVGHeight)) < circleR) {
-                    d3.select(this).attr('y', dim.tsSVGHeight - 1 - circleR);
+                else if (((d.middle*dim.tsSVGHeight) + ((d.cp/2)*dim.tsSVGHeight)) < dim.circleR) {
+                    d3.select(this).attr('y', dim.tsSVGHeight - 1 - dim.circleR);
                 }
 
                 // ... is not cut off, center vertically
@@ -535,13 +535,13 @@ HTMLWidgets.widget({
             else {
                 // if the label, when centered vertically...
                 // ... is cut off at the top, shift down
-                if (((dim.tsSVGHeight-(d.top*dim.tsSVGHeight)) + ((d.cp/2)*dim.tsSVGHeight)) < circleR) {
+                if (((dim.tsSVGHeight-(d.top*dim.tsSVGHeight)) + ((d.cp/2)*dim.tsSVGHeight)) < dim.circleR) {
                     d3.select(this).attr('y', '1px');
                     return '.71em';
                 }
 
                 // ... is cut off at the bottom, shift up
-                else if (((d.bottom*dim.tsSVGHeight) + ((d.cp/2)*dim.tsSVGHeight)) < circleR) {
+                else if (((d.bottom*dim.tsSVGHeight) + ((d.cp/2)*dim.tsSVGHeight)) < dim.circleR) {
                     d3.select(this).attr('y', dim.tsSVGHeight);
                     return '-1px';
                 }
@@ -1787,26 +1787,51 @@ HTMLWidgets.widget({
         .attr('x2', function(d, i) { return (i / (vizObj.data.timepoints.length - 1)) * dim.tsSVGWidth; })
         .attr('y2', dim.tsSVGHeight);
 
-    // plot cellular prevalence labels at each time point - traditional timesweep view
-    d3.selectAll('.label,.sepLabel')
+    // adjust cellular prevalence label (and background) positioning
+    d3.selectAll('.labelCirc, .sepLabelCirc')
+        .attr('cx', function(d) { 
+
+            // index of this time point relative to others
+            var index = vizObj.data.timepoints.indexOf(d.tp); 
+
+            var x_val = (index / (vizObj.data.timepoints.length-1)) * (dim.tsSVGWidth);
+
+            // if the time point is the last
+            if (index == vizObj.data.timepoints.length - 1) {
+                // shift it to the left
+                x_val -= dim.circleR;
+            }
+
+            return x_val; 
+        })
+        .attr('cy', function(d) { 
+            // if the label, when centered vertically...
+            // ... is cut off at the top, shift down
+            if (((dim.tsSVGHeight-(d.middle*dim.tsSVGHeight)) + ((d.cp/2)*dim.tsSVGHeight)) < dim.circleR) {
+                return 1 + dim.circleR;
+            }
+
+            // ... is cut off at the bottom, shift up
+            else if (((d.middle*dim.tsSVGHeight) + ((d.cp/2)*dim.tsSVGHeight)) < dim.circleR) {
+                return dim.tsSVGHeight - 1 - dim.circleR;
+            }
+
+            // ... is not cut off, center vertically
+            return (1 - d.middle)*dim.tsSVGHeight; 
+        });
+
+    d3.selectAll('.label, .sepLabel')
         .attr('x', function(d) { 
 
             // index of this time point relative to others
             var index = vizObj.data.timepoints.indexOf(d.tp); 
 
             var x_val = (index / (vizObj.data.timepoints.length-1)) * (dim.tsSVGWidth);
-            var text_margin = (dim.panel_width - this.getBBox().width)/2; // margin between text and edge of panel
 
-            // if the time point is not the last
-            if (index < vizObj.data.timepoints.length - 1) {
-                // move it to the right 
-                x_val += text_margin;
-            }
-
-            // if the time point *is* the last
-            else {
+            // if the time point is the last
+            if (index == vizObj.data.timepoints.length - 1) {
                 // shift it to the left
-                x_val -= (text_margin + this.getBBox().width);
+                x_val -= dim.circleR;
             }
 
             return x_val; 
@@ -1814,22 +1839,45 @@ HTMLWidgets.widget({
         .attr('y', function(d) { return (1 - d.middle)*dim.tsSVGHeight; })
         .attr('dy', function(d) {
 
-            // if the label, when centered vertically...
-            // ... is cut off at the top, shift down
-            if (((dim.tsSVGHeight-(d.top*dim.tsSVGHeight)) + (d.cp*dim.tsSVGHeight)) < this.getBBox().height) {
-                d3.select(this).attr('y', '1px');
-                return '.71em';
+            if (d.type == "traditional") {
+                // if the label, when centered vertically...
+                // ... is cut off at the top, shift down
+                if (((dim.tsSVGHeight-(d.middle*dim.tsSVGHeight)) + ((d.cp/2)*dim.tsSVGHeight)) < dim.circleR) {
+                    d3.select(this).attr('y', 1 + dim.circleR);
+                }
+
+                // ... is cut off at the bottom, shift up
+                else if (((d.middle*dim.tsSVGHeight) + ((d.cp/2)*dim.tsSVGHeight)) < dim.circleR) {
+                    d3.select(this).attr('y', dim.tsSVGHeight - 1 - dim.circleR);
+                }
+
+                // ... is not cut off, center vertically
+                return '.35em';
+            }
+            else {
+                // if the label, when centered vertically...
+                // ... is cut off at the top, shift down
+                if (((dim.tsSVGHeight-(d.top*dim.tsSVGHeight)) + ((d.cp/2)*dim.tsSVGHeight)) < dim.circleR) {
+                    d3.select(this).attr('y', '1px');
+                    return '.71em';
+                }
+
+                // ... is cut off at the bottom, shift up
+                else if (((d.bottom*dim.tsSVGHeight) + ((d.cp/2)*dim.tsSVGHeight)) < dim.circleR) {
+                    d3.select(this).attr('y', dim.tsSVGHeight);
+                    return '-1px';
+                }
+
+                // ... is not cut off, center vertically
+                return '.35em';
             }
 
-            // ... is cut off at the bottom, shift up
-            else if (((d.bottom*dim.tsSVGHeight) + (d.cp*dim.tsSVGHeight)) < this.getBBox().height) {
-                d3.select(this).attr('y', dim.tsSVGHeight);
-                return '-1px';
-            }
+        })
+        .attr('fill', 'black')
+        .attr('opacity', 0)
+        .attr('text-anchor', 'middle')
+        .style('pointer-events', 'none');
 
-            // ... is not cut off, center vertically
-            return '.35em';
-        });
 
     // PLOT AXES
 
