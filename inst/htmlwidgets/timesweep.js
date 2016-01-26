@@ -23,7 +23,7 @@ HTMLWidgets.widget({
         gridsterBaseDimension: 120,
         switchView: true,
         panel_width: 30,
-        centredView: true,
+        centredView: true, // genotypes centred or not
         fontSize: 11,
         circleR: 20
     };
@@ -255,16 +255,15 @@ HTMLWidgets.widget({
     vizObj.data.separate_bezier_paths = separate_bezier_paths;
 
     // get colour assignment based on tree hierarchy
-    var colour_assignment;
+    var colour_assignment = {};
     // if unspecified, use default
     if (x.node_col_JSON == "NA") {
         var colour_palette = _getColourPalette();
         var chains = _getLinearTreeSegments(vizObj.data.treeStructure, {}, "");
-        colour_assignment = _colourTree(vizObj, chains, vizObj.data.treeStructure, colour_palette, {}, "Greys");
+        colour_assignment = _colourTree(vizObj, chains, vizObj.data.treeStructure, colour_palette, {}, "Greens");
     }
     // otherwise, use specified colours
     else {
-        colour_assignment = {};
         x.node_col_JSON.forEach(function(col, col_idx) {
             var col_value = col.col;
             if (col_value[0] != "#") { // append a hashtag if necessary
@@ -290,7 +289,7 @@ HTMLWidgets.widget({
         .attr('class', function() { return 'tsPlot ' + patientID_class; })
         .attr('d', function(d) { return d.path; })
         .attr('fill', function(d) { return colour_assignment[d.gtype]; }) 
-        .attr('stroke', function(d) { return colour_assignment[d.gtype]; })
+        // .attr('stroke', function(d) { return colour_assignment[d.gtype]; })
         .on('click', function() {
             // hide any cellular prevalence labels
             d3.selectAll(".label, .sepLabel")
@@ -347,19 +346,15 @@ HTMLWidgets.widget({
             
         })
         .on('mouseover', function(d) {
-            var curGtype = d.gtype;
+            var curGtype = d.gtype,
+                brightness;
 
             // dim other genotypes
             d3.selectAll('.tsPlot.' + patientID_class)
                 .attr('fill', function(d) { 
                     if (d.gtype != curGtype) {
-                        return 'grey';
-                    }
-                    return colour_assignment[d.gtype];
-                })
-                .attr('stroke', function(d) { 
-                    if (d.gtype != curGtype) {
-                        return 'white';
+                        brightness = Math.round(_get_brightness(colour_assignment[d.gtype]));
+                        return _rgb2hex("rgb(" + brightness + "," + brightness + "," + brightness + ")");
                     }
                     return colour_assignment[d.gtype];
                 });
@@ -392,8 +387,7 @@ HTMLWidgets.widget({
 
             // reset colours
             d3.selectAll('.tsPlot.' + patientID_class)
-                .attr('fill', function(d) { return colour_assignment[d.gtype]; }) 
-                .attr('stroke', function(d) { return colour_assignment[d.gtype]; });
+                .attr('fill', function(d) { return colour_assignment[d.gtype]; });
 
             // traditional view
             if (dim.switchView) {
@@ -517,39 +511,19 @@ HTMLWidgets.widget({
         .attr('y', function(d) { return (1 - d.middle)*dim.tsSVGHeight; })
         .attr('dy', function(d) {
 
-            if (d.type == "traditional") {
-                // if the label, when centered vertically...
-                // ... is cut off at the top, shift down
-                if (((dim.tsSVGHeight-(d.middle*dim.tsSVGHeight)) + ((d.cp/2)*dim.tsSVGHeight)) < dim.circleR) {
-                    d3.select(this).attr('y', 1 + dim.circleR);
-                }
-
-                // ... is cut off at the bottom, shift up
-                else if (((d.middle*dim.tsSVGHeight) + ((d.cp/2)*dim.tsSVGHeight)) < dim.circleR) {
-                    d3.select(this).attr('y', dim.tsSVGHeight - 1 - dim.circleR);
-                }
-
-                // ... is not cut off, center vertically
-                return '.35em';
-            }
-            else {
-                // if the label, when centered vertically...
-                // ... is cut off at the top, shift down
-                if (((dim.tsSVGHeight-(d.top*dim.tsSVGHeight)) + ((d.cp/2)*dim.tsSVGHeight)) < dim.circleR) {
-                    d3.select(this).attr('y', '1px');
-                    return '.71em';
-                }
-
-                // ... is cut off at the bottom, shift up
-                else if (((d.bottom*dim.tsSVGHeight) + ((d.cp/2)*dim.tsSVGHeight)) < dim.circleR) {
-                    d3.select(this).attr('y', dim.tsSVGHeight);
-                    return '-1px';
-                }
-
-                // ... is not cut off, center vertically
-                return '.35em';
+            // if the label, when centered vertically...
+            // ... is cut off at the top, shift down
+            if (((dim.tsSVGHeight-(d.middle*dim.tsSVGHeight)) + ((d.cp/2)*dim.tsSVGHeight)) < dim.circleR) {
+                d3.select(this).attr('y', 1 + dim.circleR);
             }
 
+            // ... is cut off at the bottom, shift up
+            else if (((d.middle*dim.tsSVGHeight) + ((d.cp/2)*dim.tsSVGHeight)) < dim.circleR) {
+                d3.select(this).attr('y', dim.tsSVGHeight - 1 - dim.circleR);
+            }
+
+            // ... is not cut off, center vertically
+            return '.35em';
         })
         .attr('fill', 'black')
         .attr('opacity', 0)

@@ -337,7 +337,6 @@ function _reorderTree(vizObj, curNode) {
 function _getColourPalette() {
 
     var colours = {
-        "Greys" : ($.extend([], colorbrewer.Greys[9])),
         "Purples" : ($.extend([], colorbrewer.Purples[9])),
         "Blues" : ($.extend([], colorbrewer.Blues[9])),
         "Greens" : ($.extend([], colorbrewer.Greens[9])),
@@ -1028,4 +1027,33 @@ function _sort2DArrByValue(obj)
     }
 
     return first_elements; 
+}
+
+// Check color brightness
+// returns brightness value from 0 to 255
+// http://www.webmasterworld.com/forum88/9769.htm
+function _get_brightness(hexCode) {
+    // strip off any leading #
+    hexCode = hexCode.replace('#', '');
+
+    var c_r = parseInt(hexCode.substr(0, 2),16);
+    var c_g = parseInt(hexCode.substr(2, 2),16);
+    var c_b = parseInt(hexCode.substr(4, 2),16);
+
+    return ((c_r * 299) + (c_g * 587) + (c_b * 114)) / 1000;
+}
+
+
+// convert RGB to hex
+// http://stackoverflow.com/questions/1740700/get-hex-value-rather-than-rgb-value-using-jquery
+function _rgb2hex(rgb) {
+     if (  rgb.search("rgb") == -1 ) {
+          return rgb;
+     } else {
+          rgb = rgb.match(/^rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*(\d+))?\)$/);
+          function hex(x) {
+               return ("0" + parseInt(x).toString(16)).slice(-2);
+          }
+          return "#" + hex(rgb[1]) + hex(rgb[2]) + hex(rgb[3]); 
+     }
 }
