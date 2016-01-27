@@ -49,7 +49,8 @@ function _getCentredLayout(vizObj, curNode, tp, layout, yBottom) {
             "bottom": yBottom,
             "top": yBottom + width,
             "cp": cur_cp,
-            "state": "present"
+            "state": "present",
+            "nChildren": nChildren
         }
     }
 
@@ -616,7 +617,9 @@ function _getTraditionalCPLabels(vizObj) {
         layout = vizObj.data.layout,
         labels = [], // array of labels
         data, // data for a genotype at a time point
-        label; // current label to add
+        label, // current label to add
+        curDescendants,
+        gTypes_curTP; 
 
     // for each time point
     Object.keys(layout).forEach(function(tp, tp_idx) {
@@ -624,12 +627,18 @@ function _getTraditionalCPLabels(vizObj) {
 
             // for each genotype
             Object.keys(layout[tp]).forEach(function(gtype, gtype_idx) {
+                curDescendants = vizObj.data.treeDescendantsArr[gtype];
+                // var immediateDescendants = _.pluck(vizObj.data.)
+                gTypes_curTP = Object.keys(vizObj.data.cp_data[tp]); 
 
                 // data for this genotype at this time point
                 data = layout[tp][gtype];
 
                 // if the genotype exists at this time point (isn't emerging or disappearing / replaced)
                 if ((data.bottom != data.top_no_descendants) && gtype != "Root") {
+
+                    var nDesc = _getIntersection(curDescendants, gTypes_curTP).length;
+                    console.log("nDesc - " + nDesc);
 
                     // add its information 
                     label = {};
@@ -638,17 +647,13 @@ function _getTraditionalCPLabels(vizObj) {
                         label['tp'] = tp;
                         label['gtype'] = gtype;
                         label['cp'] = data.cp;
-                        label['top'] = data.top;
-                        label['bottom'] = data.top - (data.cp/2);
-                        label['middle'] = data.top - (data.cp/4);
+                        label['middle'] = data.top - (data.cp/(2*(data.nChildren+1)));
                         label['type'] = "traditional";
                     }
                     else { // stacked view
                         label['tp'] = tp;
                         label['gtype'] = gtype;
                         label['cp'] = data.top_no_descendants-data.bottom;
-                        label['top'] = data.top_no_descendants;
-                        label['bottom'] = data.bottom;
                         label['middle'] = (data.top_no_descendants + data.bottom)/2;
                         label['type'] = "traditional";
                     }

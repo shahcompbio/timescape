@@ -190,42 +190,28 @@ HTMLWidgets.widget({
     vizObj.data.cp_data = cp_data;
 
     // get emergence values for each genotype
-    var emergence_values = _getEmergenceValues(vizObj);
-    vizObj.data.emergence_values = emergence_values;
+    vizObj.data.emergence_values = _getEmergenceValues(vizObj);
 
     // reorder the tree according to the genotypes' emergent cellular prevalence values
     _reorderTree(vizObj, vizObj.data.treeStructure); // TODO is this working?????
 
-
-    // --> TRADITIONAL TIMESWEEP VIEW (HIERARCHICAL GENOTYPES) <-- //
-
-    // get the layout of the timesweep
-    _getLayout(vizObj, dim.centredView);
-
-    // get cellular prevalence labels for each genotype at each time point 
-    var ts_labels = _getTraditionalCPLabels(vizObj);
-    vizObj.data.ts_labels = ts_labels;
-
-    // shift x-values if >1 genotype emerges at the same time point from the same clade in the tree
-    _shiftEmergence(vizObj)
-
-    // convert genotype stacks at each time point into a list of moves for each genotype's d3 path object
-    var traditional_paths = _getTraditionalPaths(vizObj);
-    vizObj.data.traditional_paths = traditional_paths;
-
-
-    // --> SEPARATE TIMESWEEP VIEW (SEPARATE GENOTYPES) <-- //
-
     // convert time-centric cellular prevalence data into genotype-centric cellular prevalence data
     _getGenotypeCPData(vizObj);
 
-    // get paths for each genotype
-    var separate_paths = _getSeparatePaths(vizObj);
-    vizObj.data.separate_paths = separate_paths;
+    // get the layout of the traditional timesweep
+    _getLayout(vizObj, dim.centredView);
 
-    // get cellular prevalence labels for each genotype at each time point
-    var ts_sep_labels = _getSeparateCPLabels(vizObj);
-    vizObj.data.ts_sep_labels = ts_sep_labels;
+    // in the layout, shift x-values if >1 genotype emerges at the 
+    // same time point from the same clade in the tree
+    _shiftEmergence(vizObj)
+
+    // convert layout at each time point into a list of moves for each genotype's d3 path object
+    vizObj.data.separate_paths = _getSeparatePaths(vizObj);
+    vizObj.data.traditional_paths = _getTraditionalPaths(vizObj);
+
+    // get cellular prevalence labels
+    vizObj.data.ts_trad_labels = _getTraditionalCPLabels(vizObj);
+    vizObj.data.ts_sep_labels = _getSeparateCPLabels(vizObj);
 
 
 
@@ -466,7 +452,7 @@ HTMLWidgets.widget({
         .style('pointer-events', 'none');
 
     // plot cellular prevalence labels at each time point - traditional timesweep view 
-    var labels = vizObj.data.ts_labels.concat(vizObj.data.ts_sep_labels);
+    var labels = vizObj.data.ts_trad_labels.concat(vizObj.data.ts_sep_labels);
 
     var labelG = vizObj.view.tsSVG
         .selectAll('.gLabel')
@@ -500,12 +486,12 @@ HTMLWidgets.widget({
         .attr('cy', function(d) { 
             // if the label, when centered vertically...
             // ... is cut off at the top, shift down
-            if (((dim.tsSVGHeight-(d.middle*dim.tsSVGHeight)) + ((d.cp/2)*dim.tsSVGHeight)) < dim.circleR) {
+            if ((dim.tsSVGHeight-(d.middle*dim.tsSVGHeight)) < dim.circleR) {
                 return 1 + dim.circleR;
             }
 
             // ... is cut off at the bottom, shift up
-            else if (((d.middle*dim.tsSVGHeight) + ((d.cp/2)*dim.tsSVGHeight)) < dim.circleR) {
+            else if ((d.middle*dim.tsSVGHeight) < dim.circleR) {
                 return dim.tsSVGHeight - 1 - dim.circleR;
             }
 
@@ -550,12 +536,12 @@ HTMLWidgets.widget({
 
             // if the label, when centered vertically...
             // ... is cut off at the top, shift down
-            if (((dim.tsSVGHeight-(d.middle*dim.tsSVGHeight)) + ((d.cp/2)*dim.tsSVGHeight)) < dim.circleR) {
+            if ((dim.tsSVGHeight-(d.middle*dim.tsSVGHeight)) < dim.circleR) {
                 d3.select(this).attr('y', 1 + dim.circleR);
             }
 
             // ... is cut off at the bottom, shift up
-            else if (((d.middle*dim.tsSVGHeight) + ((d.cp/2)*dim.tsSVGHeight)) < dim.circleR) {
+            else if ((d.middle*dim.tsSVGHeight) < dim.circleR) {
                 d3.select(this).attr('y', dim.tsSVGHeight - 1 - dim.circleR);
             }
 
