@@ -24,14 +24,13 @@ function _getCentredLayout(vizObj, curNode, tp, layout, yBottom) {
     layout[tp] = layout[tp] || {};
 
     // if the genotype or any descendants exist at this timepoint
-    if ((cur_cp || (_getIntersection(curDescendants, gTypes_curTP).length > 0)) 
-        && curNode.id != "Root") {
+    if (cur_cp || (_getIntersection(curDescendants, gTypes_curTP).length > 0)) {
 
         // get the width of this genotype at this time point, including all descendants
         var width = _calculateWidth(vizObj, tp, gtype);
 
         // if this genotype emerged at the previous time point
-        if (gTypes_prevTP && _getIntersection([gtype], gTypes_prevTP).length == 0) {
+        if (gTypes_prevTP && _getIntersection([gtype], gTypes_prevTP).length == 0 && gtype != "Root") {
 
             layout[prev_tp][gtype] = {
                 "width": 0,
@@ -247,8 +246,9 @@ function _getLinearTreeSegments(curNode, chains, base) {
 */
 function _colourTree(vizObj, chains, curNode, palette, colour_assignment, curTheme) {
 
-    // if we're at the root, modify the colour palette here
+    // colour node
     if (curNode.id == "Root") {
+        colour_assignment[curNode.id] = vizObj.view.config.rootColour; // grey
         var n = chains[curNode.id].length+1; // + 1 to include the base key (this child)
         var tmp_palette = [];
         for (var j = 8; j >= 0; j -= Math.floor(9/n)) {
@@ -256,12 +256,12 @@ function _colourTree(vizObj, chains, curNode, palette, colour_assignment, curThe
         }
         palette[curTheme] = tmp_palette;
     }
-
-    // assign colour to this key
-    colour_assignment[curNode.id] = palette[curTheme].shift();
+    else {
+        colour_assignment[curNode.id] = palette[curTheme].shift();
+    }
 
     // if the current key has zero or >1 child to search through
-    if (curNode.children.length != 1) { 
+    if (curNode.children.length != 1 && curNode.id != "Root") { 
 
         // remove its colour theme from the colour themes available
         delete palette[curTheme];
@@ -629,7 +629,7 @@ function _getTraditionalCPLabels(vizObj) {
                 data = layout[tp][gtype];
 
                 // if the genotype exists at this time point (isn't emerging or disappearing / replaced)
-                if (data.bottom != data.top_no_descendants) {
+                if ((data.bottom != data.top_no_descendants) && gtype != "Root") {
 
                     // add its information 
                     label = {};

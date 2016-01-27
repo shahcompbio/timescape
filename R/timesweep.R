@@ -11,6 +11,7 @@
 #' @param yaxis.title y-axis title.
 #' @param alpha Alpha value for sweeps
 #' @param centred Whether the genotypes should be centred (T) or stacked (F)
+#' @param show.root Whether or not to show the root in the timesweep view
 #' @param width Width of the plot. 
 #' @param height Height of the plot.
 #' @export
@@ -18,7 +19,7 @@
 #' library("timesweep")
 #' timesweep("SAMPLE_PATIENT", system.file("extdata", "clonal_dynamics.csv", package = "timesweep"), 
 #'            system.file("extdata", "tree.gml", package = "timesweep"))
-timesweep <- function(patient, clonal.prev.csv, tree.gml, node.col, xaxis.title, yaxis.title, alpha, centred, width = NULL, 
+timesweep <- function(patient, clonal.prev.csv, tree.gml, node.col, xaxis.title, yaxis.title, alpha, centred, show.root, width = NULL, 
                       height = NULL) {
 
   # parse csv
@@ -42,17 +43,21 @@ timesweep <- function(patient, clonal.prev.csv, tree.gml, node.col, xaxis.title,
   } 
 
   if (missing(alpha)) {
-    alpha <- "NA"
+    alpha <- 30
   } 
 
-  if (missing(centred)) {
-    centred <- "T"
-  }
-  else if (centred) {
+  if (missing(centred) || centred) {
     centred <- "T"
   }
   else {
     centred <- "F"
+  }
+
+  if (missing(show.root) || show.root) {
+    show.root <- "T"
+  }
+  else {
+    show.root <- "F"
   }
 
   # forward options using x
@@ -64,7 +69,8 @@ timesweep <- function(patient, clonal.prev.csv, tree.gml, node.col, xaxis.title,
     xaxis_title = xaxis.title,
     yaxis_title = yaxis.title,
     alpha = alpha,
-    centred = centred
+    centred = centred,
+    show_root = show.root
   )
 
   # create widget

@@ -24,7 +24,8 @@ HTMLWidgets.widget({
         switchView: true,
         panel_width: 30,
         fontSize: 11,
-        circleR: 20
+        circleR: 20,
+        rootColour: '#DDDADA'
     };
 
     // global variable vizObj
@@ -101,8 +102,9 @@ HTMLWidgets.widget({
   renderValue: function(el, x, instance) {
     var dim = vizObj.view.config;
 
-    // is view centred or not
-    dim.centredView = (x.centred == "T") ? true : false; 
+    // get params from R
+    dim.centredView = (x.centred == "T") ? true : false; // is view centred or not
+    dim.showRoot = (x.show_root == "T") ? true : false; // whether or not to show the root in the view
 
 
     // GET CONTENT
@@ -193,7 +195,7 @@ HTMLWidgets.widget({
 
     // reorder the tree according to the genotypes' emergent cellular prevalence values
     _reorderTree(vizObj, vizObj.data.treeStructure); // TODO is this working?????
-    
+
 
     // --> TRADITIONAL TIMESWEEP VIEW (HIERARCHICAL GENOTYPES) <-- //
 
@@ -276,7 +278,15 @@ HTMLWidgets.widget({
             return (x.alpha == "NA") ? colour_assignment[d.gtype] : 
                 _increase_brightness(colour_assignment[d.gtype], x.alpha);
         }) 
-        .attr('stroke', function(d) { return colour_assignment[d.gtype]; })
+        .attr('stroke', function(d) { 
+            return (d.gtype == "Root" && dim.showRoot) ? dim.rootColour : colour_assignment[d.gtype]; 
+        })
+        .attr('fill-opacity', function(d) {
+            return (d.gtype == "Root" && !dim.showRoot) ? 0 : 1;
+        })
+        .attr('stroke-opacity', function(d) {
+            return (d.gtype == "Root" && !dim.showRoot) ? 0 : 1;
+        })
         .on('click', function() {
             // hide any cellular prevalence labels
             d3.selectAll(".label, .sepLabel")
@@ -327,6 +337,15 @@ HTMLWidgets.widget({
                     .attr('fill', function(d) { 
                         return (x.alpha == "NA") ? colour_assignment[d.gtype] : 
                             _increase_brightness(colour_assignment[d.gtype], x.alpha);
+                    }) 
+                    .attr('stroke', function(d) { 
+                        return (d.gtype == "Root" && dim.showRoot) ? dim.rootColour : colour_assignment[d.gtype]; 
+                    })
+                    .attr('fill-opacity', function(d) {
+                        return (d.gtype == "Root" && !dim.showRoot) ? 0 : 1;
+                    })
+                    .attr('stroke-opacity', function(d) {
+                        return (d.gtype == "Root" && !dim.showRoot) ? 0 : 1;
                     })
                     .transition()
                     .duration(1000)
@@ -337,13 +356,23 @@ HTMLWidgets.widget({
         })
         .on('mouseover', function(d) {
             var curGtype = d.gtype,
-                brightness;
+                brightness,
+                col;
 
             // dim other genotypes
             d3.selectAll('.tsPlot.' + patientID_class)
                 .attr('fill', function(d) { 
-                    if (d.gtype != curGtype) {
-                        brightness = Math.round(_get_brightness(colour_assignment[d.gtype]));
+                    if (d.gtype == "Root") {
+                        return dim.rootColour;
+                    }
+                    else if (d.gtype != curGtype) {
+                        if (x.alpha == "NA") {
+                            col = colour_assignment[d.gtype];
+                        }
+                        else {
+                            col = _increase_brightness(colour_assignment[d.gtype], x.alpha);
+                        }
+                        brightness = Math.round(_get_brightness(col));
                         return _rgb2hex("rgb(" + brightness + "," + brightness + "," + brightness + ")");
                     }
                     else {
@@ -352,12 +381,15 @@ HTMLWidgets.widget({
                     }
                 })
                 .attr('stroke', function(d) { 
-                    if (d.gtype != curGtype) {
+                    if (d.gtype == "Root") {
+                        return dim.rootColour;
+                    }
+                    else if (d.gtype != curGtype) {
                         brightness = Math.round(_get_brightness(colour_assignment[d.gtype]));
                         return _rgb2hex("rgb(" + brightness + "," + brightness + "," + brightness + ")");
                     }
                     else {
-                        return colour_assignment[d.gtype];
+                        return (d.gtype == "Root" && dim.showRoot) ? dim.rootColour : colour_assignment[d.gtype];
                     }
                 });
 
@@ -393,7 +425,9 @@ HTMLWidgets.widget({
                     return (x.alpha == "NA") ? colour_assignment[d.gtype] : 
                         _increase_brightness(colour_assignment[d.gtype], x.alpha);
                 })
-                .attr('stroke', function(d) { return colour_assignment[d.gtype]; });
+                .attr('stroke', function(d) { 
+                    return (d.gtype == "Root" && dim.showRoot) ? dim.rootColour : colour_assignment[d.gtype];
+                });
 
             // traditional view
             if (dim.switchView) {
