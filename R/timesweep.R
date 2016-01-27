@@ -9,6 +9,8 @@
 #'   values as colors.
 #' @param xaxis.title x-axis title. 
 #' @param yaxis.title y-axis title.
+#' @param alpha Alpha value for sweeps
+#' @param centred Whether the genotypes should be centred (T) or stacked (F)
 #' @param width Width of the plot. 
 #' @param height Height of the plot.
 #' @export
@@ -16,7 +18,7 @@
 #' library("timesweep")
 #' timesweep("SAMPLE_PATIENT", system.file("extdata", "clonal_dynamics.csv", package = "timesweep"), 
 #'            system.file("extdata", "tree.gml", package = "timesweep"))
-timesweep <- function(patient, clonal.prev.csv, tree.gml, node.col, xaxis.title, yaxis.title, alpha, width = NULL, 
+timesweep <- function(patient, clonal.prev.csv, tree.gml, node.col, xaxis.title, yaxis.title, alpha, centred, width = NULL, 
                       height = NULL) {
 
   # parse csv
@@ -43,6 +45,16 @@ timesweep <- function(patient, clonal.prev.csv, tree.gml, node.col, xaxis.title,
     alpha <- "NA"
   } 
 
+  if (missing(centred)) {
+    centred <- "T"
+  }
+  else if (centred) {
+    centred <- "T"
+  }
+  else {
+    centred <- "F"
+  }
+
   # forward options using x
   x = list(
     patient = patient,
@@ -51,7 +63,8 @@ timesweep <- function(patient, clonal.prev.csv, tree.gml, node.col, xaxis.title,
     node_col_JSON = node.col.JSON,
     xaxis_title = xaxis.title,
     yaxis_title = yaxis.title,
-    alpha = alpha
+    alpha = alpha,
+    centred = centred
   )
 
   # create widget

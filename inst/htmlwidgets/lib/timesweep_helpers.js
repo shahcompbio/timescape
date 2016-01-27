@@ -6,7 +6,7 @@
 * @param {Object} curNode -- current key in the tree
 * @param {Number} yBottom -- where is the bottom of this genotype, in the y-dimension
 */
-function _getLayout(vizObj, curNode, tp, layout, yBottom) {
+function _getCentredLayout(vizObj, curNode, tp, layout, yBottom) {
     var gtype = curNode.id,
         cp_data = vizObj.data.cp_data,
         cur_cp = cp_data[tp][gtype],
@@ -58,7 +58,7 @@ function _getLayout(vizObj, curNode, tp, layout, yBottom) {
     if (nChildren > 0) {
         for (var i = 0; i < nChildren; i++) {
             childYBottom = (cur_cp) ? (((i+1)/(nChildren+1)) * cur_cp) + childCP + yBottom : yBottom;
-            _getLayout(vizObj, curNode.children[i], tp, layout, childYBottom);
+            _getCentredLayout(vizObj, curNode.children[i], tp, layout, childYBottom);
             childCP += _calculateWidth(vizObj, tp, curNode.children[i].id);
         }
     }
@@ -278,7 +278,7 @@ function _colourTree(vizObj, chains, curNode, palette, colour_assignment, curThe
     else {
         // reorder the children according to their emergent cellular prevalence
         var tmpChildren = $.extend([], curNode.children);
-        // tmpChildren.sort(function(a, b) {return vizObj.data.gTypeStackOrder.indexOf(a.id) - vizObj.data.gTypeStackOrder.indexOf(b.id)});
+        // tmpChildren.sort(function(a, b) {return vizObj.data.layoutOrder.indexOf(a.id) - vizObj.data.layoutOrder.indexOf(b.id)});
         
         // for each child
         for (var i = 0; i < tmpChildren.length; i++) {
@@ -409,15 +409,15 @@ function _pathTween(vizObj, type) {
 * -- ensures that the *later* children emerge, the *closer* they are to their parent in the stack
 * @param {Object} timesweep_data -- timesweep data
 * @param {Array} emergence_values -- values of genotype emergence
-* @param {Array} gTypeStackOrder -- originally empty array of the final vertical stacking order
+* @param {Array} layoutOrder -- originally empty array of the final vertical stacking order
 */
-function _vStackOrder(curNode, emergence_values, gTypeStackOrder) {
+function _vStackOrder(curNode, emergence_values, layoutOrder) {
     var child_emerg_vals = [], // emergence values of children
         sorted_children, // children sorted by their emergence values
         child_obj; // current child node
 
     // add the current key id to the final vertical stacking order
-    gTypeStackOrder.push(curNode.id);
+    layoutOrder.push(curNode.id);
 
     // if the current key has children to search through
     if (curNode.children.length > 0) {
@@ -432,25 +432,27 @@ function _vStackOrder(curNode, emergence_values, gTypeStackOrder) {
         // in the *reverse* order of emergence values, search children
         sorted_children.map(function(child) {
             child_obj = _.findWhere(curNode.children, {id: child});
-            _vStackOrder(child_obj, emergence_values, gTypeStackOrder);
+            _vStackOrder(child_obj, emergence_values, layoutOrder);
         })
     } 
+
+    return layoutOrder;
 }
 
 /* function to create a stack element (a genotype interval at a particular time point)
-* @param {Object} gTypeStacks -- for each time point, all of the genotypes present and their cellular prevalences
+* @param {Object} layout -- layout of each genotype at each time point
 * @param {String} tp -- time point of interest
 * @param {String} gtype -- genotype of interest
 * @param {Number} bottom_val -- value for the bottom of the interval
 * @param {Number} top_val -- value for the top of the interval
 * @param {String} state -- state of the genotype at this time point (e.g. "emerges", "present", "disappears")
 */
-function _createStackElement(gTypeStacks, tp, gtype, bottom_val, top_val, state) {
+function _createStackElement(layout, tp, gtype, bottom_val, top_val, state) {
     // create the time point in the stack if it doesn't already exist
-    gTypeStacks[tp] = gTypeStacks[tp] || {}; 
+    layout[tp] = layout[tp] || {}; 
 
     // create the genotype in the stack
-    gTypeStacks[tp][gtype] = {
+    layout[tp][gtype] = {
         "bottom": bottom_val,
         "top": top_val,
         "top_no_descendants": top_val, // the top of this genotype, without including its descendants
@@ -458,14 +460,58 @@ function _createStackElement(gTypeStacks, tp, gtype, bottom_val, top_val, state)
     };
 }
 
+/* function to get the layout of the timesweep, different depending on whether user wants centred
+* or stacked view
+* @param {Object} vizObj
+* @param {Boolean} centred -- whether centred (T) or stacked (F) view desired
+*/
+function _getLayout(vizObj, centred) {
+
+    // ------> CENTRED
+    if (centred) {
+
+        // get genotype layout order
+        vizObj.data.layoutOrder = _getCentredLayoutOrder(vizObj.data.treeStructure, []);
+
+        // get layout of each genotype at each timepoint
+        vizObj.data.layout = {};
+        $.each(vizObj.data.timepoints, function(tp_idx, tp) { // for each time point
+            _getCentredLayout(vizObj, vizObj.data.treeStructure, tp, vizObj.data.layout, 0);
+        })
+    }
+
+    // ------> STACKED
+    else {
+
+    
+        // traverse the tree to sort the genotypes into a final vertical stacking order (incorporating hierarchy)
+        vizObj.data.layoutOrder = _vStackOrder(vizObj.data.treeStructure, vizObj.data.emergence_values, [])
+
+        // get layout of each genotype at each timepoint
+        vizObj.data.layout = _getStackedLayout(vizObj);
+    }
+}
+
+/* function to get genotype layout order for centred timesweep layout
+* @param {Object} curNode -- current node in the tree
+* @param {Array} layoutOrder -- originally empty array will be filled with the layout order of genotypes
+*/
+function _getCentredLayoutOrder(curNode, layoutOrder) {
+    layoutOrder.push(curNode.id);
+    for (var i = 0; i < curNode.children.length; i++) {
+        _getCentredLayoutOrder(curNode.children[i], layoutOrder)
+    }
+    return layoutOrder;
+}
+
 /* function to get cellular prevalences for each genotype in a stack, one stack for each time point
 * @param {Object} vizObj
 */
-function _getGenotypeStacks(vizObj) {
-    var gTypeStacks = {},
+function _getStackedLayout(vizObj) {
+    var layout = {},
         cp_data = vizObj.data.cp_data,
         timepoints = vizObj.data.timepoints,
-        gTypeStackOrder = vizObj.data.gTypeStackOrder,
+        layoutOrder = vizObj.data.layoutOrder,
         replaced_gtypes = {},
         curDescendants,
         gTypeAndDescendants, // genotype and descendants
@@ -479,14 +525,14 @@ function _getGenotypeStacks(vizObj) {
     // for each timepoint (in order)...
     $.each(timepoints, function(tp_idx, tp) { 
 
-        gTypeStacks[tp] = gTypeStacks[tp] || {}; // stack for this time point (may already be created if disappearance occurs at this time point)
+        layout[tp] = layout[tp] || {}; // stack for this time point (may already be created if disappearance occurs at this time point)
         var cp = cp_data[tp], // cellular prevalence data for this time point
             sHeight = 0, // current height of the stack
             prev_tp = timepoints[tp_idx-1],
             next_tp = timepoints[tp_idx+1];
 
         // ... for each genotype ...
-        $.each(gTypeStackOrder, function(gtype_idx, gtype) { 
+        $.each(layoutOrder, function(gtype_idx, gtype) { 
             curDescendants = vizObj.data.treeDescendantsArr[gtype];
             gTypeAndDescendants = ($.extend([], curDescendants)); 
             gTypeAndDescendants.push(gtype); 
@@ -501,20 +547,20 @@ function _getGenotypeStacks(vizObj) {
                 (gTypes_nextTP && _getIntersection(gTypeAndDescendants, gTypes_nextTP).length > 0)) {
 
                 // create the stack element as emerging
-                _createStackElement(gTypeStacks, tp, gtype, 0, 0, "emerges");
+                _createStackElement(layout, tp, gtype, 0, 0, "emerges");
 
             }
 
             // if this genotype is REPLACED by any descendant at this time point
             else if (!cp_data[tp][gtype] && (_getIntersection(curDescendants, gTypes_curTP).length > 0)) {
-                _createStackElement(gTypeStacks, tp, gtype, sHeight, sHeight, "replaced");
+                _createStackElement(layout, tp, gtype, sHeight, sHeight, "replaced");
                 replaced_gtypes[gtype] = replaced_gtypes[gtype] || [];
                 replaced_gtypes[gtype].push(tp);
             }
 
             // if neither this genotype nor any descendants are present at this time point (they DISAPPEAR)
             else if (!cp_data[tp][gtype] && _getIntersection(gTypeAndDescendants, gTypes_curTP).length == 0) {
-                _createStackElement(gTypeStacks, tp, gtype, sHeight, sHeight, "disappears_stretched");
+                _createStackElement(layout, tp, gtype, sHeight, sHeight, "disappears_stretched");
             }
 
             // if this genotype or any descendants EXIST at this time point
@@ -524,34 +570,34 @@ function _getGenotypeStacks(vizObj) {
                 delete replaced_gtypes[gtype]; 
 
                 // create it as present
-                _createStackElement(gTypeStacks, tp, gtype, sHeight, sHeight + width, "present");
-                midpoint = (gTypeStacks[tp][gtype]["bottom"] + gTypeStacks[tp][gtype]["top"])/2;
+                _createStackElement(layout, tp, gtype, sHeight, sHeight + width, "present");
+                midpoint = (layout[tp][gtype]["bottom"] + layout[tp][gtype]["top"])/2;
 
                 // update stack height
-                sHeight = gTypeStacks[tp][gtype]["top"];
+                sHeight = layout[tp][gtype]["top"];
 
                 // if it EMERGED at the previous time point
-                if (cp_data[prev_tp] && gTypeStacks[prev_tp][gtype] && gTypeStacks[prev_tp][gtype]["state"] == "emerges") {
+                if (cp_data[prev_tp] && layout[prev_tp][gtype] && layout[prev_tp][gtype]["state"] == "emerges") {
 
                     // update its emergence y-value
-                    _createStackElement(gTypeStacks, prev_tp, gtype, midpoint, midpoint, "emerges");
+                    _createStackElement(layout, prev_tp, gtype, midpoint, midpoint, "emerges");
                 }
 
                 // update ancestors to incorporate the current genotype's stack interval
                 for (var i = 0; i < curAncestors.length; i++) {
 
                     // if the ancestor has not been replaced by its descendants
-                    if (gTypeStacks[tp][curAncestors[i]] && 
+                    if (layout[tp][curAncestors[i]] && 
                         (!replaced_gtypes[curAncestors[i]] || // (either not in replaced list ...
                         (replaced_gtypes[curAncestors[i]].length == 1))) {  // ... or has just been replaced at current time point)
 
                         // update PRESENCE in this time point (increase "top" value)
-                        gTypeStacks[tp][curAncestors[i]]["top"] += width;
-                        ancestor_midpoint = (gTypeStacks[tp][curAncestors[i]]["top"] + gTypeStacks[tp][curAncestors[i]]["bottom"])/2;
+                        layout[tp][curAncestors[i]]["top"] += width;
+                        ancestor_midpoint = (layout[tp][curAncestors[i]]["top"] + layout[tp][curAncestors[i]]["bottom"])/2;
 
                         // update EMERGENCE in previous time point (y-coordinate)
-                        if (cp_data[prev_tp] && gTypeStacks[prev_tp][curAncestors[i]] && gTypeStacks[prev_tp][curAncestors[i]]["state"] == "emerges") {
-                            _createStackElement(gTypeStacks, prev_tp, curAncestors[i], ancestor_midpoint, ancestor_midpoint, "emerges");
+                        if (cp_data[prev_tp] && layout[prev_tp][curAncestors[i]] && layout[prev_tp][curAncestors[i]]["state"] == "emerges") {
+                            _createStackElement(layout, prev_tp, curAncestors[i], ancestor_midpoint, ancestor_midpoint, "emerges");
                         }
                     }
                 }
@@ -559,7 +605,7 @@ function _getGenotypeStacks(vizObj) {
         })
     })
 
-    return gTypeStacks;
+    return layout;
 }
 
 /* function to get cellular prevalence labels for each genotype at each time point, for traditional timesweep view
@@ -567,20 +613,20 @@ function _getGenotypeStacks(vizObj) {
 */
 function _getTraditionalCPLabels(vizObj) {
     var dim = vizObj.view.config,
-        gTypeStacks = (dim.centredView) ? vizObj.data.layout : vizObj.data.gTypeStacks,
+        layout = vizObj.data.layout,
         labels = [], // array of labels
         data, // data for a genotype at a time point
         label; // current label to add
 
     // for each time point
-    Object.keys(gTypeStacks).forEach(function(tp, tp_idx) {
+    Object.keys(layout).forEach(function(tp, tp_idx) {
         if (tp != "N") {
 
             // for each genotype
-            Object.keys(gTypeStacks[tp]).forEach(function(gtype, gtype_idx) {
+            Object.keys(layout[tp]).forEach(function(gtype, gtype_idx) {
 
                 // data for this genotype at this time point
-                data = gTypeStacks[tp][gtype];
+                data = layout[tp][gtype];
 
                 // if the genotype exists at this time point (isn't emerging or disappearing / replaced)
                 if (data.bottom != data.top_no_descendants) {
@@ -662,12 +708,12 @@ function _getSeparateCPLabels(vizObj) {
 }
 
 /* function to find the ancestors of the specified genotype that emerge at a particular time point
-* @param {Object} gTypeStacks -- for each time point, the interval boundaries for each genotype in the stack at that time point
+* @param {Object} layout -- for each time point, the interval boundaries for each genotype at that time point
 * @param {Object} treeAncestorsArr -- for each genotype (properties), an array of their ancestors (values)
 * @param {String} gtype -- the genotype of interest
 * @param {String} tp -- the time point of interest
 */
-function _findEmergentAncestors(gTypeStacks, treeAncestorsArr, gtype, tp) {
+function _findEmergentAncestors(layout, treeAncestorsArr, gtype, tp) {
     var ancestors = [],
         pot_ancestor; // potential ancestor
 
@@ -676,7 +722,7 @@ function _findEmergentAncestors(gTypeStacks, treeAncestorsArr, gtype, tp) {
         pot_ancestor = treeAncestorsArr[gtype][i];
 
         // if this ancestor emerged here as well, increase the # ancestors for this genotype
-        if (gTypeStacks[tp][pot_ancestor] && gTypeStacks[tp][pot_ancestor]["state"] == "emerges") {
+        if (layout[tp][pot_ancestor] && layout[tp][pot_ancestor]["state"] == "emerges") {
             ancestors.push(pot_ancestor);
         }
     }
@@ -689,13 +735,13 @@ function _findEmergentAncestors(gTypeStacks, treeAncestorsArr, gtype, tp) {
 */
 function _shiftEmergence(vizObj) {
     var dim = vizObj.view.config,
-        gTypeStacks = (dim.centredView) ? vizObj.data.layout : vizObj.data.gTypeStacks,
-        gTypeStackOrder = vizObj.data.gTypeStackOrder,
+        layout = vizObj.data.layout,
+        layoutOrder = vizObj.data.layoutOrder,
         timepoints = vizObj.data.timepoints,
         treeAncestorsArr = vizObj.data.treeAncestorsArr,
         treeDescendantsArr = vizObj.data.treeDescendantsArr,
         nPartitions,
-        gTypeStackOrder_rev,
+        layoutOrder_rev,
         ancestors,
         ancestors_of_ancestor,
         curNPartitions,
@@ -707,14 +753,14 @@ function _shiftEmergence(vizObj) {
 
         // for each genotype (backwards in stacking order -- descendant before ancestral)
         nPartitions = -1;
-        gTypeStackOrder_rev = ($.extend([], gTypeStackOrder)).reverse();
-        $.each(gTypeStackOrder_rev, function(gtype_idx, gtype) {
+        layoutOrder_rev = ($.extend([], layoutOrder)).reverse();
+        $.each(layoutOrder_rev, function(gtype_idx, gtype) {
 
             // if the genotype is emerging at this time point
-            if (gTypeStacks[tp][gtype] && (gTypeStacks[tp][gtype]["state"] == "emerges")) {
+            if (layout[tp][gtype] && (layout[tp][gtype]["state"] == "emerges")) {
                 
                 // get the ancestors that also emerge at this time point
-                ancestors = _findEmergentAncestors(gTypeStacks, treeAncestorsArr, gtype, tp);
+                ancestors = _findEmergentAncestors(layout, treeAncestorsArr, gtype, tp);
                 curNPartitions = ancestors.length+2;
 
                 // if this is the largest number of ancestors so far, update the number of partitions
@@ -732,17 +778,17 @@ function _shiftEmergence(vizObj) {
         genotypes_xshifted = [];
 
         // for each genotype (backwards in stacking order -- descendant before ancestral)
-        $.each(gTypeStackOrder_rev, function(gtype_idx, gtype) {
+        $.each(layoutOrder_rev, function(gtype_idx, gtype) {
             
             // if this genotype has not already been x-shifted and emerges at this time point
-            if ((genotypes_xshifted.indexOf(gtype) == -1) && gTypeStacks[tp][gtype] && (gTypeStacks[tp][gtype]["state"] == "emerges")) {
+            if ((genotypes_xshifted.indexOf(gtype) == -1) && layout[tp][gtype] && (layout[tp][gtype]["state"] == "emerges")) {
 
                 // get the ancestors that also emerge at this time point
-                ancestors = _findEmergentAncestors(gTypeStacks, treeAncestorsArr, gtype, tp);
+                ancestors = _findEmergentAncestors(layout, treeAncestorsArr, gtype, tp);
 
                 // x-shift and x-partition for the current genotype (depends on how many of its ancestors emerge)
-                gTypeStacks[tp][gtype]["xShift"] = (ancestors.length+1) / nPartitions;
-                gTypeStacks[tp][gtype]["nPartitions"] = nPartitions;
+                layout[tp][gtype]["xShift"] = (ancestors.length+1) / nPartitions;
+                layout[tp][gtype]["nPartitions"] = nPartitions;
 
                 genotypes_xshifted.push(gtype);
 
@@ -750,11 +796,11 @@ function _shiftEmergence(vizObj) {
                 for (var i = 0; i < ancestors.length; i++) {
 
                     // find the ancestor's ancestors that also emerge at this time point
-                    ancestors_of_ancestor = _findEmergentAncestors(gTypeStacks, treeAncestorsArr, ancestors[i], tp);
+                    ancestors_of_ancestor = _findEmergentAncestors(layout, treeAncestorsArr, ancestors[i], tp);
                     
                     // x-shift and x-partition for the current ancestor (depends on how many of its ancestors emerge)
-                    gTypeStacks[tp][ancestors[i]]["xShift"] = (ancestors_of_ancestor.length+1) / nPartitions;
-                    gTypeStacks[tp][ancestors[i]]["nPartitions"] = nPartitions;
+                    layout[tp][ancestors[i]]["xShift"] = (ancestors_of_ancestor.length+1) / nPartitions;
+                    layout[tp][ancestors[i]]["nPartitions"] = nPartitions;
 
                     genotypes_xshifted.push(ancestors[i]);
                 }
@@ -770,10 +816,10 @@ function _shiftEmergence(vizObj) {
 */
 function _getTraditionalPaths(vizObj) {
     var dim = vizObj.view.config,
-        gTypeStacks = (dim.centredView) ? vizObj.data.layout : vizObj.data.gTypeStacks,
+        layout = vizObj.data.layout,
         timepoints = vizObj.data.timepoints,
         timepoints_rev = ($.extend([], timepoints)).reverse(),
-        gTypeStackOrder = vizObj.data.gTypeStackOrder,
+        layoutOrder = vizObj.data.layoutOrder,
         paths = [],
         cur_path,
         emerges,
@@ -786,17 +832,17 @@ function _getTraditionalPaths(vizObj) {
         appear_xBottom,
         appear_xTop;
 
-    $.each(gTypeStackOrder, function(gtype_idx, gtype) {
+    $.each(layoutOrder, function(gtype_idx, gtype) {
 
         // path for the current genotype
         cur_path = {"gtype": gtype, "path":[]};
         
         // for each time point (in sequence)...
         $.each(timepoints, function(idx, tp) {
-            if (gTypeStacks[tp][gtype]) {
-                emerges = (gTypeStacks[tp][gtype]["state"] == "emerges");
-                xShift = gTypeStacks[tp][gtype]["xShift"];
-                nPartitions = gTypeStacks[tp][gtype]["nPartitions"];
+            if (layout[tp][gtype]) {
+                emerges = (layout[tp][gtype]["state"] == "emerges");
+                xShift = layout[tp][gtype]["xShift"];
+                nPartitions = layout[tp][gtype]["nPartitions"];
                 appear_tp = timepoints[idx+1];
                 end_tp = timepoints[idx-1];
 
@@ -809,24 +855,24 @@ function _getTraditionalPaths(vizObj) {
                     xBottom = (idx)/(timepoints.length-1);
                 }
                 cur_path["path"].push({ "x": xBottom, 
-                                        "y": gTypeStacks[tp][gtype]["bottom"]});
+                                        "y": layout[tp][gtype]["bottom"]});
 
                 // ... if the current genotype emerges at the current time point... 
                 if (emerges) {
                     // ... add a path point to expand the sweep such that its descendants can be contained within it
                     appear_xBottom = (idx + xShift + (1/nPartitions))/(timepoints.length-1);
                     cur_path["path"].push({ "x": appear_xBottom, 
-                                        "y": gTypeStacks[appear_tp][gtype]["bottom"]}); // y-coordinate at next time point
+                                        "y": layout[appear_tp][gtype]["bottom"]}); // y-coordinate at next time point
                 }                   
             }
         })
 
         // for each time point (in *reverse* sequence)...
         $.each(timepoints_rev, function(idx, tp) {
-            if (gTypeStacks[tp][gtype]) {
-                emerges = (gTypeStacks[tp][gtype]["state"] == "emerges");
-                nPartitions = gTypeStacks[tp][gtype]["nPartitions"];
-                xShift = gTypeStacks[tp][gtype]["xShift"];
+            if (layout[tp][gtype]) {
+                emerges = (layout[tp][gtype]["state"] == "emerges");
+                nPartitions = layout[tp][gtype]["nPartitions"];
+                xShift = layout[tp][gtype]["xShift"];
                 appear_tp = timepoints_rev[idx-1];
                 end_tp = timepoints_rev[idx+1];
 
@@ -835,7 +881,7 @@ function _getTraditionalPaths(vizObj) {
                     // ... add a path point to bring forward the sweep such that its descendants can be contained within it
                     appear_xTop = ((timepoints.length-1) - idx + xShift + (1/nPartitions))/(timepoints.length-1);
                     cur_path["path"].push({ "x": appear_xTop, 
-                                        "y": gTypeStacks[appear_tp][gtype]["top"]}); // y-coordinate at next time point
+                                        "y": layout[appear_tp][gtype]["top"]}); // y-coordinate at next time point
                 }   
 
                 // ... add a path point for the top of the genotype's interval at the current time point
@@ -847,7 +893,7 @@ function _getTraditionalPaths(vizObj) {
                     xTop = ((timepoints.length-1) - idx)/(timepoints.length-1);
                 }
                 cur_path["path"].push({ "x": xTop, 
-                                        "y": gTypeStacks[tp][gtype]["top"]});
+                                        "y": layout[tp][gtype]["top"]});
             }
         })
         
@@ -867,9 +913,9 @@ function _getSeparatePaths(vizObj) {
     var dim = vizObj.view.config,
         timepoints = vizObj.data.timepoints,
         timepoints_rev = ($.extend([], timepoints)).reverse(),
-        gTypeStackOrder = vizObj.data.gTypeStackOrder,
+        layoutOrder = vizObj.data.layoutOrder,
         genotype_cp = vizObj.data.genotype_cp,
-        gTypeStacks = (dim.centredView) ? vizObj.data.layout : vizObj.data.gTypeStacks,
+        layout = vizObj.data.layout,
         padding = 0.03,
         ts_sep_labels = vizObj.data.ts_sep_labels,
         paths = [],
@@ -900,7 +946,7 @@ function _getSeparatePaths(vizObj) {
     denominator += full_padding;
 
     // for each genotype, get its path through the time points
-    $.each(gTypeStackOrder, function(gtype_idx, gtype) {
+    $.each(layoutOrder, function(gtype_idx, gtype) {
 
         if (Object.keys(largest_cps).indexOf(gtype) != -1) {
 
@@ -916,8 +962,8 @@ function _getSeparatePaths(vizObj) {
 
                 // xShift info
                 entry_exit_options = ["disappears_stretched", "emerges", "replaced"];
-                entry_exit = (gTypeStacks[tp][gtype]) ? (entry_exit_options.indexOf(gTypeStacks[tp][gtype]["state"]) != -1) : false;
-                xShift = (gTypeStacks[tp][gtype] && gTypeStacks[tp][gtype]["xShift"]) ? gTypeStacks[tp][gtype]["xShift"] : 0;
+                entry_exit = (layout[tp][gtype]) ? (entry_exit_options.indexOf(layout[tp][gtype]["state"]) != -1) : false;
+                xShift = (layout[tp][gtype] && layout[tp][gtype]["xShift"]) ? layout[tp][gtype]["xShift"] : 0;
 
                 if (entry_exit || genotype_cp[gtype][tp]) {
                     // add this genotype to the seen genotypes
@@ -937,8 +983,8 @@ function _getSeparatePaths(vizObj) {
 
                 // xShift info
                 entry_exit_options = ["disappears_stretched", "emerges", "replaced"];
-                entry_exit = (gTypeStacks[tp][gtype]) ? (entry_exit_options.indexOf(gTypeStacks[tp][gtype]["state"]) != -1) : false;
-                xShift = (gTypeStacks[tp][gtype] && gTypeStacks[tp][gtype]["xShift"]) ? gTypeStacks[tp][gtype]["xShift"] : 0;
+                entry_exit = (layout[tp][gtype]) ? (entry_exit_options.indexOf(layout[tp][gtype]["state"]) != -1) : false;
+                xShift = (layout[tp][gtype] && layout[tp][gtype]["xShift"]) ? layout[tp][gtype]["xShift"] : 0;
 
                 // add the path point
                 if (entry_exit || genotype_cp[gtype][tp]) {

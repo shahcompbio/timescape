@@ -23,7 +23,6 @@ HTMLWidgets.widget({
         gridsterBaseDimension: 120,
         switchView: true,
         panel_width: 30,
-        centredView: false, // genotypes centred or not
         fontSize: 11,
         circleR: 20
     };
@@ -101,6 +100,9 @@ HTMLWidgets.widget({
 
   renderValue: function(el, x, instance) {
     var dim = vizObj.view.config;
+
+    // is view centred or not
+    dim.centredView = (x.centred == "T") ? true : false; 
 
 
     // GET CONTENT
@@ -192,29 +194,11 @@ HTMLWidgets.widget({
     // reorder the tree according to the genotypes' emergent cellular prevalence values
     _reorderTree(vizObj, vizObj.data.treeStructure); // TODO is this working?????
     
-    // traverse the tree to sort the genotypes into a final vertical stacking order (incorporating hierarchy)
-    var gTypeStackOrder = [];
-    _vStackOrder(vizObj.data.treeStructure, emergence_values, gTypeStackOrder)
-    vizObj.data.gTypeStackOrder = gTypeStackOrder;
-
 
     // --> TRADITIONAL TIMESWEEP VIEW (HIERARCHICAL GENOTYPES) <-- //
 
-    // ------> STACKED
-
-    // get cellular prevalences for each genotype in a stack, one stack for each time point
-    var gTypeStacks = _getGenotypeStacks(vizObj);
-    vizObj.data.gTypeStacks = gTypeStacks; 
-
-    // ------> CENTRED
-
-    // get layout of each genotype at each timepoint
-    var layout = {};
-    $.each(vizObj.data.timepoints, function(tp_idx, tp) { // for each time point
-        _getLayout(vizObj, vizObj.data.treeStructure, tp, layout, 0);
-    })
-    vizObj.data.layout = layout;    
-
+    // get the layout of the timesweep
+    _getLayout(vizObj, dim.centredView);
 
     // get cellular prevalence labels for each genotype at each time point 
     var ts_labels = _getTraditionalCPLabels(vizObj);
