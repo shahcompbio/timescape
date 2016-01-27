@@ -620,7 +620,7 @@ function _getTraditionalCPLabels(vizObj) {
 
     // for each time point
     Object.keys(layout).forEach(function(tp, tp_idx) {
-        if (tp != "N") {
+        if (tp != "T0") {
 
             // for each genotype
             Object.keys(layout[tp]).forEach(function(gtype, gtype_idx) {
@@ -688,7 +688,7 @@ function _getSeparateCPLabels(vizObj) {
             cp = path[j]["cp"];
             tp = path[j]["tp"];
 
-            if (tp != "N") {
+            if (tp != "T0") {
 
                 // if the genotype exists at this time point (isn't emerging or disappearing / replaced)
                 if (cp) {

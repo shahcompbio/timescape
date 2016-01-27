@@ -171,9 +171,9 @@ HTMLWidgets.widget({
         }
     });
 
-    // get timepoints, prepend a "N" timepoint to represent the timepoint before any data originated
+    // get timepoints, prepend a "T0" timepoint to represent the timepoint before any data originated
     var timepoints = Object.keys(cp_data).sort();
-    timepoints.unshift("N");
+    timepoints.unshift("T0");
     vizObj.data.timepoints = timepoints;
 
     // genotypes
@@ -185,8 +185,8 @@ HTMLWidgets.widget({
     timesweep_data = {};
 
     // create timepoint zero with 100% cellular prevalence for the root of the tree
-    cp_data["N"] = {};
-    cp_data["N"]["Root"] = 1;
+    cp_data["T0"] = {};
+    cp_data["T0"]["Root"] = 1;
     vizObj.data.cp_data = cp_data;
 
     // get emergence values for each genotype
