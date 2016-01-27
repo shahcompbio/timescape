@@ -23,7 +23,7 @@ HTMLWidgets.widget({
         gridsterBaseDimension: 120,
         switchView: true,
         panel_width: 30,
-        centredView: true, // genotypes centred or not
+        centredView: false, // genotypes centred or not
         fontSize: 11,
         circleR: 20
     };
@@ -288,8 +288,15 @@ HTMLWidgets.widget({
         .enter().append('path')
         .attr('class', function() { return 'tsPlot ' + patientID_class; })
         .attr('d', function(d) { return d.path; })
-        .attr('fill', function(d) { return colour_assignment[d.gtype]; }) 
-        // .attr('stroke', function(d) { return colour_assignment[d.gtype]; })
+        .attr('fill', function(d) { 
+            if (x.alpha == "NA") {
+                return colour_assignment[d.gtype]; 
+            }
+            else {
+                return _increase_brightness(colour_assignment[d.gtype], x.alpha);
+            }
+        }) 
+        .attr('stroke', function(d) { return colour_assignment[d.gtype]; })
         .on('click', function() {
             // hide any cellular prevalence labels
             d3.selectAll(".label, .sepLabel")
@@ -396,7 +403,14 @@ HTMLWidgets.widget({
 
             // reset colours
             d3.selectAll('.tsPlot.' + patientID_class)
-                .attr('fill', function(d) { return colour_assignment[d.gtype]; })
+                .attr('fill', function(d) { 
+                    if (x.alpha == "NA") {
+                        return colour_assignment[d.gtype]; 
+                    }
+                    else {
+                        return _increase_brightness(colour_assignment[d.gtype], x.alpha);
+                    }
+                })
                 .attr('stroke', null);;
 
             // traditional view

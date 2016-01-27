@@ -16,7 +16,7 @@
 #' library("timesweep")
 #' timesweep("SAMPLE_PATIENT", system.file("extdata", "clonal_dynamics.csv", package = "timesweep"), 
 #'            system.file("extdata", "tree.gml", package = "timesweep"))
-timesweep <- function(patient, clonal.prev.csv, tree.gml, node.col, xaxis.title, yaxis.title, width = NULL, 
+timesweep <- function(patient, clonal.prev.csv, tree.gml, node.col, xaxis.title, yaxis.title, alpha, width = NULL, 
                       height = NULL) {
 
   # parse csv
@@ -39,6 +39,10 @@ timesweep <- function(patient, clonal.prev.csv, tree.gml, node.col, xaxis.title,
     yaxis.title <- "NA"
   } 
 
+  if (missing(alpha)) {
+    alpha <- "NA"
+  } 
+
   # forward options using x
   x = list(
     patient = patient,
@@ -46,7 +50,8 @@ timesweep <- function(patient, clonal.prev.csv, tree.gml, node.col, xaxis.title,
     tree_gml = gmlString,
     node_col_JSON = node.col.JSON,
     xaxis_title = xaxis.title,
-    yaxis_title = yaxis.title
+    yaxis_title = yaxis.title,
+    alpha = alpha
   )
 
   # create widget
