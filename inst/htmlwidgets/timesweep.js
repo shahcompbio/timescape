@@ -353,11 +353,20 @@ HTMLWidgets.widget({
             d3.selectAll('.tsPlot.' + patientID_class)
                 .attr('fill', function(d) { 
                     if (d.gtype != curGtype) {
-                        brightness = Math.round(_get_brightness(colour_assignment[d.gtype]));
+                        brightness = Math.round(_get_brightness(colour_assignment[d.gtype])) + 70;
+                        if (brightness > 255) {
+                            brightness = 255;
+                        }
                         return _rgb2hex("rgb(" + brightness + "," + brightness + "," + brightness + ")");
                     }
                     return colour_assignment[d.gtype];
-                });
+                })
+                .attr('stroke', function(d) {
+                        if (d.gtype == curGtype) {
+                            return 'grey';
+                        }
+                        return null;
+                    });
 
             // traditional view
             if (dim.switchView) { 
@@ -387,7 +396,8 @@ HTMLWidgets.widget({
 
             // reset colours
             d3.selectAll('.tsPlot.' + patientID_class)
-                .attr('fill', function(d) { return colour_assignment[d.gtype]; });
+                .attr('fill', function(d) { return colour_assignment[d.gtype]; })
+                .attr('stroke', null);;
 
             // traditional view
             if (dim.switchView) {
