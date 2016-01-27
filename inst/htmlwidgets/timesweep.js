@@ -289,12 +289,8 @@ HTMLWidgets.widget({
         .attr('class', function() { return 'tsPlot ' + patientID_class; })
         .attr('d', function(d) { return d.path; })
         .attr('fill', function(d) { 
-            if (x.alpha == "NA") {
-                return colour_assignment[d.gtype]; 
-            }
-            else {
-                return _increase_brightness(colour_assignment[d.gtype], x.alpha);
-            }
+            return (x.alpha == "NA") ? colour_assignment[d.gtype] : 
+                _increase_brightness(colour_assignment[d.gtype], x.alpha);
         }) 
         .attr('stroke', function(d) { return colour_assignment[d.gtype]; })
         .on('click', function() {
@@ -344,7 +340,10 @@ HTMLWidgets.widget({
                     .insert('path', '.tsPlot')
                     .attr('class', 'tsPlot')
                     .attr("d", _centreLine(vizObj))
-                    .attr('fill', function(d) { return colour_assignment[d.gtype]; }) 
+                    .attr('fill', function(d) { 
+                        return (x.alpha == "NA") ? colour_assignment[d.gtype] : 
+                            _increase_brightness(colour_assignment[d.gtype], x.alpha);
+                    })
                     .transition()
                     .duration(1000)
                     .attrTween("d", _pathTween(vizObj, "move"));
@@ -360,20 +359,23 @@ HTMLWidgets.widget({
             d3.selectAll('.tsPlot.' + patientID_class)
                 .attr('fill', function(d) { 
                     if (d.gtype != curGtype) {
-                        brightness = Math.round(_get_brightness(colour_assignment[d.gtype])) + 70;
-                        if (brightness > 255) {
-                            brightness = 255;
-                        }
+                        brightness = Math.round(_get_brightness(colour_assignment[d.gtype]));
                         return _rgb2hex("rgb(" + brightness + "," + brightness + "," + brightness + ")");
                     }
-                    return colour_assignment[d.gtype];
+                    else {
+                        return (x.alpha == "NA") ? colour_assignment[d.gtype] : 
+                            _increase_brightness(colour_assignment[d.gtype], x.alpha);
+                    }
                 })
-                .attr('stroke', function(d) {
-                        if (d.gtype == curGtype) {
-                            return 'grey';
-                        }
-                        return null;
-                    });
+                .attr('stroke', function(d) { 
+                    if (d.gtype != curGtype) {
+                        brightness = Math.round(_get_brightness(colour_assignment[d.gtype]));
+                        return _rgb2hex("rgb(" + brightness + "," + brightness + "," + brightness + ")");
+                    }
+                    else {
+                        return colour_assignment[d.gtype];
+                    }
+                });
 
             // traditional view
             if (dim.switchView) { 
@@ -404,14 +406,10 @@ HTMLWidgets.widget({
             // reset colours
             d3.selectAll('.tsPlot.' + patientID_class)
                 .attr('fill', function(d) { 
-                    if (x.alpha == "NA") {
-                        return colour_assignment[d.gtype]; 
-                    }
-                    else {
-                        return _increase_brightness(colour_assignment[d.gtype], x.alpha);
-                    }
+                    return (x.alpha == "NA") ? colour_assignment[d.gtype] : 
+                        _increase_brightness(colour_assignment[d.gtype], x.alpha);
                 })
-                .attr('stroke', null);;
+                .attr('stroke', function(d) { return colour_assignment[d.gtype]; });
 
             // traditional view
             if (dim.switchView) {
