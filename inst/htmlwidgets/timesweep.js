@@ -252,7 +252,8 @@ HTMLWidgets.widget({
     // get the alpha colour assignment
     var alpha_colour_assignment = {};
     Object.keys(colour_assignment).forEach(function(key, key_idx) {
-        alpha_colour_assignment[key] = _increase_brightness(colour_assignment[key], x.alpha);
+        alpha_colour_assignment[key] = (key == "Root") ? 
+            dim.rootColour : _increase_brightness(colour_assignment[key], x.alpha);
     });
 
 

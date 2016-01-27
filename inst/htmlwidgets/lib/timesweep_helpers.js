@@ -638,7 +638,6 @@ function _getTraditionalCPLabels(vizObj) {
                 if ((data.bottom != data.top_no_descendants) && gtype != "Root") {
 
                     var nDesc = _getIntersection(curDescendants, gTypes_curTP).length;
-                    console.log("nDesc - " + nDesc);
 
                     // add its information 
                     label = {};
