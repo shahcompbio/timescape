@@ -263,6 +263,12 @@ HTMLWidgets.widget({
         colour_assignment['Root'] = "#000000";
     }
 
+    // get the alpha colour assignment
+    var alpha_colour_assignment = {};
+    Object.keys(colour_assignment).forEach(function(key, key_idx) {
+        alpha_colour_assignment[key] = _increase_brightness(colour_assignment[key], x.alpha);
+    });
+
 
     // plot timesweep data
     var patientID_class = 'patientID_' + vizObj.data.patient_id
@@ -275,8 +281,7 @@ HTMLWidgets.widget({
         .attr('class', function() { return 'tsPlot ' + patientID_class; })
         .attr('d', function(d) { return d.path; })
         .attr('fill', function(d) { 
-            return (x.alpha == "NA") ? colour_assignment[d.gtype] : 
-                _increase_brightness(colour_assignment[d.gtype], x.alpha);
+            return (x.alpha == "NA") ? colour_assignment[d.gtype] : alpha_colour_assignment[d.gtype];
         }) 
         .attr('stroke', function(d) { 
             return (d.gtype == "Root" && dim.showRoot) ? dim.rootColour : colour_assignment[d.gtype]; 
@@ -335,8 +340,7 @@ HTMLWidgets.widget({
                     .attr('class', 'tsPlot')
                     .attr("d", _centreLine(vizObj))
                     .attr('fill', function(d) { 
-                        return (x.alpha == "NA") ? colour_assignment[d.gtype] : 
-                            _increase_brightness(colour_assignment[d.gtype], x.alpha);
+                        return (x.alpha == "NA") ? colour_assignment[d.gtype] : alpha_colour_assignment[d.gtype];
                     }) 
                     .attr('stroke', function(d) { 
                         return (d.gtype == "Root" && dim.showRoot) ? dim.rootColour : colour_assignment[d.gtype]; 
@@ -366,18 +370,12 @@ HTMLWidgets.widget({
                         return dim.rootColour;
                     }
                     else if (d.gtype != curGtype) {
-                        if (x.alpha == "NA") {
-                            col = colour_assignment[d.gtype];
-                        }
-                        else {
-                            col = _increase_brightness(colour_assignment[d.gtype], x.alpha);
-                        }
+                        col = (x.alpha == "NA") ? colour_assignment[d.gtype] : alpha_colour_assignment[d.gtype];
                         brightness = Math.round(_get_brightness(col));
                         return _rgb2hex("rgb(" + brightness + "," + brightness + "," + brightness + ")");
                     }
                     else {
-                        return (x.alpha == "NA") ? colour_assignment[d.gtype] : 
-                            _increase_brightness(colour_assignment[d.gtype], x.alpha);
+                        return (x.alpha == "NA") ? colour_assignment[d.gtype] : alpha_colour_assignment[d.gtype];
                     }
                 })
                 .attr('stroke', function(d) { 
@@ -422,8 +420,7 @@ HTMLWidgets.widget({
             // reset colours
             d3.selectAll('.tsPlot.' + patientID_class)
                 .attr('fill', function(d) { 
-                    return (x.alpha == "NA") ? colour_assignment[d.gtype] : 
-                        _increase_brightness(colour_assignment[d.gtype], x.alpha);
+                    return (x.alpha == "NA") ? colour_assignment[d.gtype] : alpha_colour_assignment[d.gtype];
                 })
                 .attr('stroke', function(d) { 
                     return (d.gtype == "Root" && dim.showRoot) ? dim.rootColour : colour_assignment[d.gtype];
@@ -637,7 +634,8 @@ HTMLWidgets.widget({
         .attr('y', function(d, i) { return i*13 + 25; }) // 25 for legend title
         .attr('height', 10)
         .attr('width', 10)
-        .attr('fill', function(d) { return colour_assignment[d]; });
+        .attr('fill', function(d) { return alpha_colour_assignment[d]; })
+        .attr('stroke', function(d) { return colour_assignment[d]; });
 
     // plot legend text
     vizObj.view.tsLegendSVG
@@ -721,6 +719,9 @@ HTMLWidgets.widget({
         .attr("cy", function(d) { return d.y})              
         .classed("treeNode", true) 
         .attr("fill", function(d) {
+            return alpha_colour_assignment[d.id];
+        })
+        .attr('stroke', function(d) {
             return colour_assignment[d.id];
         })
         .attr("id", function(d) { return d.sc_id; })
