@@ -1,5 +1,177 @@
 // FUNCTIONS
 
+function _sweepClick(vizObj) {
+    var dim = vizObj.view.config,
+        colour_assignment = vizObj.view.colour_assignment,
+        alpha_colour_assignment = vizObj.view.alpha_colour_assignment,
+        x = vizObj.data.userConfig;
+
+    // hide any cellular prevalence labels
+    d3.selectAll(".label, .sepLabel")
+        .attr('opacity', 0);
+    d3.selectAll(".labelCirc, .sepLabelCirc")
+        .attr('fill-opacity', 0);
+
+    // transition to separate timesweep view
+    if (dim.switchView) {
+        var sweeps = vizObj.view.tsSVG
+            .selectAll('.tsPlot')
+            .data(vizObj.data.separate_bezier_paths, function(d) {
+                return d.gtype;
+            })
+
+        sweeps
+            .transition()
+            .duration(1000)
+            .attrTween("d", _pathTween(vizObj, "move"));
+
+        // remove genotypes that do not have cellular prevalence values
+        sweeps
+            .exit()
+            .transition()
+            .duration(1000)
+            .attrTween("d", _pathTween(vizObj, "exit"))
+            .remove();
+    }
+    // transition to traditional timesweep view
+    else {
+        var sweeps = vizObj.view.tsSVG
+            .selectAll('.tsPlot')
+            .data(vizObj.data.bezier_paths, function(d) {
+                return d.gtype;
+            })
+
+        sweeps
+            .transition()
+            .duration(1000)
+            .attrTween("d", _pathTween(vizObj, "move"));
+
+        // add those genotypes that do not have cellular prevalence values, but are in the hierarchy
+        sweeps
+            .enter()
+            .insert('path', '.tsPlot')
+            .attr('class', 'tsPlot')
+            .attr("d", _centreLine(vizObj))
+            .attr('fill', function(d) { 
+                return (x.alpha == "NA") ? colour_assignment[d.gtype] : alpha_colour_assignment[d.gtype];
+            }) 
+            .attr('stroke', function(d) { 
+                return (d.gtype == "Root" && dim.showRoot) ? dim.rootColour : colour_assignment[d.gtype]; 
+            })
+            .attr('fill-opacity', function(d) {
+                return (d.gtype == "Root" && !dim.showRoot) ? 0 : 1;
+            })
+            .attr('stroke-opacity', function(d) {
+                return (d.gtype == "Root" && !dim.showRoot) ? 0 : 1;
+            })
+            .transition()
+            .duration(1000)
+            .attrTween("d", _pathTween(vizObj, "move"));
+    }
+    dim.switchView = !dim.switchView;
+}
+
+function _sweepMouseover(d, vizObj) {
+    var curGtype = d.gtype,
+        brightness,
+        col,
+        dim = vizObj.view.config,
+        colour_assignment = vizObj.view.colour_assignment,
+        alpha_colour_assignment = vizObj.view.alpha_colour_assignment,
+        patientID_class = 'patientID_' + vizObj.data.patient_id,
+        x = vizObj.data.userConfig;
+
+    // dim other genotypes
+    d3.selectAll('.tsPlot.' + patientID_class)
+        .attr('fill', function(d) { 
+            if (d.gtype == "Root") {
+                return dim.rootColour;
+            }
+            else if (d.gtype != curGtype) {
+                col = (x.alpha == "NA") ? colour_assignment[d.gtype] : alpha_colour_assignment[d.gtype];
+                brightness = Math.round(_get_brightness(col));
+                return _rgb2hex("rgb(" + brightness + "," + brightness + "," + brightness + ")");
+            }
+            else {
+                return (x.alpha == "NA") ? colour_assignment[d.gtype] : alpha_colour_assignment[d.gtype];
+            }
+        })
+        .attr('stroke', function(d) { 
+            if (d.gtype == "Root") {
+                return dim.rootColour;
+            }
+            else if (d.gtype != curGtype) {
+                brightness = Math.round(_get_brightness(colour_assignment[d.gtype]));
+                return _rgb2hex("rgb(" + brightness + "," + brightness + "," + brightness + ")");
+            }
+            else {
+                return (d.gtype == "Root" && dim.showRoot) ? dim.rootColour : colour_assignment[d.gtype];
+            }
+        });
+
+    // traditional view
+    if (dim.switchView) { 
+        // show labels
+        d3.selectAll(".label.gtype_" + curGtype + '.' + patientID_class)
+            .attr('opacity', 1);
+
+        // show label backgrounds
+        d3.selectAll(".labelCirc.gtype_" + curGtype)
+            .attr('fill-opacity', 0.5);                
+    }
+
+    // separate genotypes view
+    else { 
+        // show labels
+        d3.selectAll(".sepLabel.gtype_" + curGtype + '.' + patientID_class)
+            .attr('opacity', 1);
+
+        // show label backgrounds
+        d3.selectAll(".sepLabelCirc.gtype_" + curGtype)
+            .attr('fill-opacity', 0.5);                
+    }
+}
+
+function _sweepMouseout(d, vizObj) {
+    var curGtype = d.gtype,
+        dim = vizObj.view.config,
+        colour_assignment = vizObj.view.colour_assignment,
+        alpha_colour_assignment = vizObj.view.alpha_colour_assignment,
+        patientID_class = 'patientID_' + vizObj.data.patient_id,
+        x = vizObj.data.userConfig;
+
+    // reset colours
+    d3.selectAll('.tsPlot.' + patientID_class)
+        .attr('fill', function(d) { 
+            return (x.alpha == "NA") ? colour_assignment[d.gtype] : alpha_colour_assignment[d.gtype];
+        })
+        .attr('stroke', function(d) { 
+            return (d.gtype == "Root" && dim.showRoot) ? dim.rootColour : colour_assignment[d.gtype];
+        });
+
+    // traditional view
+    if (dim.switchView) {
+        // hide labels
+        d3.selectAll(".label.gtype_" + curGtype + '.' + patientID_class)
+            .attr('opacity', 0);
+
+        // hide label backgrounds
+        d3.selectAll(".labelCirc.gtype_" + curGtype)
+            .attr('fill-opacity', 0);
+    }
+
+    // separate genotypes view
+    else {
+        // hide labels
+        d3.selectAll(".sepLabel.gtype_" + curGtype + '.' + patientID_class)
+            .attr('opacity', 0);
+
+        // hide label backgrounds
+        d3.selectAll(".sepLabelCirc.gtype_" + curGtype)
+            .attr('fill-opacity', 0);
+    }
+}
+
 /*
 * function to get the layout of the timesweep
 * @param {Object} vizObj
