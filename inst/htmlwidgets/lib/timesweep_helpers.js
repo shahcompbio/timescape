@@ -1030,10 +1030,10 @@ function _getTraditionalPaths(vizObj) {
         paths = [],
         cur_path,
         emerges, // whether or not a genotype emerges at a time point
+        disappears, // whether or not a genotype disappears at a time point
         xShift, // the amount of shift in the x-direction for a genotype (when it's emerging)
         nPartitions, // number of partitions between two time points 
-        appear_tp, 
-        end_tp,
+        next_tp, 
         xBottom, // x-value at the bottom of the genotype sweep at a time point
         xTop, // x-value at the top of the genotype sweep at a time point
         appear_xBottom,
@@ -1059,11 +1059,11 @@ function _getTraditionalPaths(vizObj) {
             // if the genotype exists or emerges/disappears at this time point
             if (layout[tp][gtype]) {
                 emerges = (layout[tp][gtype]["state"] == "emerges");
+                disappears = (layout[tp][gtype]["state"] == "disappears_stretched"); 
                 nPartitions = (event_occurs) ?
                     layout[tp][gtype]["nPartitions"]*2 :
                     layout[tp][gtype]["nPartitions"];
-                appear_tp = timepoints[idx+1];
-                end_tp = timepoints[idx-1];
+                next_tp = timepoints[idx+1];
                 xShift = 
                     (event_occurs) ? 
                     0.5 + (layout[tp][gtype]["xShift"]/2) : 
@@ -1075,24 +1075,8 @@ function _getTraditionalPaths(vizObj) {
                     (idx)/(timepoints.length-1);
 
                 // if the current genotype is ...
-                // ... NOT EMERGING at this time point
-                if (!emerges) {
-                    // add a path point for the bottom of the genotype's interval at the current time point
-                    cur_path["path"].push({ "x": xBottom, 
-                                            "y": layout[tp][gtype]["bottom"],
-                                            "tp": tp });
-                    // if event occurs after this timepoint
-                    if (event_occurs) {
-                        frac = perturbations[event_index].frac;
-                        // add a point in the middle
-                        cur_path["path"].push({ "x": xBottom + mid_tp, // halfway between this and next tp
-                                                "y": (layout[tp][gtype]["bottom"]*frac) + ((1-frac)/2),
-                                                "tp": "event" });
-                    }    
-                }
-
                 // ... EMERGING at this time point... 
-                else {
+                if (emerges) {
 
                     // add a path point for the bottom of the genotype's interval at the current time point
                     cur_path["path"].push({ "x": xBottom, 
@@ -1102,9 +1086,32 @@ function _getTraditionalPaths(vizObj) {
                     // ... add a path point to expand the sweep such that its descendants can be contained within it
                     appear_xBottom = (idx + xShift + (1/nPartitions))/(timepoints.length-1);
                     cur_path["path"].push({ "x": appear_xBottom, 
-                                        "y": layout[appear_tp][gtype]["bottom"],
+                                        "y": layout[next_tp][gtype]["bottom"],
                                         "tp": tp }); // y-coordinate at next time point
-                }               
+                }   
+
+                // ... NOT EMERGING NOR DISAPPEARING at this time point
+                else if (!emerges && !disappears) {
+                    // add a path point for the bottom of the genotype's interval at the current time point
+                    cur_path["path"].push({ "x": xBottom, 
+                                            "y": layout[tp][gtype]["bottom"],
+                                            "tp": tp });
+                    // if event occurs after this timepoint
+                    if (event_occurs) {
+
+                        frac = perturbations[event_index].frac;
+
+                        // get y proportion as halfway between this and the next time point
+                        var y_next = (layout[next_tp][gtype]["bottom"] + layout[tp][gtype]["bottom"])/2;
+
+                        // add a point in the middle
+                        cur_path["path"].push({ "x": xBottom + mid_tp, // halfway between this and next tp
+                                                "y": (y_next*frac) + ((1-frac)/2),
+                                                "tp": "event" });
+                    }    
+                }
+
+                            
             }
         })
 
@@ -1119,11 +1126,11 @@ function _getTraditionalPaths(vizObj) {
             // if the genotype exists or emerges/disappears at this time point
             if (layout[tp][gtype]) {
                 emerges = (layout[tp][gtype]["state"] == "emerges");
+                disappears = (layout[tp][gtype]["state"] == "disappears_stretched");
                 nPartitions = (event_occurs) ?
                     layout[tp][gtype]["nPartitions"]*2 :
                     layout[tp][gtype]["nPartitions"];
-                appear_tp = timepoints_rev[idx-1];
-                end_tp = timepoints_rev[idx+1];
+                next_tp = timepoints_rev[idx-1];
                 xShift = 
                     (event_occurs) ? 
                     0.5 + layout[tp][gtype]["xShift"]/2 : 
@@ -1140,7 +1147,7 @@ function _getTraditionalPaths(vizObj) {
                     // add a path point to bring forward the sweep such that its descendants can be contained within it
                     appear_xTop = ((timepoints.length-1) - idx + xShift + (1/nPartitions))/(timepoints.length-1);
                     cur_path["path"].push({ "x": appear_xTop, 
-                                        "y": layout[appear_tp][gtype]["top"],
+                                        "y": layout[next_tp][gtype]["top"],
                                         "tp": tp }); // y-coordinate at next time point
 
                     // add a path point for the top of the genotype's interval at the current time point
@@ -1150,13 +1157,18 @@ function _getTraditionalPaths(vizObj) {
                 }
 
                 // ... DOESN'T EMERGE at the current time point
-                else {
+                else if (!emerges && !disappears) {
                     // if event occurs after this timepoint
                     if (event_occurs) {
+
                         frac = perturbations[event_index].frac;
+
+                        // get y proportion as halfway between this and the next time point
+                        var y_next = (layout[next_tp][gtype]["top"] + layout[tp][gtype]["top"])/2;
+
                         // add a point in the middle
                         cur_path["path"].push({ "x": xTop + mid_tp, // halfway between this and next tp
-                                                "y": (layout[tp][gtype]["top"]*frac) + ((1-frac)/2), 
+                                                "y": (y_next*frac) + ((1-frac)/2), 
                                                 "tp": "event" });
                     }
 
