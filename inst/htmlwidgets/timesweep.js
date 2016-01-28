@@ -106,7 +106,7 @@ HTMLWidgets.widget({
     vizObj.data.userConfig = x;
     dim.centredView = (x.centred == "T") ? true : false; // is view centred or not
     dim.showRoot = (x.show_root == "T") ? true : false; // whether or not to show the root in the view
-
+    vizObj.data.perturbations = x.perturbations_JSON;
 
     // GET CONTENT
 

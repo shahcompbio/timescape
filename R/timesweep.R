@@ -12,6 +12,8 @@
 #' @param alpha Alpha value for sweeps
 #' @param centred Whether the genotypes should be centred (T) or stacked (F)
 #' @param show.root Whether or not to show the root in the timesweep view
+#' @param perturbations Data frame of any perturbations that occurred between two time points 
+#'   in the format: data.frame(perturbation = c("chemo"), prev_tp = c("T1"), next_tp = c("T2"))
 #' @param width Width of the plot. 
 #' @param height Height of the plot.
 #' @export
@@ -19,8 +21,8 @@
 #' library("timesweep")
 #' timesweep("SAMPLE_PATIENT", system.file("extdata", "clonal_dynamics.csv", package = "timesweep"), 
 #'            system.file("extdata", "tree.gml", package = "timesweep"))
-timesweep <- function(patient, clonal.prev.csv, tree.gml, node.col, xaxis.title, yaxis.title, alpha, centred, show.root, width = NULL, 
-                      height = NULL) {
+timesweep <- function(patient, clonal.prev.csv, tree.gml, node.col, xaxis.title, yaxis.title, alpha, 
+                      centred, show.root, perturbations, width = NULL, height = NULL) {
 
   # parse csv
   clonal.prev.data = read.csv(clonal.prev.csv)
@@ -60,6 +62,15 @@ timesweep <- function(patient, clonal.prev.csv, tree.gml, node.col, xaxis.title,
     show.root <- "F"
   }
 
+  if (missing(perturbations)) {
+    perturbations_JSON <- "NA"
+  }
+  else {
+    perturbations_JSON <- jsonlite::toJSON(perturbations)
+  }
+
+
+
   # forward options using x
   x = list(
     patient = patient,
@@ -70,7 +81,8 @@ timesweep <- function(patient, clonal.prev.csv, tree.gml, node.col, xaxis.title,
     yaxis_title = yaxis.title,
     alpha = alpha,
     centred = centred,
-    show_root = show.root
+    show_root = show.root,
+    perturbations_JSON = perturbations_JSON
   )
 
   # create widget
