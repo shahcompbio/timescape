@@ -12,8 +12,9 @@
 #' @param alpha Alpha value for sweeps
 #' @param centred Whether the genotypes should be centred (T) or stacked (F)
 #' @param show.root Whether or not to show the root in the timesweep view
-#' @param perturbations Data frame of any perturbations that occurred between two time points 
-#'   in the format: data.frame(perturbation = c("chemo"), prev_tp = c("T1"), next_tp = c("T2"))
+#' @param perturbations Data frame of any perturbations that occurred between two time points, 
+#'   and the fraction of total tumour content left.
+#'   Format: data.frame(perturbation = c("chemo"), prev_tp = c("T1"), next_tp = c("T2"), frac = c(0.2))
 #' @param width Width of the plot. 
 #' @param height Height of the plot.
 #' @export

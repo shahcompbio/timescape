@@ -1008,7 +1008,10 @@ function _getTraditionalPaths(vizObj) {
         xTop, // x-value at the top of the genotype sweep at a time point
         appear_xBottom,
         appear_xTop,
-        event_occurs; // whether or not an event occurs after a time point
+        event_occurs, // whether or not an event occurs after a time point
+        event_index, // index of the current event 
+        perturbations = vizObj.data.perturbations, // user specified perturbations in the time-series data
+        frac; // fraction of total tumour content remaining at the perturbation event;
 
     $.each(layoutOrder, function(gtype_idx, gtype) {
         
@@ -1019,10 +1022,11 @@ function _getTraditionalPaths(vizObj) {
         $.each(timepoints, function(idx, tp) {
             
             // whether or not an event occurs after this timepoint
-            event_occurs = (_getIntersection(_.pluck(vizObj.data.perturbations, "prev_tp"), tp).length > 0 
+            event_occurs = (_getIntersection(_.pluck(perturbations, "prev_tp"), tp).length > 0 
                 && gtype != "Root");
+            event_index = _.pluck(perturbations, "prev_tp").indexOf(tp);
 
-
+            // if the genotype exists or emerges/disappears at this time point
             if (layout[tp][gtype]) {
                 emerges = (layout[tp][gtype]["state"] == "emerges");
                 nPartitions = (event_occurs) ?
@@ -1031,7 +1035,7 @@ function _getTraditionalPaths(vizObj) {
                 appear_tp = timepoints[idx+1];
                 end_tp = timepoints[idx-1];
                 xShift = 
-                    (event_occurs) ?  // TODO
+                    (event_occurs) ? 
                     0.5 + (layout[tp][gtype]["xShift"]/2) : 
                     layout[tp][gtype]["xShift"];
 
@@ -1049,9 +1053,10 @@ function _getTraditionalPaths(vizObj) {
                                             "tp": tp });
                     // if event occurs after this timepoint
                     if (event_occurs) {
+                        frac = perturbations[event_index].frac;
                         // add a point in the middle
                         cur_path["path"].push({ "x": xBottom + mid_tp, // halfway between this and next tp
-                                                "y": 0.5,
+                                                "y": (layout[tp][gtype]["bottom"]*frac) + ((1-frac)/2),
                                                 "tp": "event" });
                     }    
                 }
@@ -1077,9 +1082,11 @@ function _getTraditionalPaths(vizObj) {
         $.each(timepoints_rev, function(idx, tp) {
 
             // whether or not an event occurs after this timepoint
-            event_occurs = (_getIntersection(_.pluck(vizObj.data.perturbations, "prev_tp"), tp).length > 0 
+            event_occurs = (_getIntersection(_.pluck(perturbations, "prev_tp"), tp).length > 0 
                 && gtype != "Root");
+            event_index = _.pluck(perturbations, "prev_tp").indexOf(tp);
 
+            // if the genotype exists or emerges/disappears at this time point
             if (layout[tp][gtype]) {
                 emerges = (layout[tp][gtype]["state"] == "emerges");
                 nPartitions = (event_occurs) ?
@@ -1088,7 +1095,7 @@ function _getTraditionalPaths(vizObj) {
                 appear_tp = timepoints_rev[idx-1];
                 end_tp = timepoints_rev[idx+1];
                 xShift = 
-                    (event_occurs) ?  // TODO
+                    (event_occurs) ? 
                     0.5 + layout[tp][gtype]["xShift"]/2 : 
                     layout[tp][gtype]["xShift"];
 
@@ -1116,9 +1123,10 @@ function _getTraditionalPaths(vizObj) {
                 else {
                     // if event occurs after this timepoint
                     if (event_occurs) {
+                        frac = perturbations[event_index].frac;
                         // add a point in the middle
                         cur_path["path"].push({ "x": xTop + mid_tp, // halfway between this and next tp
-                                                "y": 0.5,
+                                                "y": (layout[tp][gtype]["top"]*frac) + ((1-frac)/2), 
                                                 "tp": "event" });
                     }
 
