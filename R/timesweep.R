@@ -7,10 +7,19 @@
 #' @param tree.gml Path to GML file.
 #' @param node.col Named character vector with the keys as node labels and 
 #'   values as colors.
+#' @param xaxis.title x-axis title. 
+#' @param yaxis.title y-axis title.
+#' @param alpha Alpha value for sweeps
+#' @param centred Whether the genotypes should be centred (T) or stacked (F)
+#' @param show.root Whether or not to show the root in the timesweep view
 #' @param width Width of the plot. 
 #' @param height Height of the plot.
 #' @export
-timesweep <- function(patient, clonal.prev.csv, tree.gml, node.col, width = NULL, 
+#' @examples
+#' library("timesweep")
+#' timesweep("SAMPLE_PATIENT", system.file("extdata", "clonal_dynamics.csv", package = "timesweep"), 
+#'            system.file("extdata", "tree.gml", package = "timesweep"))
+timesweep <- function(patient, clonal.prev.csv, tree.gml, node.col, xaxis.title, yaxis.title, alpha, centred, show.root, width = NULL, 
                       height = NULL) {
 
   # parse csv
@@ -25,12 +34,43 @@ timesweep <- function(patient, clonal.prev.csv, tree.gml, node.col, width = NULL
                                                  col = node.col)) 
   }
 
+  if (missing(xaxis.title)) {
+    xaxis.title <- "NA"
+  } 
+
+  if (missing(yaxis.title)) {
+    yaxis.title <- "NA"
+  } 
+
+  if (missing(alpha)) {
+    alpha <- 30
+  } 
+
+  if (missing(centred) || centred) {
+    centred <- "T"
+  }
+  else {
+    centred <- "F"
+  }
+
+  if (missing(show.root) || show.root) {
+    show.root <- "T"
+  }
+  else {
+    show.root <- "F"
+  }
+
   # forward options using x
   x = list(
     patient = patient,
     clonal_prev_JSON = clonal.prev.JSON,
     tree_gml = gmlString,
-    node_col_JSON = node.col.JSON
+    node_col_JSON = node.col.JSON,
+    xaxis_title = xaxis.title,
+    yaxis_title = yaxis.title,
+    alpha = alpha,
+    centred = centred,
+    show_root = show.root
   )
 
   # create widget

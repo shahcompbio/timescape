@@ -1,7 +1,6 @@
 Commands in R :
 
-setwd("<my_directory>/timesweep/")
-devtools::install()
-library(timesweep)
-timesweep("FL2005”,”<my_clonal_dynamics_csv_file>“,”<my_tree_gml_file>”)
+devtools::install("<my_directory>/timesweep/")
+library(timesweep) 			
+timesweep("SAMPLE_PATIENT", system.file("extdata", "clonal_dynamics.csv", package = "timesweep"), system.file("extdata", "tree.gml", package = "timesweep"))
 ​
