@@ -725,7 +725,7 @@ function _getStackedLayout(vizObj) {
             }
 
             // if this genotype is REPLACED by any descendant at this time point
-            else if (!cp_data[tp][gtype] && (_getIntersection(curDescendants, gTypes_curTP).length > 0)) {
+            else if (!cp_data[tp][gtype] && (_getIntersection(curDescendants, gTypes_curTP).length > 0) && gtype != "Root") {
                 _createStackElement(layout, tp, gtype, sHeight, sHeight, "replaced");
                 replaced_gtypes[gtype] = replaced_gtypes[gtype] || [];
                 replaced_gtypes[gtype].push(tp);
@@ -768,7 +768,7 @@ function _getStackedLayout(vizObj) {
                         layout[tp][curAncestors[i]]["top"] += width;
                         ancestor_midpoint = (layout[tp][curAncestors[i]]["top"] + layout[tp][curAncestors[i]]["bottom"])/2;
 
-                        // update EMERGENCE in previous time point (y-coordinate)
+                        // update EMERGENCE y-coordinate in previous time point 
                         if (cp_data[prev_tp] && layout[prev_tp][curAncestors[i]] && layout[prev_tp][curAncestors[i]]["state"] == "emerges") {
                             _createStackElement(layout, prev_tp, curAncestors[i], ancestor_midpoint, ancestor_midpoint, "emerges");
                         }
@@ -1008,7 +1008,7 @@ function _getTraditionalPaths(vizObj) {
         xTop, // x-value at the top of the genotype sweep at a time point
         appear_xBottom,
         appear_xTop,
-        event_occurs; // whether or not an event occurs before or after a time point
+        event_occurs; // whether or not an event occurs after a time point
 
     $.each(layoutOrder, function(gtype_idx, gtype) {
         
@@ -1019,95 +1019,114 @@ function _getTraditionalPaths(vizObj) {
         $.each(timepoints, function(idx, tp) {
             
             // whether or not an event occurs after this timepoint
-            event_occurs = (_getIntersection(_.pluck(vizObj.data.perturbations, "prev_tp"), tp).length > 0);
+            event_occurs = (_getIntersection(_.pluck(vizObj.data.perturbations, "prev_tp"), tp).length > 0 
+                && gtype != "Root");
 
 
             if (layout[tp][gtype]) {
                 emerges = (layout[tp][gtype]["state"] == "emerges");
-                nPartitions = layout[tp][gtype]["nPartitions"];
+                nPartitions = (event_occurs) ?
+                    layout[tp][gtype]["nPartitions"]*2 :
+                    layout[tp][gtype]["nPartitions"];
                 appear_tp = timepoints[idx+1];
                 end_tp = timepoints[idx-1];
-                xShift = (event_occurs) ?  // TODO
+                xShift = 
+                    (event_occurs) ?  // TODO
                     0.5 + (layout[tp][gtype]["xShift"]/2) : 
                     layout[tp][gtype]["xShift"];
 
-                // get the x-coordinate for this genotype's interval 
-                xBottom = null;
-                if (emerges) {
-                    xBottom = (idx + xShift)/(timepoints.length-1);
-                } 
-                else {
-                    xBottom = (idx)/(timepoints.length-1);
+                // get the x-coordinate for the bottom of this genotype's interval 
+                xBottom = (emerges) ? 
+                    (idx + xShift)/(timepoints.length-1) : 
+                    (idx)/(timepoints.length-1);
+
+                // if the current genotype is ...
+                // ... NOT EMERGING at this time point
+                if (!emerges) {
+                    // add a path point for the bottom of the genotype's interval at the current time point
+                    cur_path["path"].push({ "x": xBottom, 
+                                            "y": layout[tp][gtype]["bottom"],
+                                            "tp": tp });
+                    // if event occurs after this timepoint
+                    if (event_occurs) {
+                        // add a point in the middle
+                        cur_path["path"].push({ "x": xBottom + mid_tp, // halfway between this and next tp
+                                                "y": 0.5,
+                                                "tp": "event" });
+                    }    
                 }
 
-                // add a path point for the bottom of the genotype's interval at the current time point
-                cur_path["path"].push({ "x": xBottom, 
-                                        "y": layout[tp][gtype]["bottom"],
-                                        "tp": tp });
+                // ... EMERGING at this time point... 
+                else {
 
-                // ... if the current genotype emerges at the current time point... 
-                if (emerges) {
+                    // add a path point for the bottom of the genotype's interval at the current time point
+                    cur_path["path"].push({ "x": xBottom, 
+                                            "y": layout[tp][gtype]["bottom"],
+                                            "tp": tp });
+
                     // ... add a path point to expand the sweep such that its descendants can be contained within it
                     appear_xBottom = (idx + xShift + (1/nPartitions))/(timepoints.length-1);
                     cur_path["path"].push({ "x": appear_xBottom, 
                                         "y": layout[appear_tp][gtype]["bottom"],
                                         "tp": tp }); // y-coordinate at next time point
-                }   
-                // if event occurs after this timepoint
-                if (event_occurs) {
-                    // add a point in the middle
-                    cur_path["path"].push({ "x": xBottom + mid_tp, // halfway between this and next tp
-                                            "y": 0.5,
-                                            "tp": "event" });
-                }                
+                }               
             }
         })
 
         // for each time point (in *reverse* sequence)...
         $.each(timepoints_rev, function(idx, tp) {
 
-            // whether or not an event occurs before this timepoint
-            event_occurs = (_getIntersection(_.pluck(vizObj.data.perturbations, "next_tp"), tp).length > 0);
+            // whether or not an event occurs after this timepoint
+            event_occurs = (_getIntersection(_.pluck(vizObj.data.perturbations, "prev_tp"), tp).length > 0 
+                && gtype != "Root");
 
             if (layout[tp][gtype]) {
                 emerges = (layout[tp][gtype]["state"] == "emerges");
-                nPartitions = layout[tp][gtype]["nPartitions"];
+                nPartitions = (event_occurs) ?
+                    layout[tp][gtype]["nPartitions"]*2 :
+                    layout[tp][gtype]["nPartitions"];
                 appear_tp = timepoints_rev[idx-1];
                 end_tp = timepoints_rev[idx+1];
-                xShift = (event_occurs) ?  // TODO
-                    layout[tp][gtype]["xShift"]/2 : 
+                xShift = 
+                    (event_occurs) ?  // TODO
+                    0.5 + layout[tp][gtype]["xShift"]/2 : 
                     layout[tp][gtype]["xShift"];
 
-                // ... if the current genotype emerges at the current time point...
+                // get the x-coordinate for the top of this genotype's interval 
+                xTop = (emerges) ? 
+                    ((timepoints.length-1) - idx + xShift)/(timepoints.length-1) : 
+                    ((timepoints.length-1) - idx)/(timepoints.length-1);
+
+                // if the current genotype ...
+                // ... EMERGES at the current time point...
                 if (emerges) {
-                    // ... add a path point to bring forward the sweep such that its descendants can be contained within it
+                    // add a path point to bring forward the sweep such that its descendants can be contained within it
                     appear_xTop = ((timepoints.length-1) - idx + xShift + (1/nPartitions))/(timepoints.length-1);
                     cur_path["path"].push({ "x": appear_xTop, 
                                         "y": layout[appear_tp][gtype]["top"],
                                         "tp": tp }); // y-coordinate at next time point
-                }   
 
-                // get the x-coordinate for this genotype's interval 
-                xTop = null;
-                if (emerges) {
-                    xTop = ((timepoints.length-1) - idx + xShift)/(timepoints.length-1);
+                    // add a path point for the top of the genotype's interval at the current time point
+                    cur_path["path"].push({ "x": xTop, 
+                                            "y": layout[tp][gtype]["top"],
+                                            "tp": tp });
                 }
+
+                // ... DOESN'T EMERGE at the current time point
                 else {
-                    xTop = ((timepoints.length-1) - idx)/(timepoints.length-1);
-                }    
+                    // if event occurs after this timepoint
+                    if (event_occurs) {
+                        // add a point in the middle
+                        cur_path["path"].push({ "x": xTop + mid_tp, // halfway between this and next tp
+                                                "y": 0.5,
+                                                "tp": "event" });
+                    }
 
-                // add a path point for the top of the genotype's interval at the current time point
-                cur_path["path"].push({ "x": xTop, 
-                                        "y": layout[tp][gtype]["top"],
-                                        "tp": tp });
-
-                // if event occurs before this timepoint
-                if (event_occurs) {
-                    // add a point in the middle
-                    cur_path["path"].push({ "x": xTop - mid_tp, // halfway between this and next tp
-                                            "y": 0.5,
-                                            "tp": "event" });
-                }
+                    // add a path point for the top of the genotype's interval at the current time point
+                    cur_path["path"].push({ "x": xTop, 
+                                            "y": layout[tp][gtype]["top"],
+                                            "tp": tp });
+                }   
             }
         })
         
