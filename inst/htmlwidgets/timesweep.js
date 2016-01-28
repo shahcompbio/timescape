@@ -106,6 +106,7 @@ HTMLWidgets.widget({
     vizObj.data.userConfig = x;
     dim.centredView = (x.centred == "T") ? true : false; // is view centred or not
     dim.showRoot = (x.show_root == "T") ? true : false; // whether or not to show the root in the view
+    dim.sort_gtypes = (x.sort == "T") ? true : false; // whether or not to vertically sort the genotypes based on emergence values
     vizObj.data.perturbations = x.perturbations_JSON;
 
     // GET CONTENT
@@ -192,9 +193,6 @@ HTMLWidgets.widget({
 
     // get emergence values for each genotype
     vizObj.data.emergence_values = _getEmergenceValues(vizObj);
-
-    // reorder the tree according to the genotypes' emergent cellular prevalence values
-    _reorderTree(vizObj, vizObj.data.treeStructure); // TODO is this working?????
 
     // convert time-centric cellular prevalence data into genotype-centric cellular prevalence data
     _getGenotypeCPData(vizObj);

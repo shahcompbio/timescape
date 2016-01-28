@@ -15,6 +15,7 @@
 #' @param perturbations Data frame of any perturbations that occurred between two time points, 
 #'   and the fraction of total tumour content left.
 #'   Format: data.frame(perturbation = c("chemo"), prev_tp = c("T1"), next_tp = c("T2"), frac = c(0.2))
+#' @param sort Whether (T) or not (F) to vertically sort the genotypes by their emergence values
 #' @param width Width of the plot. 
 #' @param height Height of the plot.
 #' @export
@@ -23,7 +24,7 @@
 #' timesweep("SAMPLE_PATIENT", system.file("extdata", "clonal_dynamics.csv", package = "timesweep"), 
 #'            system.file("extdata", "tree.gml", package = "timesweep"))
 timesweep <- function(patient, clonal.prev.csv, tree.gml, node.col, xaxis.title, yaxis.title, alpha, 
-                      centred, show.root, perturbations, width = NULL, height = NULL) {
+                      centred, show.root, perturbations, sort, width = NULL, height = NULL) {
 
   # parse csv
   clonal.prev.data = read.csv(clonal.prev.csv)
@@ -70,6 +71,13 @@ timesweep <- function(patient, clonal.prev.csv, tree.gml, node.col, xaxis.title,
     perturbations_JSON <- jsonlite::toJSON(perturbations)
   }
 
+  if (missing(sort) || sort) {
+    sort <- "T"
+  }
+  else {
+    sort <- "F"
+  }
+
 
 
   # forward options using x
@@ -83,7 +91,8 @@ timesweep <- function(patient, clonal.prev.csv, tree.gml, node.col, xaxis.title,
     alpha = alpha,
     centred = centred,
     show_root = show.root,
-    perturbations_JSON = perturbations_JSON
+    perturbations_JSON = perturbations_JSON,
+    sort = sort
   )
 
   # create widget

@@ -190,7 +190,8 @@ function _getCentredLayout(vizObj, curNode, tp, layout, yBottom) {
         curDescendants = vizObj.data.treeDescendantsArr[gtype],
         nChildren = curNode.children.length,
         childCP = 0, // cumulative amount of cellular prevalence in the children;
-        childYBottom; // bottom y-value for the next child
+        childYBottom, // bottom y-value for the next child
+        layoutOrder = vizObj.data.layoutOrder;
 
     // layout for this timepoint
     layout[tp] = layout[tp] || {};
@@ -226,12 +227,24 @@ function _getCentredLayout(vizObj, curNode, tp, layout, yBottom) {
         }
     }
 
-    // for each child, get its layout
+    // function to sort children by layout order
+    function sortByLayoutOrder(a, b) {
+      var sortingArr = layoutOrder;
+      return sortingArr.indexOf(a.id) - sortingArr.indexOf(b.id);
+    }
+    
+    // if there are children
     if (nChildren > 0) {
+
+        // sort the children by the layout order
+        var sorted_children = $.extend([], curNode.children);
+        sorted_children.sort(sortByLayoutOrder);            
+
+        // for each child, get its layout
         for (var i = 0; i < nChildren; i++) {
             childYBottom = (cur_cp) ? (((i+1)/(nChildren+1)) * cur_cp) + childCP + yBottom : yBottom;
-            _getCentredLayout(vizObj, curNode.children[i], tp, layout, childYBottom);
-            childCP += _calculateWidth(vizObj, tp, curNode.children[i].id);
+            _getCentredLayout(vizObj, sorted_children[i], tp, layout, childYBottom);
+            childCP += _calculateWidth(vizObj, tp, sorted_children[i].id);
         }
     }
 };
@@ -480,31 +493,6 @@ function _colourTree(vizObj, chains, curNode, palette, colour_assignment, curThe
     return colour_assignment;
 }
 
-/*
-* function to reorder the tree according to the genotypes' emergent cellular prevalence values
-* @param {Object} vizObj
-* @param {Object} curNode -- current key in the tree
-*/
-function _reorderTree(vizObj, curNode) {
-    var tmpChildren;
-
-    // if the current key has children
-    if (curNode.children.length >= 1) {
-
-        // reorder the children according to their emergent cellular prevalence
-        tmpChildren = $.extend([], curNode.children);
-        tmpChildren.sort(function(a, b) {return vizObj.data.emergence_values[a.id] - vizObj.data.emergence_values[b.id]});
-        curNode.children = $.extend([], tmpChildren);
-
-        // for each child
-        for (var i = 0; i < curNode.children.length; i++) {
-
-            // colour child
-            _reorderTree(vizObj, curNode.children[i]);
-        }
-    }
-};
-
 /* function to get a colour palette
 */
 function _getColourPalette() {
@@ -587,7 +575,8 @@ function _pathTween(vizObj, type) {
 function _vStackOrder(curNode, emergence_values, layoutOrder) {
     var child_emerg_vals = [], // emergence values of children
         sorted_children, // children sorted by their emergence values
-        child_obj; // current child node
+        child_obj, // current child node
+        sort_by_emerg = vizObj.view.config.sort_gtypes; // whether or not to vertically sort children by emergence values
 
     // add the current key id to the final vertical stacking order
     layoutOrder.push(curNode.id);
@@ -595,18 +584,29 @@ function _vStackOrder(curNode, emergence_values, layoutOrder) {
     // if the current key has children to search through
     if (curNode.children.length > 0) {
 
-        // get emergence value of children
-        for (i=0; i<curNode.children.length; i++) {
-            var emerg_val = emergence_values[curNode.children[i].id];
-            child_emerg_vals.push([curNode.children[i].id, emerg_val]);
-        }
-        sorted_children = _sort2DArrByValue(child_emerg_vals).reverse();
+        // sort children by emergence
+        if (sort_by_emerg) {
 
-        // in the *reverse* order of emergence values, search children
-        sorted_children.map(function(child) {
-            child_obj = _.findWhere(curNode.children, {id: child});
-            _vStackOrder(child_obj, emergence_values, layoutOrder);
-        })
+            // get emergence value of children
+            for (i=0; i<curNode.children.length; i++) {
+                var emerg_val = emergence_values[curNode.children[i].id];
+                child_emerg_vals.push([curNode.children[i].id, emerg_val]);
+            }
+            sorted_children = _sort2DArrByValue(child_emerg_vals).reverse();
+
+            // in the *reverse* order of emergence values, search children
+            sorted_children.map(function(child) {
+                child_obj = _.findWhere(curNode.children, {id: child});
+                _vStackOrder(child_obj, emergence_values, layoutOrder);
+            })
+        }
+
+        // children sorted by order in tree
+        else {
+            for (var i = 0; i < curNode.children.length; i++) {
+                _vStackOrder(curNode.children[i], emergence_values, layoutOrder);
+            }
+        }
     } 
 
     return layoutOrder;
@@ -644,7 +644,7 @@ function _getLayout(vizObj, centred) {
     if (centred) {
 
         // get genotype layout order
-        vizObj.data.layoutOrder = _getCentredLayoutOrder(vizObj.data.treeStructure, []);
+        vizObj.data.layoutOrder = _getCentredLayoutOrder(vizObj, vizObj.data.treeStructure, []);
 
         // get layout of each genotype at each timepoint
         vizObj.data.layout = {};
@@ -658,22 +658,52 @@ function _getLayout(vizObj, centred) {
 
     
         // traverse the tree to sort the genotypes into a final vertical stacking order (incorporating hierarchy)
-        vizObj.data.layoutOrder = _vStackOrder(vizObj.data.treeStructure, vizObj.data.emergence_values, [])
+        vizObj.data.layoutOrder = _vStackOrder(vizObj.data.treeStructure, vizObj.data.emergence_values, []);
 
         // get layout of each genotype at each timepoint
         vizObj.data.layout = _getStackedLayout(vizObj);
     }
+
+    console.log("vizObj.data.layoutOrder");
+    console.log(vizObj.data.layoutOrder);
 }
 
 /* function to get genotype layout order for centred timesweep layout
 * @param {Object} curNode -- current node in the tree
 * @param {Array} layoutOrder -- originally empty array will be filled with the layout order of genotypes
 */
-function _getCentredLayoutOrder(curNode, layoutOrder) {
+function _getCentredLayoutOrder(vizObj, curNode, layoutOrder) {
+    var emergence_values = vizObj.data.emergence_values,
+        child_emerg_vals = [], // emergence values of children
+        sorted_children, // children sorted by their emergence values
+        child_obj, // current child node 
+        sort_by_emerg = vizObj.view.config.sort_gtypes; // whether or not to vertically sort children by emergence values
+
     layoutOrder.push(curNode.id);
-    for (var i = 0; i < curNode.children.length; i++) {
-        _getCentredLayoutOrder(curNode.children[i], layoutOrder)
+
+    // vertically sort children by their emergence values
+    if (sort_by_emerg) {
+        // get emergence value of children
+        for (i=0; i<curNode.children.length; i++) {
+            var emerg_val = emergence_values[curNode.children[i].id];
+            child_emerg_vals.push([curNode.children[i].id, emerg_val]);
+        }
+        sorted_children = _sort2DArrByValue(child_emerg_vals).reverse();
+
+        // in the *reverse* order of emergence values, search children
+        sorted_children.map(function(child) {
+            child_obj = _.findWhere(curNode.children, {id: child});
+            _getCentredLayoutOrder(vizObj, child_obj, layoutOrder);
+        })
     }
+
+    // sort children by order in tree
+    else {
+        for (var i = 0; i < curNode.children.length; i++) {
+            _getCentredLayoutOrder(vizObj, curNode.children[i], layoutOrder, sort_by_emerg);
+        }
+    }
+
     return layoutOrder;
 }
 
