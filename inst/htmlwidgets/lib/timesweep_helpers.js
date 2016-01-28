@@ -999,17 +999,16 @@ function _getTraditionalPaths(vizObj) {
         layoutOrder = vizObj.data.layoutOrder,
         paths = [],
         cur_path,
-        emerges,
-        xShift,
-        nPartitions,
-        appear_tp,
+        emerges, // whether or not a genotype emerges at a time point
+        xShift, // the amount of shift in the x-direction for a genotype (when it's emerging)
+        nPartitions, // number of partitions between two time points 
+        appear_tp, 
         end_tp,
-        xBottom,
-        xTop,
+        xBottom, // x-value at the bottom of the genotype sweep at a time point
+        xTop, // x-value at the top of the genotype sweep at a time point
         appear_xBottom,
         appear_xTop,
-        event_occurs,
-        paths_for_gtype = []; // array paths for the current genotype
+        event_occurs; // whether or not an event occurs before or after a time point
 
     $.each(layoutOrder, function(gtype_idx, gtype) {
         
@@ -1115,8 +1114,6 @@ function _getTraditionalPaths(vizObj) {
         // add the path for this genotype to the list of all paths to plot
         paths.push(cur_path);
     })
-    console.log("paths");
-    console.log(paths);
 
     return paths;
 }
