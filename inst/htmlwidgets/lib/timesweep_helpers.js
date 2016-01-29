@@ -1197,7 +1197,6 @@ function _getSeparatePaths(vizObj) {
     var dim = vizObj.view.config,
         timepoints = vizObj.data.timepoints,
         timepoints_rev = ($.extend([], timepoints)).reverse(),
-        mid_tp = (1/((timepoints.length-1)*2)), // half of x-distance between time points
         layoutOrder = vizObj.data.layoutOrder,
         genotype_cp = vizObj.data.genotype_cp,
         layout = vizObj.data.layout,
@@ -1210,21 +1209,12 @@ function _getSeparatePaths(vizObj) {
         scaled_midpoint,
         entry_exit_options,
         entry_exit,
-        emerges, // whether or not a genotype emerges at a time point
-        disappears, // whether or not a genotype disappears at a time point
         xShift,
         x,
         y,
-        y_mid, // y proportion as halfway between this and the next time point
-        x_mid, // x value halfway between this and the next time point
-        event_occurs, // whether or not an event occurs after a time point
-        event_index, // index of the current event 
         cur_path,
         full_padding,
-        denominator,
-        perturbations = vizObj.data.perturbations, // user specified perturbations in the time-series data
-        frac, // fraction of total tumour content remaining at the perturbation event
-        next_tp;
+        denominator;
 
     // find the denominator (total height of the view), in terms of the sweeps (sum of largest cp for each genotype)
     Object.keys(genotype_cp).forEach(function(gtype, gtype_idx) {
@@ -1254,125 +1244,37 @@ function _getSeparatePaths(vizObj) {
             // BOTTOM COORDINATE for each time point 
             $.each(timepoints, function(tp_idx, tp) {
 
-                // whether or not an event occurs after this timepoint
-                event_occurs = (_getIntersection(_.pluck(perturbations, "prev_tp"), tp).length > 0 
-                    && gtype != "Root");
-                event_index = _.pluck(perturbations, "prev_tp").indexOf(tp);
-
                 // xShift info
                 entry_exit_options = ["disappears_stretched", "emerges", "replaced"];
                 entry_exit = (layout[tp][gtype]) ? (entry_exit_options.indexOf(layout[tp][gtype]["state"]) != -1) : false;
-                
+                xShift = (layout[tp][gtype] && layout[tp][gtype]["xShift"]) ? layout[tp][gtype]["xShift"] : 0;
 
-                // if the genotype exists, emerges or disappears at this time point
                 if (entry_exit || genotype_cp[gtype][tp]) {
-
-                    emerges = (layout[tp][gtype]["state"] == "emerges");
-                    disappears = (layout[tp][gtype]["state"] == "disappears_stretched"); 
-                    next_tp = timepoints[tp_idx+1];
-                    xShift = 
-                        (event_occurs) ? 
-                        0.5 + (layout[tp][gtype]["xShift"]/2) : 
-                        layout[tp][gtype]["xShift"];
-
-                    // get the x-coordinate for the bottom of this genotype's interval 
-                    x = (emerges) ? 
-                        (tp_idx + xShift)/(timepoints.length-1) : 
-                        (tp_idx)/(timepoints.length-1);
-
                     // add this genotype to the seen genotypes
                     if (seenGTypes.indexOf(gtype) == -1) {
                         seenGTypes.push(gtype);
                     }
 
-                    // if the current genotype is...
-                    // ... EMERGING at this time point
-                    if (emerges) {
-
-                        // add the path point
-                        y = genotype_cp[gtype][tp] ? scaled_midpoint - (genotype_cp[gtype][tp] / denominator)/2 : scaled_midpoint;
-                        cur_path["path"].push({ "x": x, "y": y, "tp": tp, "cp": genotype_cp[gtype][tp]});
-                    }
-
-                    // ... NOT EMERGING NOR DISAPPEARING at this time point
-                    else if (!emerges && !disappears) {
-                        // add the path point
-                        y = genotype_cp[gtype][tp] ? scaled_midpoint - (genotype_cp[gtype][tp] / denominator)/2 : scaled_midpoint;
-                        cur_path["path"].push({ "x": x, "y": y, "tp": tp, "cp": genotype_cp[gtype][tp]});
-
-                        // if event occurs after this timepoint
-                        if (event_occurs) {
-                            frac = perturbations[event_index].frac;
-                            
-                            // get y proportion as halfway between this and the next time point
-                            y_mid = (genotype_cp[gtype][tp] + genotype_cp[gtype][next_tp])/2;
-
-                            // add the path point in the middle
-                            x_mid = x + mid_tp;
-                            y = genotype_cp[gtype][tp] ? scaled_midpoint - ((y_mid*frac)/denominator)/2 : scaled_midpoint;
-                            cur_path["path"].push({ "x": x_mid, "y": y, "tp": tp, "cp": genotype_cp[gtype][tp]});
-                        }
-                    }
+                    // add the path point
+                    x = (tp_idx + xShift)/(timepoints.length-1);
+                    y = genotype_cp[gtype][tp] ? scaled_midpoint - (genotype_cp[gtype][tp] / denominator)/2 : scaled_midpoint;
+                    cur_path["path"].push({ "x": x, "y": y, "tp": tp, "cp": genotype_cp[gtype][tp]});
                 }
             });
 
             // TOP COORDINATE for each time point (in *reverse* sequence)...
             $.each(timepoints_rev, function(tp_idx, tp) {
 
-                // whether or not an event occurs after this timepoint
-                event_occurs = (_getIntersection(_.pluck(perturbations, "prev_tp"), tp).length > 0 
-                    && gtype != "Root");
-                event_index = _.pluck(perturbations, "prev_tp").indexOf(tp);
-
                 // xShift info
                 entry_exit_options = ["disappears_stretched", "emerges", "replaced"];
                 entry_exit = (layout[tp][gtype]) ? (entry_exit_options.indexOf(layout[tp][gtype]["state"]) != -1) : false;
+                xShift = (layout[tp][gtype] && layout[tp][gtype]["xShift"]) ? layout[tp][gtype]["xShift"] : 0;
 
                 // add the path point
                 if (entry_exit || genotype_cp[gtype][tp]) {
-
-                    emerges = (layout[tp][gtype]["state"] == "emerges");
-                    disappears = (layout[tp][gtype]["state"] == "disappears_stretched");
-                    next_tp = timepoints_rev[tp_idx-1];
-                    xShift = 
-                        (event_occurs) ? 
-                        0.5 + layout[tp][gtype]["xShift"]/2 : 
-                        layout[tp][gtype]["xShift"];
-
-                    // get the x-coordinate for the top of this genotype's interval 
-                    x = (emerges) ? 
-                        ((timepoints.length-1) - tp_idx + xShift)/(timepoints.length-1) : 
-                        ((timepoints.length-1) - tp_idx)/(timepoints.length-1);
-
-                    // if the current genotype ...
-                    // ... EMERGES at the current time point...
-                    if (emerges) {
-
-                        // add a path point
-                        y = genotype_cp[gtype][tp] ? scaled_midpoint + (genotype_cp[gtype][tp] / denominator)/2 : scaled_midpoint;
-                        cur_path["path"].push({ "x": x, "y": y, "tp": tp, "cp": genotype_cp[gtype][tp]});
-                    }
-
-                    // ... DOESN'T EMERGE NOR DISAPPEAR at the current time point
-                    else if (!emerges && !disappears) {
-                        // if event occurs after this timepoint
-                        if (event_occurs) {
-                            
-                            frac = perturbations[event_index].frac;
-
-                            // get y proportion as halfway between this and the next time point
-                            y_mid = (genotype_cp[gtype][tp] + genotype_cp[gtype][next_tp])/2;
-
-                            // add a point in the middle
-                            x_mid = x + mid_tp;
-                            y = genotype_cp[gtype][tp] ? scaled_midpoint + ((y_mid*frac)/denominator)/2 : scaled_midpoint;
-                            cur_path["path"].push({ "x": x_mid, "y": y, "tp": tp, "cp": genotype_cp[gtype][tp]});
-                        }
-
-                        // add a path point for the top of the genotype's interval at the current point
-                        y = genotype_cp[gtype][tp] ? scaled_midpoint + (genotype_cp[gtype][tp] / denominator)/2 : scaled_midpoint;
-                        cur_path["path"].push({ "x": x, "y": y, "tp": tp, "cp": genotype_cp[gtype][tp]});
-                    }
+                    x = ((timepoints.length-1) - tp_idx + xShift)/(timepoints.length-1);
+                    y = genotype_cp[gtype][tp] ? scaled_midpoint + (genotype_cp[gtype][tp] / denominator)/2 : scaled_midpoint;
+                    cur_path["path"].push({ "x": x, "y": y, "tp": tp, "cp": genotype_cp[gtype][tp]});
                 }
             });
             
