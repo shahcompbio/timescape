@@ -663,9 +663,6 @@ function _getLayout(vizObj, centred) {
         // get layout of each genotype at each timepoint
         vizObj.data.layout = _getStackedLayout(vizObj);
     }
-
-    console.log("vizObj.data.layoutOrder");
-    console.log(vizObj.data.layoutOrder);
 }
 
 /* function to get genotype layout order for centred timesweep layout

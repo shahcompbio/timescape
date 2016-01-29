@@ -300,7 +300,7 @@ HTMLWidgets.widget({
         .attr('x2', function(d, i) { return (i / (vizObj.data.timepoints.length - 1)) * dim.tsSVGWidth; })
         .attr('y1', 0)
         .attr('y2', dim.tsSVGHeight)
-        .attr('stroke', 'black')
+        .attr('stroke', 'grey')
         .attr('stroke-opacity', '0')
         .attr('stroke-width', '1.5px')
         .style('pointer-events', 'none');
@@ -405,6 +405,53 @@ HTMLWidgets.widget({
         .attr('fill', 'black')
         .attr('opacity', 0)
         .attr('text-anchor', 'middle')
+        .style('pointer-events', 'none');
+
+
+    // PLOT PERTURBATIONS INFO
+
+    // plot labels
+    vizObj.view.xAxisSVG
+        .selectAll('.pertLabel')
+        .data(vizObj.data.perturbations)
+        .enter().append('text')
+        .attr('class', 'pertLabel')
+        .attr('x', function(d) { 
+            var prevTP_idx = vizObj.data.timepoints.indexOf(d.prev_tp);
+            return ((prevTP_idx + 0.5) / (vizObj.data.timepoints.length-1)) * (dim.tsSVGWidth) + dim.smallMargin + dim.yAxisWidth; 
+        })
+        .attr('y', 0)
+        .attr('dy', '.71em')
+        .attr('text-anchor', 'middle')
+        .attr('font-family', 'sans-serif')
+        .attr('font-size', '11px')
+        .text(function(d) { return d.perturbation; })
+        .on('mouseover', function(d) {
+            d3.selectAll(".pertGuide.pert_" + d.perturbation + '.' + patientID_class).attr('stroke-opacity', 1); 
+        })
+        .on('mouseout', function(d) {
+            d3.selectAll(".pertGuide.pert_" + d.perturbation + '.' + patientID_class).attr('stroke-opacity', 0);
+        });
+
+    // plot guides
+    vizObj.view.tsSVG
+        .selectAll('.pertGuide')
+        .data(vizObj.data.perturbations)
+        .enter().append('line')
+        .attr('class', function(d) { return 'pertGuide pert_' + d.perturbation + ' ' + patientID_class; })
+        .attr('x1', function(d) { 
+            var prevTP_idx = vizObj.data.timepoints.indexOf(d.prev_tp);
+            return ((prevTP_idx + 0.5) / (vizObj.data.timepoints.length-1)) * (dim.tsSVGWidth); 
+        })
+        .attr('x2', function(d) { 
+            var prevTP_idx = vizObj.data.timepoints.indexOf(d.prev_tp);
+            return ((prevTP_idx + 0.5) / (vizObj.data.timepoints.length-1)) * (dim.tsSVGWidth); 
+        })
+        .attr('y1', 0)
+        .attr('y2', dim.tsSVGHeight)
+        .attr('stroke', 'grey')
+        .attr('stroke-opacity', '0')
+        .attr('stroke-width', '1.5px')
         .style('pointer-events', 'none');
 
 
