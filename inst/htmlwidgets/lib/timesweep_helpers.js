@@ -694,16 +694,18 @@ function _getLayout(vizObj, centred) {
     // ------> STACKED
     else {
 
-    
         // traverse the tree to sort the genotypes into a final vertical stacking order (incorporating hierarchy)
         vizObj.data.layoutOrder = _vStackOrder(vizObj.data.treeStructure, vizObj.data.emergence_values, []);
 
         // get layout of each genotype at each timepoint
-        // vizObj.data.layout = _getStackedLayout(vizObj);
-        vizObj.data.layout = _getSpacedLayout(vizObj); // TODO testing spaced layout
+        vizObj.data.layout = _getStackedLayout(vizObj);
+        // vizObj.data.layout = _getSpacedLayout(vizObj); // TODO testing spaced layout
     }
 
-    console.log("vizObj.data.layoutOrder");
+    console.log("layout");
+    console.log(vizObj.data.layout);
+
+    console.log("layoutOrder");
     console.log(vizObj.data.layoutOrder);
 }
 
@@ -800,8 +802,9 @@ function _getStackedLayout(vizObj) {
                 replaced_gtypes[gtype].push(tp);
             }
 
-            // if neither this genotype nor any descendants are present at this time point (they DISAPPEAR)
-            else if (!cp_data[tp][gtype] && _getIntersection(gTypeAndDescendants, gTypes_curTP).length == 0) {
+            // if this genotype existed at the previous time point, 
+            // but neither it nor its descendants are present at this time point (they DISAPPEAR)
+            else if (cp_data[prev_tp] && cp_data[prev_tp][gtype] && !cp_data[tp][gtype] && _getIntersection(gTypeAndDescendants, gTypes_curTP).length == 0) {
                 _createStackElement(layout, tp, gtype, sHeight, sHeight, "disappears_stretched");
             }
 
@@ -991,7 +994,7 @@ function _getSpacedLayout(vizObj) {
                 for (var i = 0; i < sorted_siblings.length; i++) {
 
                     var cur_width = layout[tp][sorted_siblings[i]]["top"] - layout[tp][sorted_siblings[i]]["bottom"];
-                    
+
                     // if this sibling emerges at the previous time point
                     if (cp_data[prev_tp] && layout[prev_tp][sorted_siblings[i]] && layout[prev_tp][sorted_siblings[i]]["state"] == "emerges") {
                         
@@ -1234,7 +1237,6 @@ function _getTraditionalPaths(vizObj) {
         paths = [],
         cur_path,
         emerges, // whether or not a genotype emerges at a time point
-        disappears, // whether or not a genotype disappears at a time point
         xShift, // the amount of shift in the x-direction for a genotype (when it's emerging)
         nPartitions, // number of partitions between two time points 
         next_tp, 
@@ -1264,7 +1266,6 @@ function _getTraditionalPaths(vizObj) {
             // if the genotype exists or emerges/disappears at this time point
             if (layout[tp][gtype]) {
                 emerges = (layout[tp][gtype]["state"] == "emerges");
-                disappears = (layout[tp][gtype]["state"] == "disappears_stretched"); 
                 nPartitions = (event_occurs) ?
                     layout[tp][gtype]["nPartitions"]*2 :
                     layout[tp][gtype]["nPartitions"];
@@ -1295,8 +1296,8 @@ function _getTraditionalPaths(vizObj) {
                                         "tp": tp }); // y-coordinate at next time point
                 }   
 
-                // ... NOT EMERGING NOR DISAPPEARING at this time point
-                else if (!emerges && !disappears) {
+                // ... NOT EMERGING at this time point
+                else {
                     // add a path point for the bottom of the genotype's interval at the current time point
                     cur_path["path"].push({ "x": xBottom, 
                                             "y": layout[tp][gtype]["bottom"],
@@ -1331,7 +1332,6 @@ function _getTraditionalPaths(vizObj) {
             // if the genotype exists or emerges/disappears at this time point
             if (layout[tp][gtype]) {
                 emerges = (layout[tp][gtype]["state"] == "emerges");
-                disappears = (layout[tp][gtype]["state"] == "disappears_stretched");
                 nPartitions = (event_occurs) ?
                     layout[tp][gtype]["nPartitions"]*2 :
                     layout[tp][gtype]["nPartitions"];
@@ -1362,7 +1362,7 @@ function _getTraditionalPaths(vizObj) {
                 }
 
                 // ... DOESN'T EMERGE at the current time point
-                else if (!emerges && !disappears) {
+                else {
                     // if event occurs after this timepoint
                     if (event_occurs) {
 
