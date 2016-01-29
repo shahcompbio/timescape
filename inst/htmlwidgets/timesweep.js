@@ -38,6 +38,8 @@ HTMLWidgets.widget({
     vizObj.view.config = config;
     var dim = vizObj.view.config;
 
+    dim.width = width;
+    dim.height = height;
     dim.canvasSVGWidth = width - dim.paddingGeneral - dim.paddingGeneral;
     dim.canvasSVGHeight = height - dim.paddingGeneral - dim.paddingGeneral;
     dim.tsSVGHeight = dim.canvasSVGHeight - dim.xAxisHeight - dim.smallMargin;
@@ -92,9 +94,6 @@ HTMLWidgets.widget({
     vizObj.view.tsLegendSVG = tsLegendSVG;
     vizObj.view.tsTree = tsTree;
 
-    vizObj.view.tsSVGWidth = dim.tsSVGWidth;
-    vizObj.view.tsSVGHeight = dim.tsSVGHeight;
-
     return {}
     
   },
@@ -118,13 +117,16 @@ HTMLWidgets.widget({
     while (node_matches = nodeRX.exec(x.tree_gml)) {
         nodesObj[node_matches[1]] = node_matches[2];
     }
+    vizObj.data.treeNodes = Object.keys(nodesObj).map(function(node) {
+        return nodesObj[node];
+    });
 
     // get tree edges
     var edgeRX = /source (\d+)\s+target (\d+)/g;
     var edge_matches;
-    var edges = [];
+    vizObj.data.treeEdges = [];
     while (edge_matches = edgeRX.exec(x.tree_gml)) {
-        edges.push({
+        vizObj.data.treeEdges.push({
             "source": nodesObj[edge_matches[1]],
             "target": nodesObj[edge_matches[2]]
         });
@@ -132,33 +134,26 @@ HTMLWidgets.widget({
 
     // get tree structure
     var nodesByName = [];
-    for (var i = 0; i < edges.length; i++) {
-        var parent = _findNodeByName(nodesByName, edges[i].source);
-        var child = _findNodeByName(nodesByName, edges[i].target);
+    for (var i = 0; i < vizObj.data.treeEdges.length; i++) {
+        var parent = _findNodeByName(nodesByName, vizObj.data.treeEdges[i].source);
+        var child = _findNodeByName(nodesByName, vizObj.data.treeEdges[i].target);
         parent["children"].push(child);
     }
     var rootName = 'Root';
-    var tree = _findNodeByName(nodesByName, rootName);
+    vizObj.data.treeStructure = _findNodeByName(nodesByName, rootName);
     
     // get descendants for each node
-    var descendants = {};
+    vizObj.data.treeDescendantsArr = {};
     Object.keys(nodesObj).forEach(function(node, idx) {
         var curRoot = _findNodeByName(nodesByName, nodesObj[node]);
         var curDescendants = _getDescendantIds(curRoot, []);
-        descendants[nodesObj[node]] = curDescendants;
+        vizObj.data.treeDescendantsArr[nodesObj[node]] = curDescendants;
     })
+    vizObj.data.direct_descendants = _getDirectDescendants(vizObj.data.treeStructure, {});
 
     // get ancestors for each node
-    var ancestors = _getAncestorIds(descendants, nodesObj);
-
-    // set the tree in vizObj
-    vizObj.data.treeStructure = tree;
-    vizObj.data.treeEdges = edges;
-    vizObj.data.treeNodes = Object.keys(nodesObj).map(function(node) {
-        return nodesObj[node];
-    });
-    vizObj.data.treeDescendantsArr = descendants;
-    vizObj.data.treeAncestorsArr = ancestors;
+    vizObj.data.treeAncestorsArr = _getAncestorIds(vizObj.data.treeDescendantsArr, nodesObj);
+    vizObj.data.direct_ancestors = _getDirectAncestors(vizObj.data.treeStructure, {});
 
     // retrieve the patient id
     vizObj.data.patient_id = x.patient;
@@ -621,6 +616,8 @@ HTMLWidgets.widget({
 
     var dim = vizObj.view.config;
 
+    dim.width = width;
+    dim.height = height;
     dim.canvasSVGWidth = width - dim.paddingGeneral - dim.paddingGeneral;
     dim.canvasSVGHeight = height - dim.paddingGeneral - dim.paddingGeneral;
     dim.tsSVGHeight = dim.canvasSVGHeight - dim.xAxisHeight - dim.smallMargin;
@@ -646,6 +643,22 @@ HTMLWidgets.widget({
     
     // SET CONTENT
 
+    // if we want the spaced stacked view, recalculate the layout
+    var deferred = new $.Deferred();
+    if (!dim.centredView) {
+        // get the layout of genotypes at each time point
+        _getLayout(vizObj, dim.centredView);
+
+        // in the layout, shift x-values if >1 genotype emerges at the 
+        // same time point from the same clade in the tree
+        _shiftEmergence(vizObj)
+        
+        // convert layout at each time point into a list of moves for each genotype's d3 path object
+        vizObj.data.traditional_paths = _getTraditionalPaths(vizObj);
+
+        // get cellular prevalence labels
+        vizObj.data.ts_trad_labels = _getTraditionalCPLabels(vizObj);
+    }
 
     // get bezier paths
     vizObj.data.bezier_paths = _getBezierPaths(vizObj.data.traditional_paths, dim.tsSVGWidth, dim.tsSVGHeight);
@@ -658,14 +671,14 @@ HTMLWidgets.widget({
 
     if (dim.switchView) {
         newTsPlot = d3.selectAll('.tsPlot')
-        .data(vizObj.data.bezier_paths, function(d) {
-            return d.gtype;
-        });
+            .data(vizObj.data.bezier_paths, function(d) {
+                return d.gtype;
+            });
     } else {
         newTsPlot = d3.selectAll('.tsPlot')
-        .data(vizObj.data.separate_bezier_paths, function(d) {
-            return d.gtype;
-        });
+            .data(vizObj.data.separate_bezier_paths, function(d) {
+                return d.gtype;
+            });
     }
     newTsPlot.enter().append('path');
     newTsPlot.exit().remove();
