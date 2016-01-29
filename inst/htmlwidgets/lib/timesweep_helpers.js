@@ -181,29 +181,39 @@ function _sweepMouseout(d, vizObj) {
 function _getCentredLayout(vizObj, curNode, tp, layout, yBottom) {
     var gtype = curNode.id,
         cp_data = vizObj.data.cp_data,
-        cur_cp = cp_data[tp][gtype],
         timepoints = vizObj.data.timepoints,
         next_tp = timepoints[timepoints.indexOf(tp)+1],
         prev_tp = timepoints[timepoints.indexOf(tp)-1],
         gTypes_curTP = Object.keys(cp_data[tp]), // genotypes with cp data at the CURRENT time point
         gTypes_prevTP = (cp_data[prev_tp]) ? Object.keys(cp_data[prev_tp]) : undefined, // genotypes with cp data at the PREVIOUS time point
         curDescendants = vizObj.data.treeDescendantsArr[gtype],
+        gTypeAndDescendants = ($.extend([], curDescendants)),
         nChildren = curNode.children.length,
         childCP = 0, // cumulative amount of cellular prevalence in the children;
         childYBottom, // bottom y-value for the next child
-        layoutOrder = vizObj.data.layoutOrder;
+        layoutOrder = vizObj.data.layoutOrder,
+        sorted_children, // children sorted by the layout order
+        cur_cp = cp_data[tp][gtype],
+        prev_cp = (cp_data[prev_tp]) ? cp_data[prev_tp][gtype] : undefined, // cellular prevalence for this genotype at the previous time point
+        width = _calculateWidth(vizObj, tp, gtype), // the width of this genotype at this time point, including all descendants
+        emerged, // whether or not the genotype emerged at this time point
+        disappears = (prev_cp && !cur_cp); // whether this genotype disappears at the current time point
+    
+    gTypeAndDescendants.push(gtype);
+    
+    emerged = _getIntersection(gTypeAndDescendants, gTypes_curTP).length > 0 && 
+        gTypes_prevTP && 
+        _getIntersection(gTypeAndDescendants, gTypes_prevTP).length == 0 && 
+        gtype != "Root"; 
 
     // layout for this timepoint
     layout[tp] = layout[tp] || {};
 
-    // if the genotype or any descendants exist at this timepoint
-    if (cur_cp || (_getIntersection(curDescendants, gTypes_curTP).length > 0)) {
-
-        // get the width of this genotype at this time point, including all descendants
-        var width = _calculateWidth(vizObj, tp, gtype);
+    // if the genotype or any descendants exist at this timepoint, or if the genotype disappears at this time point
+    if (cur_cp || (_getIntersection(curDescendants, gTypes_curTP).length > 0) || disappears) {
 
         // if this genotype emerged at the previous time point
-        if (gTypes_prevTP && _getIntersection([gtype], gTypes_prevTP).length == 0 && gtype != "Root") {
+        if (emerged) {
 
             layout[prev_tp][gtype] = {
                 "width": 0,
@@ -225,6 +235,11 @@ function _getCentredLayout(vizObj, curNode, tp, layout, yBottom) {
             "state": "present",
             "nChildren": nChildren
         }
+
+        // mark disappearance state
+        if (disappears) {
+            layout[tp][gtype]["state"] = "disappears_stretched";
+        }
     }
 
     // function to sort children by layout order
@@ -237,13 +252,21 @@ function _getCentredLayout(vizObj, curNode, tp, layout, yBottom) {
     if (nChildren > 0) {
 
         // sort the children by the layout order
-        var sorted_children = $.extend([], curNode.children);
-        sorted_children.sort(sortByLayoutOrder);            
+        sorted_children = $.extend([], curNode.children);
+        sorted_children.sort(sortByLayoutOrder);    
 
-        // for each child, get its layout
+        // for each child
         for (var i = 0; i < nChildren; i++) {
-            childYBottom = (cur_cp) ? (((i+1)/(nChildren+1)) * cur_cp) + childCP + yBottom : yBottom;
+
+            // get the y-coordinate for the bottom of the child's interval
+            childYBottom = (cur_cp) ? 
+                (((i+1)/(nChildren+1)) * cur_cp) + childCP + yBottom : // if the child's direct ancestor has cellular prevalence at this time
+                childCP + yBottom;
+
+            // get the child's layout
             _getCentredLayout(vizObj, sorted_children[i], tp, layout, childYBottom);
+
+            // increase the cellular prevalence of the current genotype's children (+descendants) accounted for
             childCP += _calculateWidth(vizObj, tp, sorted_children[i].id);
         }
     }
@@ -256,7 +279,7 @@ function _getCentredLayout(vizObj, curNode, tp, layout, yBottom) {
 */
 function _calculateWidth(vizObj, tp, gtype) {
     var cp_data = vizObj.data.cp_data,
-        cur_cp = cp_data[tp][gtype],
+        cur_cp = cp_data[tp][gtype] || 0,
         curDescendants = vizObj.data.treeDescendantsArr[gtype],
         width = cur_cp || 0; // width starts out as the cellular prevalence for this genotype at this time point
 
@@ -701,12 +724,6 @@ function _getLayout(vizObj, centred) {
         vizObj.data.layout = _getStackedLayout(vizObj);
         // vizObj.data.layout = _getSpacedLayout(vizObj); // TODO testing spaced layout
     }
-
-    console.log("layout");
-    console.log(vizObj.data.layout);
-
-    console.log("layoutOrder");
-    console.log(vizObj.data.layoutOrder);
 }
 
 /* function to get genotype layout order for centred timesweep layout
