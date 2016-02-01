@@ -583,7 +583,7 @@ function _getCentredLayout(vizObj, curNode, tp, layout, yBottom) {
 
         // sort the children by the layout order
         sorted_children = $.extend([], curNode.children);
-        sorted_children.sort(_sortByLayoutOrder(layoutOrder));    
+        sorted_children.sort(_sortByLayoutOrder(layoutOrder));
 
         // for each child
         for (var i = 0; i < nChildren; i++) {
@@ -758,8 +758,6 @@ function _getSpacedLayout(vizObj) {
 
                 // sort children by reverse layout order (top to bottom)
                 var sorted_siblings = existing_siblings.sort(_sortByLayoutOrder(layoutOrder)).reverse();
-                console.log("sorted siblings");
-                console.log(sorted_siblings);
 
                 if (sorted_siblings.length > 0) {
 
@@ -767,7 +765,7 @@ function _getSpacedLayout(vizObj) {
                     sHeight = (layout[tp][cur_ancestor]["top"] == layout[tp][cur_ancestor]["bottom"]) ?
                         layout[tp][sorted_siblings[0]]["top"] : // if the ancestor has been replaced, set top as the first sibling's top value
                         layout[tp][cur_ancestor]["top"]; // otherwise, set the top as the ancestor's top value
-                    
+
                     // for each sibling
                     for (var i = 0; i < sorted_siblings.length; i++) {
 
@@ -839,12 +837,18 @@ function _calculateWidth(vizObj, tp, gtype) {
 /* function to sort genotypes by layout order (bottom to top)
 */
 function _sortByLayoutOrder(layoutOrder) {
-    function _sortingFunc(a, b) {
+    return function _sortingFunc(a, b) {
         var sortingArr = layoutOrder;
-        if (sortingArr.indexOf(a) > sortingArr.indexOf(b)) {
-            return 1;
+        if (typeof a === 'object') {
+            if (sortingArr.indexOf(a.id) > sortingArr.indexOf(b.id)) {
+                return 1;
+            }
+            return -1;
         }
         else {
+            if (sortingArr.indexOf(a) > sortingArr.indexOf(b)) {
+                return 1;
+            }
             return -1;
         }
     }
