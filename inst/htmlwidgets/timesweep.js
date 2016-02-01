@@ -192,26 +192,14 @@ HTMLWidgets.widget({
     // get the layout of the traditional timesweep
     _getLayout(vizObj, dim.gtypePos);
 
-    // convert layout at each time point into a list of moves for each genotype's d3 path object
-    vizObj.data.separate_paths = _getSeparatePaths(vizObj);
-    vizObj.data.traditional_paths = _getTraditionalPaths(vizObj);
+    // get paths for plotting
+    _getPaths(vizObj);
 
     // get cellular prevalence labels
     vizObj.data.ts_trad_labels = _getTraditionalCPLabels(vizObj);
     vizObj.data.ts_sep_labels = _getSeparateCPLabels(vizObj);
 
-
-
     // SET CONTENT
-
-
-    // get bezier paths
-    var bezier_paths = _getBezierPaths(vizObj.data.traditional_paths, dim.tsSVGWidth, dim.tsSVGHeight);
-    vizObj.data.bezier_paths = bezier_paths;
-
-    // get separate bezier paths
-    var separate_bezier_paths = _getBezierPaths(vizObj.data.separate_paths, dim.tsSVGWidth, dim.tsSVGHeight);
-    vizObj.data.separate_bezier_paths = separate_bezier_paths;
 
     // get colour assignment based on tree hierarchy
     var colour_assignment = {};

@@ -758,6 +758,8 @@ function _getSpacedLayout(vizObj) {
 
                 // sort children by reverse layout order (top to bottom)
                 var sorted_siblings = existing_siblings.sort(_sortByLayoutOrder(layoutOrder)).reverse();
+                console.log("sorted siblings");
+                console.log(sorted_siblings);
 
                 if (sorted_siblings.length > 0) {
 
@@ -1033,6 +1035,27 @@ function _getSeparateCPLabels(vizObj) {
 }
 
 // PATH FUNCTIONS
+
+/* function to get paths to plot. 
+* First gets paths (scale 0 to 1) with straight edges.
+* Then gets paths (scale of the plot pixel count) with bezier edges
+*/
+function _getPaths(vizObj) {
+    var dim = vizObj.view.config;
+
+    // GET PROPORTIONATE, STRAIGHT EDGED PATHS
+
+    // convert layout at each time point into a list of moves for each genotype's d3 path object
+    vizObj.data.separate_paths = _getSeparatePaths(vizObj);
+    vizObj.data.traditional_paths = _getTraditionalPaths(vizObj);
+
+    // GET BEZIER PATHS READY FOR PLOTTING
+
+    // convert proportionate paths into paths ready for plotting, with bezier curves
+    vizObj.data.bezier_paths = _getBezierPaths(vizObj.data.traditional_paths, dim.tsSVGWidth, dim.tsSVGHeight);
+    vizObj.data.separate_bezier_paths = _getBezierPaths(vizObj.data.separate_paths, dim.tsSVGWidth, dim.tsSVGHeight);
+
+}
 
 /* function to convert genotype stacks at each time point into a list of moves for each genotype's d3 path object (traditional timesweep view)
 * Note: the appearance timepoint is the time at which the genotype appears in the dataset
