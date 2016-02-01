@@ -695,14 +695,14 @@ function _createStackElement(layout, tp, gtype, bottom_val, top_val, state) {
 }
 
 /* function to get the layout of the timesweep, different depending on whether user wants centred
-* or stacked view
+* stacked or spaced view
 * @param {Object} vizObj
-* @param {Boolean} centred -- whether centred (T) or stacked (F) view desired
+* @param {Boolean} gtypePos -- whether the genotypes should be "centre"d, "stack"ed or "space"d
 */
-function _getLayout(vizObj, centred) {
+function _getLayout(vizObj, gtypePos) {
 
-    // ------> CENTRED
-    if (centred) {
+    // ------> CENTRED 
+    if (gtypePos == "centre") {
 
         // get genotype layout order
         vizObj.data.layoutOrder = _getCentredLayoutOrder(vizObj, vizObj.data.treeStructure, []);
@@ -714,16 +714,20 @@ function _getLayout(vizObj, centred) {
         })
     }
 
-    // ------> STACKED
+    // ------> STACKED and SPACED
     else {
 
         // traverse the tree to sort the genotypes into a final vertical stacking order (incorporating hierarchy)
         vizObj.data.layoutOrder = _vStackOrder(vizObj.data.treeStructure, vizObj.data.emergence_values, []);
 
         // get layout of each genotype at each timepoint
-        vizObj.data.layout = _getStackedLayout(vizObj);
-        // vizObj.data.layout = _getSpacedLayout(vizObj); // TODO testing spaced layout
-    }
+        if (gtypePos == "stack") {
+            vizObj.data.layout = _getStackedLayout(vizObj);
+        }
+        else if (gtypePos == "space") {
+            vizObj.data.layout = _getSpacedLayout(vizObj); 
+        }
+    }   
 }
 
 /* function to get genotype layout order for centred timesweep layout
@@ -894,88 +898,7 @@ function _getSpacedLayout(vizObj) {
 
     // GET STACKED LAYOUT
 
-    // for each timepoint (in order)...
-    $.each(timepoints, function(tp_idx, tp) { 
-
-        layout[tp] = layout[tp] || {}; // stack for this time point (may already be created if disappearance occurs at this time point)
-        var cp = cp_data[tp], // cellular prevalence data for this time point
-            sHeight = 0, // current height of the stack
-            prev_tp = timepoints[tp_idx-1],
-            next_tp = timepoints[tp_idx+1];
-
-        // ... for each genotype ...
-        $.each(layoutOrder, function(gtype_idx, gtype) { 
-            curDescendants = vizObj.data.treeDescendantsArr[gtype];
-            gTypeAndDescendants = ($.extend([], curDescendants)); 
-            gTypeAndDescendants.push(gtype); 
-            curAncestors = vizObj.data.treeAncestorsArr[gtype]; 
-            gTypes_curTP = Object.keys(cp_data[tp]); 
-            gTypes_nextTP = (cp_data[next_tp]) ? Object.keys(cp_data[next_tp]) : undefined; 
-            width = (cp[gtype]) ? cp[gtype] : 0; 
-
-
-            // if this genotype or any descendants EMERGE at this time point
-            if ((_getIntersection(gTypeAndDescendants, gTypes_curTP).length == 0) &&
-                (gTypes_nextTP && _getIntersection(gTypeAndDescendants, gTypes_nextTP).length > 0)) {
-
-                // create the stack element as emerging
-                _createStackElement(layout, tp, gtype, 0, 0, "emerges");
-
-            }
-
-            // if this genotype is REPLACED by any descendant at this time point
-            else if (!cp_data[tp][gtype] && (_getIntersection(curDescendants, gTypes_curTP).length > 0) && gtype != "Root") {
-                _createStackElement(layout, tp, gtype, sHeight, sHeight, "replaced");
-                replaced_gtypes[gtype] = replaced_gtypes[gtype] || [];
-                replaced_gtypes[gtype].push(tp);
-            }
-
-            // if neither this genotype nor any descendants are present at this time point (they DISAPPEAR)
-            else if (!cp_data[tp][gtype] && _getIntersection(gTypeAndDescendants, gTypes_curTP).length == 0) {
-                _createStackElement(layout, tp, gtype, sHeight, sHeight, "disappears_stretched");
-            }
-
-            // if this genotype or any descendants EXIST at this time point
-            else if (_getIntersection(gTypeAndDescendants, gTypes_curTP).length > 0) {
-
-                // in case of reemergence, remove it from the "replaced genotypes" object
-                delete replaced_gtypes[gtype]; 
-
-                // create it as present
-                _createStackElement(layout, tp, gtype, sHeight, sHeight + width, "present");
-                midpoint = (layout[tp][gtype]["bottom"] + layout[tp][gtype]["top"])/2;
-
-                // update stack height
-                sHeight = layout[tp][gtype]["top"];
-
-                // if it EMERGED at the previous time point
-                if (cp_data[prev_tp] && layout[prev_tp][gtype] && layout[prev_tp][gtype]["state"] == "emerges") {
-
-                    // update its emergence y-value
-                    _createStackElement(layout, prev_tp, gtype, midpoint, midpoint, "emerges");
-                }
-
-                // update ancestors to incorporate the current genotype's stack interval
-                for (var i = 0; i < curAncestors.length; i++) {
-
-                    // if the ancestor has not been replaced by its descendants
-                    if (layout[tp][curAncestors[i]] && 
-                        (!replaced_gtypes[curAncestors[i]] || // (either not in replaced list ...
-                        (replaced_gtypes[curAncestors[i]].length == 1))) {  // ... or has just been replaced at current time point)
-
-                        // update PRESENCE in this time point (increase "top" value)
-                        layout[tp][curAncestors[i]]["top"] += width;
-                        ancestor_midpoint = (layout[tp][curAncestors[i]]["top"] + layout[tp][curAncestors[i]]["bottom"])/2;
-
-                        // update EMERGENCE y-coordinate in previous time point 
-                        if (cp_data[prev_tp] && layout[prev_tp][curAncestors[i]] && layout[prev_tp][curAncestors[i]]["state"] == "emerges") {
-                            _createStackElement(layout, prev_tp, curAncestors[i], ancestor_midpoint, ancestor_midpoint, "emerges");
-                        }
-                    }
-                }
-            }
-        })
-    })
+    layout = _getStackedLayout(vizObj);
 
     // SPACE THE STACKED LAYOUT
 
@@ -988,44 +911,57 @@ function _getSpacedLayout(vizObj) {
         // ... for each genotype ...
         $.each(layoutOrder, function(gtype_idx, gtype) {
 
+            // if the genotype hasn't already been spaced, and nor is it the root
             if (seenGTypes.indexOf(gtype) == -1 && gtype != "Root") {
 
                 gTypes_curTP = Object.keys(cp_data[tp]);
-                var cur_ancestor = direct_ancestors[gtype];
-                var cur_ancestor_cp = cp_data[tp][cur_ancestor] || 0;
-                var existing_siblings = _getIntersection(direct_descendants[cur_ancestor], gTypes_curTP);
-                var cur_space = ((existing_siblings.length+1) * space < cur_ancestor_cp) ? 
-                    space : 
-                    cur_ancestor_cp/(existing_siblings.length+1);
+                var cur_ancestor = direct_ancestors[gtype],
+                    cur_ancestor_cp = cp_data[tp][cur_ancestor] || 0,
+                    existing_siblings = _getIntersection(direct_descendants[cur_ancestor], gTypes_curTP),
+                    cur_space = ((existing_siblings.length+1) * space < cur_ancestor_cp) ? 
+                        space : 
+                        cur_ancestor_cp/(existing_siblings.length+1);
 
-                // function to sort children by layout order
+                // function to sort children by layout order (bottom to top)
                 function sortingFunc(a, b) {
                   var sortingArr = layoutOrder;
-                  return sortingArr.indexOf(a.id) - sortingArr.indexOf(b.id);
+                  if (sortingArr.indexOf(a) > sortingArr.indexOf(b)) {
+                    return 1;
+                  }
+                  else {
+                    return -1;
+                  }
                 }
-                var sorted_siblings = existing_siblings.sort(sortingFunc);
+                // sort children by reverse layout order (top to bottom)
+                var sorted_siblings = existing_siblings.sort(sortingFunc).reverse();
 
-                sHeight = layout[tp][cur_ancestor]["top"];
-                
-                // for each sibling
-                for (var i = 0; i < sorted_siblings.length; i++) {
+                if (sorted_siblings.length > 0) {
 
-                    var cur_width = layout[tp][sorted_siblings[i]]["top"] - layout[tp][sorted_siblings[i]]["bottom"];
+                    // set the stack height (from the top)
+                    sHeight = (layout[tp][cur_ancestor]["top"] == layout[tp][cur_ancestor]["bottom"]) ?
+                        layout[tp][sorted_siblings[0]]["top"] : // if the ancestor has been replaced, set top as the first sibling's top value
+                        layout[tp][cur_ancestor]["top"]; // otherwise, set the top as the ancestor's top value
+                    
+                    // for each sibling
+                    for (var i = 0; i < sorted_siblings.length; i++) {
 
-                    // if this sibling emerges at the previous time point
-                    if (cp_data[prev_tp] && layout[prev_tp][sorted_siblings[i]] && layout[prev_tp][sorted_siblings[i]]["state"] == "emerges") {
-                        
-                        layout[tp][sorted_siblings[i]]["top"] = sHeight - (i+1)*cur_space;
-                        layout[tp][sorted_siblings[i]]["bottom"] = sHeight - cur_width - (i+1)*cur_space;
-                        midpoint = (layout[tp][sorted_siblings[i]]["top"] + layout[tp][sorted_siblings[i]]["bottom"])/2;
+                        var sib = sorted_siblings[i], // current sibling
+                            cur_width = layout[tp][sib]["top"] - layout[tp][sib]["bottom"]; // width of sibling
 
-                        // update EMERGENCE y-coordinate in previous time point 
-                        if (cp_data[prev_tp] && layout[prev_tp][sorted_siblings[i]] && layout[prev_tp][sorted_siblings[i]]["state"] == "emerges") {
-                            _createStackElement(layout, prev_tp, sorted_siblings[i], midpoint, midpoint, "emerges");
+                        // alter its layout
+                        layout[tp][sib]["top"] = sHeight - cur_space;
+                        layout[tp][sib]["bottom"] = sHeight - cur_width - cur_space;
+
+                        // if this sibling emerges at the previous time point, update its emergence y-coordinate
+                        if (cp_data[prev_tp] && layout[prev_tp][sib] && layout[prev_tp][sib]["state"] == "emerges") {
+                            midpoint = (layout[tp][sib]["top"] + layout[tp][sib]["bottom"])/2;
+                            _createStackElement(layout, prev_tp, sib, midpoint, midpoint, "emerges");
                         }
-                    }
 
-                    sHeight -= cur_width;
+                        // add the current sibling's width to the stack height
+                        sHeight -= (cur_width + cur_space);
+                        seenGTypes.push(sib);
+                    }
                 }
             }
         })
@@ -1068,14 +1004,14 @@ function _getTraditionalCPLabels(vizObj) {
                     // add its information 
                     label = {};
 
-                    if (dim.centredView) { // centred view
+                    if (dim.gtypePos == "centred") { // centred view
                         label['tp'] = tp;
                         label['gtype'] = gtype;
                         label['cp'] = data.cp;
                         label['middle'] = data.top - (data.cp/(2*(data.nChildren+1)));
                         label['type'] = "traditional";
                     }
-                    else { // stacked view
+                    else { // stacked or spaced view
                         label['tp'] = tp;
                         label['gtype'] = gtype;
                         label['cp'] = data.top_no_descendants-data.bottom;

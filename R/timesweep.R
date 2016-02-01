@@ -10,7 +10,10 @@
 #' @param xaxis.title x-axis title. 
 #' @param yaxis.title y-axis title.
 #' @param alpha Alpha value for sweeps
-#' @param centred Whether the genotypes should be centred (T) or stacked (F)
+#' @param genotype.position How to position the genotypes from ["centre", "stack", "space"] 
+#'   "centre" -- genotypes are centred with respect to their ancestors
+#'   "stack" -- genotypes are stacked such that no genotype is split at any time point
+#'   "space" -- genotypes are stacked but with a bit of spacing at the top (emergence is clearer)
 #' @param show.root Whether or not to show the root in the timesweep view
 #' @param perturbations Data frame of any perturbations that occurred between two time points, 
 #'   and the fraction of total tumour content left.
@@ -24,7 +27,7 @@
 #' timesweep("SAMPLE_PATIENT", system.file("extdata", "clonal_dynamics.csv", package = "timesweep"), 
 #'            system.file("extdata", "tree.gml", package = "timesweep"))
 timesweep <- function(patient, clonal.prev.csv, tree.gml, node.col, xaxis.title, yaxis.title, alpha, 
-                      centred, show.root, perturbations, sort, width = NULL, height = NULL) {
+                      genotype.position, show.root, perturbations, sort, width = NULL, height = NULL) {
 
   # parse csv
   clonal.prev.data = read.csv(clonal.prev.csv)
@@ -50,11 +53,8 @@ timesweep <- function(patient, clonal.prev.csv, tree.gml, node.col, xaxis.title,
     alpha <- 30
   } 
 
-  if (missing(centred) || centred) {
-    centred <- "T"
-  }
-  else {
-    centred <- "F"
+  if (missing(genotype.position)) {
+    genotype.position <- "stack"
   }
 
   if (missing(show.root) || show.root) {
@@ -89,7 +89,7 @@ timesweep <- function(patient, clonal.prev.csv, tree.gml, node.col, xaxis.title,
     xaxis_title = xaxis.title,
     yaxis_title = yaxis.title,
     alpha = alpha,
-    centred = centred,
+    gtype_position = genotype.position,
     show_root = show.root,
     perturbations_JSON = perturbations_JSON,
     sort = sort

@@ -103,7 +103,7 @@ HTMLWidgets.widget({
 
     // get params from R
     vizObj.data.userConfig = x;
-    dim.centredView = (x.centred == "T") ? true : false; // is view centred or not
+    dim.gtypePos = x.gtype_position; // is view centred, stacked, or spaced
     dim.showRoot = (x.show_root == "T") ? true : false; // whether or not to show the root in the view
     dim.sort_gtypes = (x.sort == "T") ? true : false; // whether or not to vertically sort the genotypes based on emergence values
     vizObj.data.perturbations = x.perturbations_JSON;
@@ -193,7 +193,7 @@ HTMLWidgets.widget({
     _getGenotypeCPData(vizObj);
 
     // get the layout of the traditional timesweep
-    _getLayout(vizObj, dim.centredView);
+    _getLayout(vizObj, dim.gtypePos);
 
     // in the layout, shift x-values if >1 genotype emerges at the 
     // same time point from the same clade in the tree
@@ -645,9 +645,9 @@ HTMLWidgets.widget({
 
     // if we want the spaced stacked view, recalculate the layout
     var deferred = new $.Deferred();
-    if (!dim.centredView) {
+    if (!dim.gtypePos) {
         // get the layout of genotypes at each time point
-        _getLayout(vizObj, dim.centredView);
+        _getLayout(vizObj, dim.gtypePos);
 
         // in the layout, shift x-values if >1 genotype emerges at the 
         // same time point from the same clade in the tree
