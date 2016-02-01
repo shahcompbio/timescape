@@ -178,9 +178,6 @@ HTMLWidgets.widget({
         return nodesObj[node];
     });
 
-    // depth first search of tree to get proper order of genotypes at each time point
-    timesweep_data = {};
-
     // create timepoint zero with 100% cellular prevalence for the root of the tree
     cp_data["T0"] = {};
     cp_data["T0"]["Root"] = 1;
@@ -194,10 +191,6 @@ HTMLWidgets.widget({
 
     // get the layout of the traditional timesweep
     _getLayout(vizObj, dim.gtypePos);
-
-    // in the layout, shift x-values if >1 genotype emerges at the 
-    // same time point from the same clade in the tree
-    _shiftEmergence(vizObj)
 
     // convert layout at each time point into a list of moves for each genotype's d3 path object
     vizObj.data.separate_paths = _getSeparatePaths(vizObj);
