@@ -102,86 +102,24 @@ HTMLWidgets.widget({
     var dim = vizObj.view.config;
 
     // get params from R
-    vizObj.data.userConfig = x;
-    dim.gtypePos = x.gtype_position; // is view centred, stacked, or spaced
-    dim.showRoot = (x.show_root == "T") ? true : false; // whether or not to show the root in the view
-    dim.sort_gtypes = (x.sort == "T") ? true : false; // whether or not to vertically sort the genotypes based on emergence values
+    vizObj.view.userConfig = x;
+    vizObj.view.userConfig.showRoot = (x.show_root == "T") ? true : false; // whether or not to show the root in the view
+    vizObj.view.userConfig.sort_gtypes = (x.sort == "T") ? true : false; // whether or not to vertically sort the genotypes based on emergence values
     vizObj.data.perturbations = x.perturbations_JSON;
+    vizObj.data.patient_id = x.patient; // patient id
 
     // GET CONTENT
 
-
-    // get tree nodes
-    var nodeRX = /id (\d+)\s+label \"(\w+)\"/g;
-    var nodesObj = {};
-    while (node_matches = nodeRX.exec(x.tree_gml)) {
-        nodesObj[node_matches[1]] = node_matches[2];
-    }
-    vizObj.data.treeNodes = Object.keys(nodesObj).map(function(node) {
-        return nodesObj[node];
-    });
-
-    // get tree edges
-    var edgeRX = /source (\d+)\s+target (\d+)/g;
-    var edge_matches;
-    vizObj.data.treeEdges = [];
-    while (edge_matches = edgeRX.exec(x.tree_gml)) {
-        vizObj.data.treeEdges.push({
-            "source": nodesObj[edge_matches[1]],
-            "target": nodesObj[edge_matches[2]]
-        });
-    }
-
-    // get tree structure
-    var nodesByName = [];
-    for (var i = 0; i < vizObj.data.treeEdges.length; i++) {
-        var parent = _findNodeByName(nodesByName, vizObj.data.treeEdges[i].source);
-        var child = _findNodeByName(nodesByName, vizObj.data.treeEdges[i].target);
-        parent["children"].push(child);
-    }
-    var rootName = 'Root';
-    vizObj.data.treeStructure = _findNodeByName(nodesByName, rootName);
-    
-    // get descendants for each node
-    vizObj.data.treeDescendantsArr = {};
-    Object.keys(nodesObj).forEach(function(node, idx) {
-        var curRoot = _findNodeByName(nodesByName, nodesObj[node]);
-        var curDescendants = _getDescendantIds(curRoot, []);
-        vizObj.data.treeDescendantsArr[nodesObj[node]] = curDescendants;
-    })
-    vizObj.data.direct_descendants = _getDirectDescendants(vizObj.data.treeStructure, {});
-
-    // get ancestors for each node
-    vizObj.data.treeAncestorsArr = _getAncestorIds(vizObj.data.treeDescendantsArr, nodesObj);
-    vizObj.data.direct_ancestors = _getDirectAncestors(vizObj.data.treeStructure, {});
-
-    // retrieve the patient id
-    vizObj.data.patient_id = x.patient;
-
-    // for each time point, for each genotype, get cellular prevalence
-    var cp_data = {};
-    $.each(x.clonal_prev_JSON, function(idx, hit) { // for each hit (genotype/timepoint combination)
-        // only parse data for a particular patient
-        if (hit["patient_name"] == x.patient) {
-            cp_data[hit["timepoint"]] = cp_data[hit["timepoint"]] || {};
-            cp_data[hit["timepoint"]][hit["cluster"]] = parseFloat(hit["clonal_prev"]); 
-        }
-    });
+    // extract all info from tree about nodes, edges, ancestors, descendants
+    _getTreeInfo(vizObj);
 
     // get timepoints, prepend a "T0" timepoint to represent the timepoint before any data originated
-    var timepoints = Object.keys(cp_data).sort();
+    var timepoints = _.uniq(_.pluck(x.clonal_prev_JSON, "timepoint"));
     timepoints.unshift("T0");
     vizObj.data.timepoints = timepoints;
 
-    // genotypes
-    vizObj.data.genotypes = Object.keys(nodesObj).map(function(node, idx) {
-        return nodesObj[node];
-    });
-
-    // create timepoint zero with 100% cellular prevalence for the root of the tree
-    cp_data["T0"] = {};
-    cp_data["T0"]["Root"] = 1;
-    vizObj.data.cp_data = cp_data;
+    // get cellular prevalence info
+    _getCPData(vizObj);
 
     // get emergence values for each genotype
     vizObj.data.emergence_values = _getEmergenceValues(vizObj);
@@ -190,7 +128,7 @@ HTMLWidgets.widget({
     _getGenotypeCPData(vizObj);
 
     // get the layout of the traditional timesweep
-    _getLayout(vizObj, dim.gtypePos);
+    _getLayout(vizObj);
 
     // get paths for plotting
     _getPaths(vizObj);
@@ -201,41 +139,13 @@ HTMLWidgets.widget({
 
     // SET CONTENT
 
-    // get colour assignment based on tree hierarchy
-    var colour_assignment = {};
-    // if unspecified, use default
-    if (x.node_col_JSON == "NA") {
-        var colour_palette = _getColourPalette();
-        var chains = _getLinearTreeSegments(vizObj.data.treeStructure, {}, "");
-        colour_assignment = _colourTree(vizObj, chains, vizObj.data.treeStructure, colour_palette, {}, "Greens");
-    }
-    // otherwise, use specified colours
-    else {
-        x.node_col_JSON.forEach(function(col, col_idx) {
-            var col_value = col.col;
-            if (col_value[0] != "#") { // append a hashtag if necessary
-                col_value = "#".concat(col_value);
-            }
-            if (col_value.length > 7) { // remove any alpha that may be present in the hex value
-                col_value = col_value.substring(0,7);
-            }
-            colour_assignment[col.node_label] = col_value;
-        });
-        colour_assignment['Root'] = "#000000";
-    }
-    vizObj.view.colour_assignment = colour_assignment;
-
-    // get the alpha colour assignment
-    var alpha_colour_assignment = {};
-    Object.keys(colour_assignment).forEach(function(key, key_idx) {
-        alpha_colour_assignment[key] = (key == "Root") ? 
-            dim.rootColour : _increase_brightness(colour_assignment[key], x.alpha);
-    });
-    vizObj.view.alpha_colour_assignment = alpha_colour_assignment;
-
+    // get colour scheme
+    _getColours(vizObj);
+    var colour_assignment = vizObj.view.colour_assignment,
+        alpha_colour_assignment = vizObj.view.alpha_colour_assignment;
 
     // plot timesweep data
-    var patientID_class = 'patientID_' + vizObj.data.patient_id
+    var patientID_class = 'patientID_' + vizObj.data.patient_id;
     vizObj.view.tsSVG
         .selectAll('.tsPlot')
         .data(vizObj.data.bezier_paths, function(d) {
@@ -248,13 +158,13 @@ HTMLWidgets.widget({
             return (x.alpha == "NA") ? colour_assignment[d.gtype] : alpha_colour_assignment[d.gtype];
         }) 
         .attr('stroke', function(d) { 
-            return (d.gtype == "Root" && dim.showRoot) ? dim.rootColour : colour_assignment[d.gtype]; 
+            return (d.gtype == "Root" && vizObj.view.userConfig.showRoot) ? dim.rootColour : colour_assignment[d.gtype]; 
         })
         .attr('fill-opacity', function(d) {
-            return (d.gtype == "Root" && !dim.showRoot) ? 0 : 1;
+            return (d.gtype == "Root" && !vizObj.view.userConfig.showRoot) ? 0 : 1;
         })
         .attr('stroke-opacity', function(d) {
-            return (d.gtype == "Root" && !dim.showRoot) ? 0 : 1;
+            return (d.gtype == "Root" && !vizObj.view.userConfig.showRoot) ? 0 : 1;
         })
         .on('click', function() { 
             return _sweepClick(vizObj); 
@@ -544,15 +454,15 @@ HTMLWidgets.widget({
         .text('Tree'); 
 
     // d3 tree layout
-    var treePadding = 20;
-    var treeTitleHeight = d3.select('.treeTitle').node().getBBox().height;
-    var treeLayout = d3.layout.tree()           
-        .size([dim.treeHeight - treePadding - treeTitleHeight, dim.treeWidth - treePadding]); 
+    var treePadding = 20,
+        treeTitleHeight = d3.select('.treeTitle').node().getBBox().height,
+        treeLayout = d3.layout.tree()           
+            .size([dim.treeHeight - treePadding - treeTitleHeight, dim.treeWidth - treePadding]); 
 
     // get nodes and links
-    var root = $.extend({}, vizObj.data.treeStructure); // copy tree into new variable
-    var nodes = treeLayout.nodes(root); 
-    var links = treeLayout.links(nodes);   
+    var root = $.extend({}, vizObj.data.treeStructure), // copy tree into new variable
+        nodes = treeLayout.nodes(root), 
+        links = treeLayout.links(nodes);   
  
     // swap x and y direction
     nodes.forEach(function(node) {
@@ -626,9 +536,9 @@ HTMLWidgets.widget({
 
     // if we want the spaced stacked view, recalculate the layout
     var deferred = new $.Deferred();
-    if (!dim.gtypePos) {
+    if (!vizObj.view.userConfig.gtypePos) {
         // get the layout of genotypes at each time point
-        _getLayout(vizObj, dim.gtypePos);
+        _getLayout(vizObj, vizObj.view.userConfig.gtypePos);
 
         // in the layout, shift x-values if >1 genotype emerges at the 
         // same time point from the same clade in the tree

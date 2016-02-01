@@ -89,7 +89,7 @@ timesweep <- function(patient, clonal.prev.csv, tree.gml, node.col, xaxis.title,
     xaxis_title = xaxis.title,
     yaxis_title = yaxis.title,
     alpha = alpha,
-    gtype_position = genotype.position,
+    gtypePos = genotype.position,
     show_root = show.root,
     perturbations_JSON = perturbations_JSON,
     sort = sort

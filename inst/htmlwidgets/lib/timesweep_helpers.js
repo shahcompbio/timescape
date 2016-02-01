@@ -6,7 +6,7 @@ function _sweepClick(vizObj) {
     var dim = vizObj.view.config,
         colour_assignment = vizObj.view.colour_assignment,
         alpha_colour_assignment = vizObj.view.alpha_colour_assignment,
-        x = vizObj.data.userConfig;
+        x = vizObj.view.userConfig;
 
     // hide any cellular prevalence labels
     d3.selectAll(".label, .sepLabel")
@@ -58,13 +58,13 @@ function _sweepClick(vizObj) {
                 return (x.alpha == "NA") ? colour_assignment[d.gtype] : alpha_colour_assignment[d.gtype];
             }) 
             .attr('stroke', function(d) { 
-                return (d.gtype == "Root" && dim.showRoot) ? dim.rootColour : colour_assignment[d.gtype]; 
+                return (d.gtype == "Root" && vizObj.view.userConfig.showRoot) ? dim.rootColour : colour_assignment[d.gtype]; 
             })
             .attr('fill-opacity', function(d) {
-                return (d.gtype == "Root" && !dim.showRoot) ? 0 : 1;
+                return (d.gtype == "Root" && !vizObj.view.userConfig.showRoot) ? 0 : 1;
             })
             .attr('stroke-opacity', function(d) {
-                return (d.gtype == "Root" && !dim.showRoot) ? 0 : 1;
+                return (d.gtype == "Root" && !vizObj.view.userConfig.showRoot) ? 0 : 1;
             })
             .transition()
             .duration(1000)
@@ -81,7 +81,7 @@ function _sweepMouseover(d, vizObj) {
         colour_assignment = vizObj.view.colour_assignment,
         alpha_colour_assignment = vizObj.view.alpha_colour_assignment,
         patientID_class = 'patientID_' + vizObj.data.patient_id,
-        x = vizObj.data.userConfig;
+        x = vizObj.view.userConfig;
 
     // dim other genotypes
     d3.selectAll('.tsPlot.' + patientID_class)
@@ -107,7 +107,7 @@ function _sweepMouseover(d, vizObj) {
                 return _rgb2hex("rgb(" + brightness + "," + brightness + "," + brightness + ")");
             }
             else {
-                return (d.gtype == "Root" && dim.showRoot) ? dim.rootColour : colour_assignment[d.gtype];
+                return (d.gtype == "Root" && vizObj.view.userConfig.showRoot) ? dim.rootColour : colour_assignment[d.gtype];
             }
         });
 
@@ -140,7 +140,7 @@ function _sweepMouseout(d, vizObj) {
         colour_assignment = vizObj.view.colour_assignment,
         alpha_colour_assignment = vizObj.view.alpha_colour_assignment,
         patientID_class = 'patientID_' + vizObj.data.patient_id,
-        x = vizObj.data.userConfig;
+        x = vizObj.view.userConfig;
 
     // reset colours
     d3.selectAll('.tsPlot.' + patientID_class)
@@ -148,7 +148,7 @@ function _sweepMouseout(d, vizObj) {
             return (x.alpha == "NA") ? colour_assignment[d.gtype] : alpha_colour_assignment[d.gtype];
         })
         .attr('stroke', function(d) { 
-            return (d.gtype == "Root" && dim.showRoot) ? dim.rootColour : colour_assignment[d.gtype];
+            return (d.gtype == "Root" && vizObj.view.userConfig.showRoot) ? dim.rootColour : colour_assignment[d.gtype];
         });
 
     // traditional view
@@ -175,6 +175,63 @@ function _sweepMouseout(d, vizObj) {
 }
 
 // TREE FUNCTIONS
+
+/* extract all info from tree about nodes, edges, ancestors, descendants
+* @param {Object} vizObj 
+*/
+function _getTreeInfo(vizObj) {
+    var userConfig = vizObj.view.userConfig,
+        nodeRX = /id (\d+)\s+label \"(\w+)\"/g,
+        edgeRX = /source (\d+)\s+target (\d+)/g,
+        node_matches,
+        edge_matches,
+        rootName = 'Root';
+
+    // get tree nodes
+    var nodesObj = {};
+    while (node_matches = nodeRX.exec(userConfig.tree_gml)) {
+        nodesObj[node_matches[1]] = node_matches[2];
+    }
+    vizObj.data.treeNodes = Object.keys(nodesObj).map(function(node) {
+        return nodesObj[node];
+    });
+
+    // get genotype names from tree node ids
+    vizObj.data.genotypes = Object.keys(nodesObj).map(function(node, idx) {
+        return nodesObj[node];
+    });
+
+    // get tree edges
+    vizObj.data.treeEdges = [];
+    while (edge_matches = edgeRX.exec(userConfig.tree_gml)) {
+        vizObj.data.treeEdges.push({
+            "source": nodesObj[edge_matches[1]],
+            "target": nodesObj[edge_matches[2]]
+        });
+    }
+
+    // get tree structure
+    var nodesByName = [];
+    for (var i = 0; i < vizObj.data.treeEdges.length; i++) {
+        var parent = _findNodeByName(nodesByName, vizObj.data.treeEdges[i].source);
+        var child = _findNodeByName(nodesByName, vizObj.data.treeEdges[i].target);
+        parent["children"].push(child);
+    }
+    vizObj.data.treeStructure = _findNodeByName(nodesByName, rootName);
+    
+    // get descendants for each node
+    vizObj.data.treeDescendantsArr = {};
+    Object.keys(nodesObj).forEach(function(node, idx) {
+        var curRoot = _findNodeByName(nodesByName, nodesObj[node]);
+        var curDescendants = _getDescendantIds(curRoot, []);
+        vizObj.data.treeDescendantsArr[nodesObj[node]] = curDescendants;
+    })
+    vizObj.data.direct_descendants = _getDirectDescendants(vizObj.data.treeStructure, {});
+
+    // get ancestors for each node
+    vizObj.data.treeAncestorsArr = _getAncestorIds(vizObj.data.treeDescendantsArr, nodesObj);
+    vizObj.data.direct_ancestors = _getDirectAncestors(vizObj.data.treeStructure, {});
+}
 
 /* function to find a key by its name - if the key doesn't exist, it will be created and added to the list of nodes
 * @param {Array} list - list of nodes
@@ -335,6 +392,28 @@ function _getLinearTreeSegments(curNode, chains, base) {
 
 // CELLULAR PREVALENCE FUNCTIONS
 
+/* function to get the cellular prevalence data in a better format (properties at level 1 is time, at level 2 is gtype)
+*/
+function _getCPData(vizObj) {
+    var x = vizObj.view.userConfig;
+
+    // for each time point, for each genotype, get cellular prevalence
+    var cp_data = {};
+    $.each(x.clonal_prev_JSON, function(idx, hit) { // for each hit (genotype/timepoint combination)
+        // only parse data for a particular patient
+        if (hit["patient_name"] == x.patient) {
+            cp_data[hit["timepoint"]] = cp_data[hit["timepoint"]] || {};
+            cp_data[hit["timepoint"]][hit["cluster"]] = parseFloat(hit["clonal_prev"]); 
+        }
+    });
+
+    // create timepoint zero with 100% cellular prevalence for the root of the tree
+    cp_data["T0"] = {};
+    cp_data["T0"]["Root"] = 1;
+    vizObj.data.cp_data = cp_data;
+
+}
+
 /* function to get the cellular prevalence value for each genotype at its emergence
 * @param {Object} vizObj
 */
@@ -382,9 +461,9 @@ function _getGenotypeCPData(vizObj) {
 /* function to get the layout of the timesweep, different depending on whether user wants centred,
 * stacked or spaced view
 * @param {Object} vizObj
-* @param {Boolean} gtypePos -- whether the genotypes should be "centre"d, "stack"ed or "space"d
 */
-function _getLayout(vizObj, gtypePos) {
+function _getLayout(vizObj) {
+    var gtypePos = vizObj.view.userConfig.gtypePos;
 
     // ------> CENTRED 
     if (gtypePos == "centre") {
@@ -430,7 +509,7 @@ function _getCentredLayoutOrder(vizObj, curNode, layoutOrder) {
         child_emerg_vals = [], // emergence values of children
         sorted_children, // children sorted by their emergence values
         child_obj, // current child node 
-        sort_by_emerg = vizObj.view.config.sort_gtypes; // whether or not to vertically sort children by emergence values
+        sort_by_emerg = vizObj.view.userConfig.sort_gtypes; // whether or not to vertically sort children by emergence values
 
     layoutOrder.push(curNode.id);
 
@@ -472,7 +551,7 @@ function _getStackedLayoutOrder(curNode, emergence_values, layoutOrder) {
     var child_emerg_vals = [], // emergence values of children
         sorted_children, // children sorted by their emergence values
         child_obj, // current child node
-        sort_by_emerg = vizObj.view.config.sort_gtypes; // whether or not to vertically sort children by emergence values
+        sort_by_emerg = vizObj.view.userConfig.sort_gtypes; // whether or not to vertically sort children by emergence values
 
     // add the current key id to the final vertical stacking order
     layoutOrder.push(curNode.id);
@@ -969,7 +1048,7 @@ function _getTraditionalCPLabels(vizObj) {
                     // add its information 
                     label = {};
 
-                    if (dim.gtypePos == "centred") { // centred view
+                    if (vizObj.view.userConfig.gtypePos == "centred") { // centred view
                         label['tp'] = tp;
                         label['gtype'] = gtype;
                         label['cp'] = data.cp;
@@ -1433,6 +1512,44 @@ function _getBezierPaths(paths, tsSVGWidth, tsSVGHeight) {
 
 // COLOUR FUNCTIONS
 
+function _getColours(vizObj) {
+    var x = vizObj.view.userConfig,
+        dim = vizObj.view.config,
+        colour_assignment = {}, // standard colour assignment
+        alpha_colour_assignment = {}; // alpha colour assignment
+
+    // get colour assignment based on tree hierarchy
+    // --> if unspecified, use default
+    if (x.node_col_JSON == "NA") {
+        var colour_palette = _getColourPalette();
+        var chains = _getLinearTreeSegments(vizObj.data.treeStructure, {}, "");
+        colour_assignment = _colourTree(vizObj, chains, vizObj.data.treeStructure, colour_palette, {}, "Greens");
+    }
+    // --> otherwise, use specified colours
+    else {
+        // handling different inputs -- TODO should probably be done in R
+        x.node_col_JSON.forEach(function(col, col_idx) {
+            var col_value = col.col;
+            if (col_value[0] != "#") { // append a hashtag if necessary
+                col_value = "#".concat(col_value);
+            }
+            if (col_value.length > 7) { // remove any alpha that may be present in the hex value
+                col_value = col_value.substring(0,7);
+            }
+            colour_assignment[col.node_label] = col_value;
+        });
+        colour_assignment['Root'] = "#000000";
+    }
+    vizObj.view.colour_assignment = colour_assignment;
+
+    // get the alpha colour assignment
+    Object.keys(colour_assignment).forEach(function(key, key_idx) {
+        alpha_colour_assignment[key] = (key == "Root") ? 
+            dim.rootColour : _increase_brightness(colour_assignment[key], x.alpha);
+    });
+    vizObj.view.alpha_colour_assignment = alpha_colour_assignment;
+
+}
 /*
 * function to, using the tree hierarchy, get appropriate colours for each genotype
 * @param {Object} vizObj
