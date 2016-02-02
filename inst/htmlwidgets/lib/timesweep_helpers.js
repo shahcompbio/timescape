@@ -760,12 +760,12 @@ function _getStackedLayout(vizObj) {
                 (gTypes_nextTP && _getIntersection(gTypeAndDescendants, gTypes_nextTP).length > 0)) {
 
                 // create the stack element as emerging
-                _createStackElement(layout, tp, gtype, 0, 0, "emerges");
+                _createStackElement(vizObj, layout, tp, gtype, 0, 0, "emerges");
             }
 
             // if this genotype is REPLACED by any descendant at this time point
             else if (!cp_data[tp][gtype] && (_getIntersection(curDescendants, gTypes_curTP).length > 0) && gtype != "Root") {
-                _createStackElement(layout, tp, gtype, sHeight, sHeight, "replaced");
+                _createStackElement(vizObj, layout, tp, gtype, sHeight, sHeight, "replaced");
                 replaced_gtypes[gtype] = replaced_gtypes[gtype] || [];
                 replaced_gtypes[gtype].push(tp);
             }
@@ -773,7 +773,7 @@ function _getStackedLayout(vizObj) {
             // if this genotype existed at the previous time point, 
             // but neither it nor its descendants are present at this time point (they DISAPPEAR)
             else if (cp_data[prev_tp] && cp_data[prev_tp][gtype] && !cp_data[tp][gtype] && _getIntersection(gTypeAndDescendants, gTypes_curTP).length == 0) {
-                _createStackElement(layout, tp, gtype, sHeight, sHeight, "disappears_stretched");
+                _createStackElement(vizObj, layout, tp, gtype, sHeight, sHeight, "disappears_stretched");
             }
 
             // if this genotype or any descendants EXIST at this time point
@@ -784,7 +784,7 @@ function _getStackedLayout(vizObj) {
                 delete replaced_gtypes[gtype]; 
 
                 // create it as present
-                _createStackElement(layout, tp, gtype, sHeight, sHeight + width, "present");
+                _createStackElement(vizObj, layout, tp, gtype, sHeight, sHeight + width, "present");
                 midpoint = (layout[tp][gtype]["bottom"] + layout[tp][gtype]["top"])/2;
 
                 // update stack height
@@ -794,7 +794,7 @@ function _getStackedLayout(vizObj) {
                 if (cp_data[prev_tp] && layout[prev_tp][gtype] && layout[prev_tp][gtype]["state"] == "emerges") {
 
                     // update its emergence y-value
-                    _createStackElement(layout, prev_tp, gtype, midpoint, midpoint, "emerges");
+                    _createStackElement(vizObj, layout, prev_tp, gtype, midpoint, midpoint, "emerges");
                 }
 
                 // update ancestors to incorporate the current genotype's stack interval
@@ -811,7 +811,7 @@ function _getStackedLayout(vizObj) {
 
                         // update EMERGENCE y-coordinate in previous time point 
                         if (cp_data[prev_tp] && layout[prev_tp][curAncestors[i]] && layout[prev_tp][curAncestors[i]]["state"] == "emerges") {
-                            _createStackElement(layout, prev_tp, curAncestors[i], ancestor_midpoint, ancestor_midpoint, "emerges");
+                            _createStackElement(vizObj, layout, prev_tp, curAncestors[i], ancestor_midpoint, ancestor_midpoint, "emerges");
                         }
                     }
                 }
@@ -892,7 +892,7 @@ function _getSpacedLayout(vizObj) {
                         // if this sibling emerges at the previous time point, update its emergence y-coordinate
                         if (cp_data[prev_tp] && layout[prev_tp][sib] && layout[prev_tp][sib]["state"] == "emerges") {
                             midpoint = (layout[tp][sib]["top"] + layout[tp][sib]["bottom"])/2;
-                            _createStackElement(layout, prev_tp, sib, midpoint, midpoint, "emerges");
+                            _createStackElement(layout, prev_tp, sib, midpoint, midpoint, "emerges", undefined);
                         }
 
                         // add the current sibling's width to the stack height
@@ -913,6 +913,7 @@ function _getSpacedLayout(vizObj) {
 }
 
 /* function to create a stack element (a genotype interval at a particular time point)
+* @param {Object} vizObj
 * @param {Object} layout -- layout of each genotype at each time point
 * @param {String} tp -- time point of interest
 * @param {String} gtype -- genotype of interest
@@ -920,7 +921,7 @@ function _getSpacedLayout(vizObj) {
 * @param {Number} top_val -- value for the top of the interval
 * @param {String} state -- state of the genotype at this time point (e.g. "emerges", "present", "disappears")
 */
-function _createStackElement(layout, tp, gtype, bottom_val, top_val, state) {
+function _createStackElement(vizObj, layout, tp, gtype, bottom_val, top_val, state) {
     // create the time point in the stack if it doesn't already exist
     layout[tp] = layout[tp] || {}; 
 
@@ -929,7 +930,8 @@ function _createStackElement(layout, tp, gtype, bottom_val, top_val, state) {
         "bottom": bottom_val,
         "top": top_val,
         "top_no_descendants": top_val, // the top of this genotype, without including its descendants
-        "state": state
+        "state": state,
+        "cp": vizObj.data.cp_data[tp][gtype]
     };
 }
 
@@ -1170,7 +1172,7 @@ function _getTraditionalCPLabels(vizObj) {
                     else if (vizObj.view.userConfig.gtypePos == "stack") { 
                         label['tp'] = tp;
                         label['gtype'] = gtype;
-                        label['cp'] = data.top_no_descendants-data.bottom;
+                        label['cp'] = data.cp;
                         label['middle'] = (data.top_no_descendants + data.bottom)/2;
                         label['type'] = "traditional";
                     }
@@ -1178,7 +1180,7 @@ function _getTraditionalCPLabels(vizObj) {
                     else if (vizObj.view.userConfig.gtypePos == "space") { 
                         label['tp'] = tp;
                         label['gtype'] = gtype;
-                        label['cp'] = data.top_no_descendants-data.bottom;
+                        label['cp'] = data.cp;
                         // if this genotype was split for spacing, how much CP has been taken up by the upper splits
                         label['middle'] = (data.space) ? 
                             (data.top_no_descendants + data.bottom)/2 - data.space : 
