@@ -254,7 +254,11 @@ HTMLWidgets.widget({
             return 'sepLabel tp_' + d.tp + ' gtype_' + d.gtype + ' ' + patientID_class; 
         }) 
         .text(function(d) {
-            return (Math.round(d.cp * 100) / 1).toString();
+            var cp = (Math.round(d.cp * 100) / 1);
+            if (cp == 0) {
+                return "~ 0";
+            }
+            return cp.toString();
         })
         .attr('x', function(d) { 
 
