@@ -231,6 +231,9 @@ function _getTreeInfo(vizObj) {
     // get ancestors for each node
     vizObj.data.treeAncestorsArr = _getAncestorIds(vizObj.data.treeDescendantsArr, nodesObj);
     vizObj.data.direct_ancestors = _getDirectAncestors(vizObj.data.treeStructure, {});
+
+    // get siblings for each node
+    vizObj.data.siblings = _getSiblings(vizObj.data.treeStructure, {}); 
 }
 
 /* function to find a key by its name - if the key doesn't exist, it will be created and added to the list of nodes
@@ -312,7 +315,7 @@ function _getDirectDescendants(curNode, dir_descendants) {
 
 /* function to get the DIRECT ancestor id for all nodes
 * @param {Object} curNode -- current node in the tree (originally the root)
-* @param {Object} dir_descendants -- originally empty array of direct descendants for each node
+* @param {Object} dir_ancestors -- originally empty array of direct descendants for each node
 */
 function _getDirectAncestors(curNode, dir_ancestors) {
 
@@ -324,6 +327,34 @@ function _getDirectAncestors(curNode, dir_ancestors) {
     }
 
     return dir_ancestors;
+}
+
+/* function to get the sibling ID's for each node
+* @param {Object} curNode -- current node in the tree (originally the root)
+* @param {Object} sibs -- originally empty array of siblings for each node
+*/
+function _getSiblings(curNode, sibs) {
+    var cur_sibs = [];
+
+    // get current siblings
+    if (curNode.children.length > 0) {
+        for (var i = 0; i < curNode.children.length; i++) {
+            cur_sibs.push(curNode.children[i].id);
+            _getSiblings(curNode.children[i], sibs)
+        }
+    }
+    
+    // note siblings for each sibling
+    for (var i = 0; i < cur_sibs.length; i++) {
+        for (var j = 0; j < cur_sibs.length; j++) {
+            if (cur_sibs[j] != cur_sibs[i]) {
+                sibs[cur_sibs[i]] = sibs[cur_sibs[i]] || [];
+                sibs[cur_sibs[i]].push(cur_sibs[j]);
+            }
+        }
+    }
+
+    return sibs;
 }
 
 /* function to find the ancestors of the specified genotype that emerge at a particular time point
@@ -681,7 +712,6 @@ function _getCentredLayout(vizObj, curNode, tp, layout, yBottom) {
     }
 };
 
-
 /* function to get cellular prevalences for each genotype in a stack, one stack for each time point
 * @param {Object} vizObj
 */
@@ -698,7 +728,8 @@ function _getStackedLayout(vizObj) {
         gTypes_nextTP, // genotypes with cp data at the NEXT time point
         width, // the cp as the width to add for this genotype at this timepoint
         midpoint, // midpoint for emergence
-        ancestor_midpoint; // ancestor's midpoint for emergence
+        ancestor_midpoint, // ancestor's midpoint for emergence
+        threshold = 0.005; // cellular prevalence threshold for visibility of a genotype
 
     // for each timepoint (in order)...
     $.each(timepoints, function(tp_idx, tp) { 
@@ -711,14 +742,18 @@ function _getStackedLayout(vizObj) {
 
         // ... for each genotype ...
         $.each(layoutOrder, function(gtype_idx, gtype) { 
+            gTypes_curTP = Object.keys(cp_data[tp]); 
+            gTypes_nextTP = (cp_data[next_tp]) ? Object.keys(cp_data[next_tp]) : undefined; 
             curDescendants = vizObj.data.treeDescendantsArr[gtype];
             gTypeAndDescendants = ($.extend([], curDescendants)); 
             gTypeAndDescendants.push(gtype); 
             curAncestors = vizObj.data.treeAncestorsArr[gtype]; 
-            gTypes_curTP = Object.keys(cp_data[tp]); 
-            gTypes_nextTP = (cp_data[next_tp]) ? Object.keys(cp_data[next_tp]) : undefined; 
-            width = (cp[gtype]) ? cp[gtype] : 0; 
-
+            
+            // calculate effective cellular prevalence 
+            // "effective" because: 
+            //                  - it is increased if it's below the threshold
+            //                  - it is reduced if siblings are below threshold and therefore increased
+            width = _calculateIntervalWidth(vizObj, tp, gtype, threshold).effective_cp;
 
             // if this genotype or any descendants EMERGE at this time point
             if ((_getIntersection(gTypeAndDescendants, gTypes_curTP).length == 0) &&
@@ -726,7 +761,6 @@ function _getStackedLayout(vizObj) {
 
                 // create the stack element as emerging
                 _createStackElement(layout, tp, gtype, 0, 0, "emerges");
-
             }
 
             // if this genotype is REPLACED by any descendant at this time point
@@ -768,8 +802,8 @@ function _getStackedLayout(vizObj) {
 
                     // if the ancestor has not been replaced by its descendants
                     if (layout[tp][curAncestors[i]] && 
-                        (!replaced_gtypes[curAncestors[i]] || // (either not in replaced list ...
-                        (replaced_gtypes[curAncestors[i]].length == 1))) {  // ... or has just been replaced at current time point)
+                    (!replaced_gtypes[curAncestors[i]] || // (either not in replaced list ...
+                    (replaced_gtypes[curAncestors[i]].length == 1))) {  // ... or has just been replaced at current time point)
 
                         // update PRESENCE in this time point (increase "top" value)
                         layout[tp][curAncestors[i]]["top"] += width;
@@ -868,7 +902,6 @@ function _getSpacedLayout(vizObj) {
                         // note the amount of space given to the last genotype for the ancestor
                         if (i == (sorted_siblings.length-1)) {
                             layout[tp][cur_ancestor]["space"] = (i+1)*cur_space;
-                            console.log("gtype " + cur_ancestor + " tp " + tp + " space " + (layout[tp][cur_ancestor]["space"]));
                         }
                     }
                 }
@@ -900,7 +933,7 @@ function _createStackElement(layout, tp, gtype, bottom_val, top_val, state) {
     };
 }
 
-/* function to get the width of this genotype at this time point, including all descendants
+/* function to get the width of this genotype at this time point, including all descendants -- for centred layout
 * @param {Object} vizObj
 * @param {String} tp -- current time point
 * @param {String} gtype -- current genotype
@@ -917,6 +950,77 @@ function _calculateWidth(vizObj, tp, gtype) {
     })
 
     return width;
+}
+
+/* function to calculate effective cellular prevalence and width of each genotype in the timesweep
+*
+* note: - effective cellular prevalence -- will correspond to the interval width in the stacked layout
+*       - "effective" because: 
+*                         - it is increased if it's below the threshold
+*                         - it is reduced if siblings are below threshold and therefore increased
+*       - width -- the effective cellular prevalence PLUS the effective cellular prevalence for its descendants
+*
+* @param {Object} vizObj
+* @param {String} tp -- time point of interest
+* @param {String} gtype -- genotype of interest
+* @param {Number} threshold -- threshold cellular prevalence for visual detection
+*/
+function _calculateIntervalWidth(vizObj, tp, gtype, threshold) {
+    var width, // width of this genotype (including all descendants)
+        effective_cp, // effective cellular prevalence for this genotype
+        cp = vizObj.data.cp_data[tp], // cellular prevalence for this time point
+        gTypeAndDesc, // genotype and descendants
+        present_gTypeAndDesc, // existing genotype and descendants at this time point
+        gTypes_curTP = Object.keys(cp), // genotypes existing at the current time point
+        present_sibs = _getIntersection(vizObj.data.siblings[gtype], gTypes_curTP)
+        cur_direct_descendants = vizObj.data.direct_descendants[gtype],
+        curDescendants = vizObj.data.treeDescendantsArr[gtype];
+        gTypeAndDesc = ($.extend([], curDescendants)); 
+    gTypeAndDesc.push(gtype); 
+    present_gTypeAndDesc = _getIntersection(gTypeAndDesc, gTypes_curTP); 
+
+    // GENOTYPE DOESN'T EXIST at this time point
+    if (!cp[gtype]) {
+
+        // effective cellular prevalence is 0
+        effective_cp = 0;
+
+        // for each direct descendant, add its cellular prevalence 
+        width = effective_cp;
+        $.each(cur_direct_descendants, function(desc_idx, desc) {
+            width += _calculateIntervalWidth(vizObj, tp, desc, threshold).width;
+        })
+        return {"width": width, "effective_cp": effective_cp};
+    }
+
+
+    // LOW PREVALENCE LINEAGE -- if this genotype and all its descendants exist at low prevalence
+    var j = 0;
+    for (var i = 0; i < present_gTypeAndDesc.length; i++) {
+        if (cp[present_gTypeAndDesc[i]] < threshold) {
+            j++;
+        }
+    }
+    if (j == present_gTypeAndDesc.length) {
+        // width is (# existing descendants including this gtype) * threshold
+        width = threshold * present_gTypeAndDesc.length;
+        effective_cp = threshold;
+        return {"width": width, "effective_cp" : effective_cp};
+    }
+
+    // NORMAL PRESENT LINEAGE 
+    // for each present sibling with CP below threshold, subtract the sibling's width (including descendants) 
+    // from the current genotype, because the sibling's sweep interval will be increased
+    effective_cp = cp[gtype];
+    if (present_sibs.length > 0) {
+        for (var i = 0; i < present_sibs.length; i++) {
+            if (cp[present_sibs[i]] < threshold) {
+                effective_cp -= _calculateIntervalWidth(vizObj, tp, present_sibs[i], threshold).width;
+            }
+        }
+    }
+    return {"width": cp[gtype], "effective_cp": effective_cp};
+
 }
 
 /* function to sort genotypes by layout order (bottom to top)
