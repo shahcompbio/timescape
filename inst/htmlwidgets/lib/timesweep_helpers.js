@@ -648,7 +648,7 @@ function _getCentredLayout(vizObj, curNode, tp, layout, yBottom) {
             "top": yBottom + width,
             "cp": cur_cp,
             "state": "present",
-            "nChildren": nChildren
+            "presentChildren": _getIntersection(vizObj.data.direct_descendants[gtype], gTypes_curTP).length
         }
 
         // mark disappearance state
@@ -830,13 +830,13 @@ function _getSpacedLayout(vizObj) {
                 gTypes_curTP = Object.keys(cp_data[tp]);
                 var cur_ancestor = direct_ancestors[gtype],
                     cur_ancestor_cp = cp_data[tp][cur_ancestor] || 0,
-                    existing_siblings = _getIntersection(direct_descendants[cur_ancestor], gTypes_curTP),
-                    cur_space = ((existing_siblings.length+1) * space < cur_ancestor_cp) ? 
+                    present_siblings = _getIntersection(direct_descendants[cur_ancestor], gTypes_curTP),
+                    cur_space = ((present_siblings.length+1) * space < cur_ancestor_cp) ? 
                         space : 
-                        cur_ancestor_cp/(existing_siblings.length+1);
+                        cur_ancestor_cp/(present_siblings.length+1);
 
                 // sort children by reverse layout order (top to bottom)
-                var sorted_siblings = existing_siblings.sort(_sortByLayoutOrder(layoutOrder)).reverse();
+                var sorted_siblings = present_siblings.sort(_sortByLayoutOrder(layoutOrder)).reverse();
 
                 if (sorted_siblings.length > 0) {
 
@@ -864,6 +864,12 @@ function _getSpacedLayout(vizObj) {
                         // add the current sibling's width to the stack height
                         sHeight -= (cur_width + cur_space);
                         seenGTypes.push(sib);
+
+                        // note the amount of space given to the last genotype for the ancestor
+                        if (i == (sorted_siblings.length-1)) {
+                            layout[tp][cur_ancestor]["space"] = (i+1)*cur_space;
+                            console.log("gtype " + cur_ancestor + " tp " + tp + " space " + (layout[tp][cur_ancestor]["space"]));
+                        }
                     }
                 }
             }
@@ -914,6 +920,7 @@ function _calculateWidth(vizObj, tp, gtype) {
 }
 
 /* function to sort genotypes by layout order (bottom to top)
+* @param {Array} layoutOrder -- vertical order of genotypes for layout purposes
 */
 function _sortByLayoutOrder(layoutOrder) {
     return function _sortingFunc(a, b) {
@@ -1034,32 +1041,44 @@ function _getTraditionalCPLabels(vizObj) {
             // for each genotype
             Object.keys(layout[tp]).forEach(function(gtype, gtype_idx) {
                 curDescendants = vizObj.data.treeDescendantsArr[gtype];
-                // var immediateDescendants = _.pluck(vizObj.data.)
                 gTypes_curTP = Object.keys(vizObj.data.cp_data[tp]); 
 
                 // data for this genotype at this time point
                 data = layout[tp][gtype];
 
                 // if the genotype exists at this time point (isn't emerging or disappearing / replaced)
-                if ((data.bottom != data.top_no_descendants) && gtype != "Root") {
+                if ((data.state == "present") && gtype != "Root") {
 
                     var nDesc = _getIntersection(curDescendants, gTypes_curTP).length;
 
                     // add its information 
                     label = {};
 
-                    if (vizObj.view.userConfig.gtypePos == "centred") { // centred view
+                    // CENTRED view
+                    if (vizObj.view.userConfig.gtypePos == "centre") { 
                         label['tp'] = tp;
                         label['gtype'] = gtype;
                         label['cp'] = data.cp;
-                        label['middle'] = data.top - (data.cp/(2*(data.nChildren+1)));
+                        label['middle'] = data.top - (data.cp/(2*(data.presentChildren+1)));
                         label['type'] = "traditional";
                     }
-                    else { // stacked or spaced view
+                    // STACKED view
+                    else if (vizObj.view.userConfig.gtypePos == "stack") { 
                         label['tp'] = tp;
                         label['gtype'] = gtype;
                         label['cp'] = data.top_no_descendants-data.bottom;
                         label['middle'] = (data.top_no_descendants + data.bottom)/2;
+                        label['type'] = "traditional";
+                    }
+                    // SPACED view
+                    else if (vizObj.view.userConfig.gtypePos == "space") { 
+                        label['tp'] = tp;
+                        label['gtype'] = gtype;
+                        label['cp'] = data.top_no_descendants-data.bottom;
+                        // if this genotype was split for spacing, how much CP has been taken up by the upper splits
+                        label['middle'] = (data.space) ? 
+                            (data.top_no_descendants + data.bottom)/2 - data.space : 
+                            (data.top_no_descendants + data.bottom)/2;
                         label['type'] = "traditional";
                     }
                     
