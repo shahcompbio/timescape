@@ -7,8 +7,8 @@
 #' @param tree.gml Path to GML file.
 #' @param node.col Data frame with node labels and colours 
 #'   Format: columns are (1) {String} the node labels
-#'                       (2) {String} the corresponding colour for each node label
-#'   E.g.: data.frame(node_label = c("1","2","3","4","5"), 
+#'                       (2) {String} the corresponding colour for each node label.
+#'   e.g. data.frame(node_label = c("1","2","3","4","5"), 
 #'                    col = c("F8766D66", "A3A50066", "00BF7D66", "00B0F666", "E76BF366"))
 #' @param xaxis.title x-axis title. 
 #' @param yaxis.title y-axis title.
@@ -23,8 +23,8 @@
 #'   Format: columns are (1) {String} the perturbation name
 #'                       (2) {String} the time point (as labelled in cellular prevalence data) BEFORE perturbation
 #'                       (3) {String} the time point (as labelled in cellular prevalence data) AFTER perturbation
-#'                       (4) {Number} the fraction of total tumour content remaining at the time of perturbation.", sep=""))
-#'   E.g.: data.frame(perturbation = c("chemo"), 
+#'                       (4) {Number} the fraction of total tumour content remaining at the time of perturbation.
+#'   e.g. data.frame(perturbation = c("Chemo"), 
 #'                    prev_tp = c("T1"),
 #'                    next_tp = c("T2"), 
 #'                    frac = c(0.2))
