@@ -953,56 +953,43 @@ function _calculateIntervalWidth(vizObj, tp, gtype, threshold) {
     var width, // width of this genotype (including all descendants)
         effective_cp, // effective cellular prevalence for this genotype
         cp = vizObj.data.cp_data[tp], // cellular prevalence for this time point
-        gTypeAndDesc, // genotype and descendants
-        present_gTypeAndDesc, // existing genotype and descendants at this time point
         gTypes_curTP = Object.keys(cp), // genotypes existing at the current time point
-        present_sibs = _getIntersection(vizObj.data.siblings[gtype], gTypes_curTP),
-        cur_direct_descendants = vizObj.data.direct_descendants[gtype],
-        curDescendants = vizObj.data.treeDescendantsArr[gtype],
-        gTypeAndDesc = ($.extend([], curDescendants)); 
-    gTypeAndDesc.push(gtype); 
-    present_gTypeAndDesc = _getIntersection(gTypeAndDesc, gTypes_curTP); 
+        cur_direct_descendants = vizObj.data.direct_descendants[gtype], // current direct descendants of genotype
+        sum_increment = 0, // sum of increment to low prevalence genotypes for this time point
+        n_gtypes_high_cp = 0; // number of genotypes above threshold cp
 
-    // GENOTYPE DOESN'T EXIST at this time point
+    // find out how many genotypes are below threshold at this time point
+    for (var i = 0; i < gTypes_curTP.length; i++) {
+        if (cp[gTypes_curTP[i]] < threshold) {
+            sum_increment += (threshold - cp[gTypes_curTP[i]]);
+        }
+        else {
+            n_gtypes_high_cp++;
+        }                
+    }
+
+    // --> GENOTYPE DOESN'T EXIST at this time point
     if (!cp[gtype]) {
-
         // effective cellular prevalence is 0
         effective_cp = 0;
-
-        // for each direct descendant, add its cellular prevalence 
-        width = effective_cp;
-        $.each(cur_direct_descendants, function(desc_idx, desc) {
-            width += _calculateIntervalWidth(vizObj, tp, desc, threshold).width;
-        })
-        return {"width": width, "effective_cp": effective_cp};
     }
 
 
-    // LOW PREVALENCE LINEAGE -- if this genotype and all its descendants exist at low prevalence
-    var j = 0;
-    for (var i = 0; i < present_gTypeAndDesc.length; i++) {
-        if (cp[present_gTypeAndDesc[i]] < threshold) {
-            j++;
-        }
-    }
-    if (j == present_gTypeAndDesc.length) {
-        // width is (# existing descendants including this gtype) * threshold
-        width = threshold * present_gTypeAndDesc.length;
+    // --> LOW PREVALENCE -- if this genotype exists at low prevalence
+    else if (cp[gtype] < threshold) {
+        // effective cellular prevalence is the threshold value
         effective_cp = threshold;
-        return {"width": width, "effective_cp" : effective_cp};
     }
 
-    // NORMAL PRESENT LINEAGE 
-    // for each present sibling with CP below threshold, subtract the sibling's width (including descendants) 
-    // from the current genotype, because the sibling's sweep interval will be increased
-    effective_cp = cp[gtype];
-    if (present_sibs.length > 0) {
-        for (var i = 0; i < present_sibs.length; i++) {
-            if (cp[present_sibs[i]] < threshold) {
-                effective_cp -= _calculateIntervalWidth(vizObj, tp, present_sibs[i], threshold).width;
-            }
-        }
+    // --> NORMAL PREVALENCE
+    else {
+        // for each present sibling with CP below threshold, subtract the sibling's width (including descendants) 
+        // from the current genotype, because the sibling's sweep interval will be increased
+        effective_cp = cp[gtype];
+        // subtract the total increment for low prev CPs, divided by the number of high CP genotypes
+        effective_cp -= (sum_increment) / (n_gtypes_high_cp); 
     }
+    
     // for each direct descendant, add its cellular prevalence 
     width = effective_cp;
     $.each(cur_direct_descendants, function(desc_idx, desc) {
