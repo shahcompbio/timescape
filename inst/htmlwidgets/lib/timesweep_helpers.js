@@ -893,7 +893,7 @@ function _getSpacedLayout(vizObj) {
                         // if this sibling emerges at the previous time point, update its emergence y-coordinate
                         if (cp_data[prev_tp] && layout[prev_tp][sib] && layout[prev_tp][sib]["state"] == "emerges") {
                             midpoint = (layout[tp][sib]["top"] + layout[tp][sib]["bottom"])/2;
-                            _createStackElement(layout, prev_tp, sib, midpoint, midpoint, "emerges", undefined);
+                            _createStackElement(vizObj, layout, prev_tp, sib, midpoint, midpoint, "emerges");
                         }
 
                         // add the current sibling's width to the stack height
