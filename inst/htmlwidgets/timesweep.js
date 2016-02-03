@@ -383,7 +383,7 @@ HTMLWidgets.widget({
         .attr('font-weight', 'bold')
         .attr('transform', "translate(" + (dim.yAxisWidth/2) + ", " + (dim.tsSVGHeight/2) + ") rotate(-90)")
         .text(function() { 
-            return (x.yaxis_title == "NA") ? "Relative Cellular Prevalence" : x.yaxis_title;
+            return x.yaxis_title;
         });
 
     // plot x-axis title
@@ -397,7 +397,7 @@ HTMLWidgets.widget({
         .attr('font-size', '15px')
         .attr('font-weight', 'bold')
         .text(function() { 
-            return (x.xaxis_title == "NA") ? "Time Point" : x.xaxis_title;
+            return x.xaxis_title;
         });
 
     // PLOT LEGEND
