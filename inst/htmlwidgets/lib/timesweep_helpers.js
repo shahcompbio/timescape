@@ -641,7 +641,8 @@ function _getCentredLayout(vizObj, curNode, tp, layout, yBottom) {
         sorted_children, // children sorted by the layout order
         cur_cp = cp_data[tp][gtype],
         prev_cp = (cp_data[prev_tp]) ? cp_data[prev_tp][gtype] : undefined, // cellular prevalence for this genotype at the previous time point
-        width = _calculateWidth(vizObj, tp, gtype), // the width of this genotype at this time point, including all descendants
+        threshold = vizObj.view.config.threshold, // cellular prevalence threshold for visibility of a genotype
+        width = _calculateIntervalWidth(vizObj, tp, gtype, threshold).width, // the width of this genotype at this time point, including all descendants
         emerged, // whether or not the genotype emerged at this time point
         disappears = (prev_cp && !cur_cp); // whether this genotype disappears at the current time point
     
@@ -707,7 +708,7 @@ function _getCentredLayout(vizObj, curNode, tp, layout, yBottom) {
             _getCentredLayout(vizObj, sorted_children[i], tp, layout, childYBottom);
 
             // increase the cellular prevalence of the current genotype's children (+descendants) accounted for
-            childCP += _calculateWidth(vizObj, tp, sorted_children[i].id);
+            childCP += _calculateIntervalWidth(vizObj, tp, sorted_children[i].id, threshold).width;
         }
     }
 };
@@ -726,10 +727,10 @@ function _getStackedLayout(vizObj) {
         curAncestors, // all ancestors of current genotype
         gTypes_curTP, // genotypes with cp data at the CURRENT time point
         gTypes_nextTP, // genotypes with cp data at the NEXT time point
-        width, // the cp as the width to add for this genotype at this timepoint
+        effective_cp, // effective cp for this genotype at this timepoint
         midpoint, // midpoint for emergence
         ancestor_midpoint, // ancestor's midpoint for emergence
-        threshold = 0.005; // cellular prevalence threshold for visibility of a genotype
+        threshold = vizObj.view.config.threshold; // cellular prevalence threshold for visibility of a genotype
 
     // for each timepoint (in order)...
     $.each(timepoints, function(tp_idx, tp) { 
@@ -753,7 +754,7 @@ function _getStackedLayout(vizObj) {
             // "effective" because: 
             //                  - it is increased if it's below the threshold
             //                  - it is reduced if siblings are below threshold and therefore increased
-            width = _calculateIntervalWidth(vizObj, tp, gtype, threshold).effective_cp;
+            effective_cp = _calculateIntervalWidth(vizObj, tp, gtype, threshold).effective_cp;
 
             // if this genotype or any descendants EMERGE at this time point
             if ((_getIntersection(gTypeAndDescendants, gTypes_curTP).length == 0) &&
@@ -784,7 +785,7 @@ function _getStackedLayout(vizObj) {
                 delete replaced_gtypes[gtype]; 
 
                 // create it as present
-                _createStackElement(vizObj, layout, tp, gtype, sHeight, sHeight + width, "present");
+                _createStackElement(vizObj, layout, tp, gtype, sHeight, sHeight + effective_cp, "present");
                 midpoint = (layout[tp][gtype]["bottom"] + layout[tp][gtype]["top"])/2;
 
                 // update stack height
@@ -806,7 +807,7 @@ function _getStackedLayout(vizObj) {
                     (replaced_gtypes[curAncestors[i]].length == 1))) {  // ... or has just been replaced at current time point)
 
                         // update PRESENCE in this time point (increase "top" value)
-                        layout[tp][curAncestors[i]]["top"] += width;
+                        layout[tp][curAncestors[i]]["top"] += effective_cp;
                         ancestor_midpoint = (layout[tp][curAncestors[i]]["top"] + layout[tp][curAncestors[i]]["bottom"])/2;
 
                         // update EMERGENCE y-coordinate in previous time point 
@@ -935,25 +936,6 @@ function _createStackElement(vizObj, layout, tp, gtype, bottom_val, top_val, sta
     };
 }
 
-/* function to get the width of this genotype at this time point, including all descendants -- for centred layout
-* @param {Object} vizObj
-* @param {String} tp -- current time point
-* @param {String} gtype -- current genotype
-*/
-function _calculateWidth(vizObj, tp, gtype) {
-    var cp_data = vizObj.data.cp_data,
-        cur_cp = cp_data[tp][gtype] || 0,
-        curDescendants = vizObj.data.treeDescendantsArr[gtype],
-        width = cur_cp || 0; // width starts out as the cellular prevalence for this genotype at this time point
-
-    // for each descendant, add its cellular prevalence at this time to the genotype's width
-    $.each(curDescendants, function(desc_idx, desc) {
-        width += cp_data[tp][desc] || 0;
-    })
-
-    return width;
-}
-
 /* function to calculate effective cellular prevalence and width of each genotype in the timesweep
 *
 * note: - effective cellular prevalence -- will correspond to the interval width in the stacked layout
@@ -974,9 +956,9 @@ function _calculateIntervalWidth(vizObj, tp, gtype, threshold) {
         gTypeAndDesc, // genotype and descendants
         present_gTypeAndDesc, // existing genotype and descendants at this time point
         gTypes_curTP = Object.keys(cp), // genotypes existing at the current time point
-        present_sibs = _getIntersection(vizObj.data.siblings[gtype], gTypes_curTP)
+        present_sibs = _getIntersection(vizObj.data.siblings[gtype], gTypes_curTP),
         cur_direct_descendants = vizObj.data.direct_descendants[gtype],
-        curDescendants = vizObj.data.treeDescendantsArr[gtype];
+        curDescendants = vizObj.data.treeDescendantsArr[gtype],
         gTypeAndDesc = ($.extend([], curDescendants)); 
     gTypeAndDesc.push(gtype); 
     present_gTypeAndDesc = _getIntersection(gTypeAndDesc, gTypes_curTP); 
@@ -1021,7 +1003,12 @@ function _calculateIntervalWidth(vizObj, tp, gtype, threshold) {
             }
         }
     }
-    return {"width": cp[gtype], "effective_cp": effective_cp};
+    // for each direct descendant, add its cellular prevalence 
+    width = effective_cp;
+    $.each(cur_direct_descendants, function(desc_idx, desc) {
+        width += _calculateIntervalWidth(vizObj, tp, desc, threshold).width;
+    })
+    return {"width": width, "effective_cp": effective_cp};
 
 }
 

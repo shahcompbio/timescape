@@ -25,7 +25,8 @@ HTMLWidgets.widget({
         panel_width: 30,
         fontSize: 11,
         circleR: 20,
-        rootColour: '#DDDADA'
+        rootColour: '#DDDADA',
+        threshold: 0.005 // cellular prevalence threshold of visual detection
     };
 
     // global variable vizObj
