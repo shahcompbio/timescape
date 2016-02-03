@@ -721,15 +721,12 @@ function _getStackedLayout(vizObj) {
         cp_data = vizObj.data.cp_data,
         timepoints = vizObj.data.timepoints,
         layoutOrder = vizObj.data.layoutOrder,
-        replaced_gtypes = {},
         curDescendants,
         gTypeAndDescendants, // genotype and descendants
-        curAncestors, // all ancestors of current genotype
         gTypes_curTP, // genotypes with cp data at the CURRENT time point
-        gTypes_nextTP, // genotypes with cp data at the NEXT time point
         effective_cp, // effective cp for this genotype at this timepoint
+        width, // width to add for this genotype at this timepoint (includes descendants widths)
         midpoint, // midpoint for emergence
-        ancestor_midpoint, // ancestor's midpoint for emergence
         threshold = vizObj.view.config.threshold; // cellular prevalence threshold for visibility of a genotype
 
     // for each timepoint (in order)...
@@ -744,31 +741,21 @@ function _getStackedLayout(vizObj) {
         // ... for each genotype ...
         $.each(layoutOrder, function(gtype_idx, gtype) { 
             gTypes_curTP = Object.keys(cp_data[tp]); 
-            gTypes_nextTP = (cp_data[next_tp]) ? Object.keys(cp_data[next_tp]) : undefined; 
+            gTypes_prevTP = (cp_data[prev_tp]) ? Object.keys(cp_data[prev_tp]) : undefined; 
             curDescendants = vizObj.data.treeDescendantsArr[gtype];
             gTypeAndDescendants = ($.extend([], curDescendants)); 
             gTypeAndDescendants.push(gtype); 
-            curAncestors = vizObj.data.treeAncestorsArr[gtype]; 
             
             // calculate effective cellular prevalence 
             // "effective" because: 
             //                  - it is increased if it's below the threshold
             //                  - it is reduced if siblings are below threshold and therefore increased
             effective_cp = _calculateIntervalWidth(vizObj, tp, gtype, threshold).effective_cp;
-
-            // if this genotype or any descendants EMERGE at this time point
-            if ((_getIntersection(gTypeAndDescendants, gTypes_curTP).length == 0) &&
-                (gTypes_nextTP && _getIntersection(gTypeAndDescendants, gTypes_nextTP).length > 0)) {
-
-                // create the stack element as emerging
-                _createStackElement(vizObj, layout, tp, gtype, 0, 0, "emerges");
-            }
+            width = _calculateIntervalWidth(vizObj, tp, gtype, threshold).width;
 
             // if this genotype is REPLACED by any descendant at this time point
-            else if (!cp_data[tp][gtype] && (_getIntersection(curDescendants, gTypes_curTP).length > 0) && gtype != "Root") {
+            if (!cp_data[tp][gtype] && (_getIntersection(curDescendants, gTypes_curTP).length > 0) && gtype != "Root") {
                 _createStackElement(vizObj, layout, tp, gtype, sHeight, sHeight, "replaced");
-                replaced_gtypes[gtype] = replaced_gtypes[gtype] || [];
-                replaced_gtypes[gtype].push(tp);
             }
 
             // if this genotype existed at the previous time point, 
@@ -781,40 +768,20 @@ function _getStackedLayout(vizObj) {
             else if (_getIntersection(gTypeAndDescendants, gTypes_curTP).length > 0) {
                 var n_desc_present = _getIntersection(curDescendants, gTypes_curTP).length;
 
-                // in case of reemergence, remove it from the "replaced genotypes" object
-                delete replaced_gtypes[gtype]; 
-
                 // create it as present
-                _createStackElement(vizObj, layout, tp, gtype, sHeight, sHeight + effective_cp, "present");
+                _createStackElement(vizObj, layout, tp, gtype, sHeight, sHeight + width, "present");
                 midpoint = (layout[tp][gtype]["bottom"] + layout[tp][gtype]["top"])/2;
 
                 // update stack height
-                sHeight = layout[tp][gtype]["top"];
+                sHeight += effective_cp;
 
                 // if it EMERGED at the previous time point
-                if (cp_data[prev_tp] && layout[prev_tp][gtype] && layout[prev_tp][gtype]["state"] == "emerges") {
+                if (cp_data[prev_tp] &&
+                    (_getIntersection(gTypeAndDescendants, gTypes_prevTP).length == 0) &&
+                    (gTypes_curTP && _getIntersection(gTypeAndDescendants, gTypes_curTP).length > 0)) {
 
                     // update its emergence y-value
                     _createStackElement(vizObj, layout, prev_tp, gtype, midpoint, midpoint, "emerges");
-                }
-
-                // update ancestors to incorporate the current genotype's stack interval
-                for (var i = 0; i < curAncestors.length; i++) {
-
-                    // if the ancestor has not been replaced by its descendants
-                    if (layout[tp][curAncestors[i]] && 
-                    (!replaced_gtypes[curAncestors[i]] || // (either not in replaced list ...
-                    (replaced_gtypes[curAncestors[i]].length == 1))) {  // ... or has just been replaced at current time point)
-
-                        // update PRESENCE in this time point (increase "top" value)
-                        layout[tp][curAncestors[i]]["top"] += effective_cp;
-                        ancestor_midpoint = (layout[tp][curAncestors[i]]["top"] + layout[tp][curAncestors[i]]["bottom"])/2;
-
-                        // update EMERGENCE y-coordinate in previous time point 
-                        if (cp_data[prev_tp] && layout[prev_tp][curAncestors[i]] && layout[prev_tp][curAncestors[i]]["state"] == "emerges") {
-                            _createStackElement(vizObj, layout, prev_tp, curAncestors[i], ancestor_midpoint, ancestor_midpoint, "emerges");
-                        }
-                    }
                 }
             }
         })
