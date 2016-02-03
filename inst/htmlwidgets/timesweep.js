@@ -257,7 +257,7 @@ HTMLWidgets.widget({
         .text(function(d) {
             var cp = (Math.round(d.cp * 100) / 1);
             if (cp == 0) {
-                return "~ 0";
+                return "< 1";
             }
             return cp.toString();
         })
