@@ -26,7 +26,7 @@
 #'   "centre" -- genotypes are centred with respect to their ancestors
 #'   "stack" -- genotypes are stacked such that no genotype is split at any time point
 #'   "space" -- genotypes are stacked but with a bit of spacing at the top (emergence is clearer)
-#' @param show_root Whether or not to show the root in the timesweep view.
+#' @param show_root Whether (TRUE) or not (FALSE) to show the root in the timesweep view.
 #' @param perturbations Data frame of any perturbations that occurred between two time points, 
 #'   and the fraction of total tumour content left.
 #'   Format: columns are (1) {String} "pert_name" - the perturbation name
@@ -37,7 +37,7 @@
 #'   e.g. data.frame(pert_name = c("Chemo"), 
 #'                    prev_tp = c("T1"),
 #'                    frac = c(0.1))
-#' @param sort Whether (T) or not (F) to vertically sort the genotypes by their emergence values (descending).
+#' @param sort Whether (TRUE) or not (FALSE) to vertically sort the genotypes by their emergence values (descending).
 #' @param width Width of the plot. 
 #' @param height Height of the plot.
 #' @export
@@ -64,9 +64,9 @@ timesweep <- function(clonal_prev,
                       yaxis_title = "Relative Cellular Prevalence", 
                       alpha = 30, 
                       genotype_position = "stack", 
-                      show_root = "T", 
+                      show_root = TRUE, 
                       perturbations = "NA", 
-                      sort = "T", 
+                      sort = TRUE, 
                       width = NULL, 
                       height = NULL) {
   
@@ -81,6 +81,16 @@ timesweep <- function(clonal_prev,
   # ALPHA VALUE
   if (!is.numeric(alpha)) {
     stop("Alpha value must be numeric.")
+  }
+
+  # SORTED GENOTYPES
+  if (!is.logical(sort)) {
+    stop("Sort parameter must be a boolean.")
+  }
+
+  # SHOW ROOT
+  if (!is.logical(show_root)) {
+    stop("Show root parameter must be a boolean.")
   }
   
   # CLONAL PREVALENCE DATA
@@ -167,6 +177,8 @@ timesweep <- function(clonal_prev,
 
   }
 
+  # SORTED GENOTYPES
+
   # forward options using x
   x = list(
     patient = patient,
@@ -179,7 +191,7 @@ timesweep <- function(clonal_prev,
     genotype_position = genotype_position,
     show_root = show_root,
     perturbations = jsonlite::toJSON(perturbations),
-    sort = sort
+    sort_gtypes = sort
   )
 
   # create widget

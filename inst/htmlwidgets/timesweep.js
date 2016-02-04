@@ -104,8 +104,6 @@ HTMLWidgets.widget({
 
     // get params from R
     vizObj.view.userConfig = x;
-    vizObj.view.userConfig.showRoot = (x.show_root == "T") ? true : false; // whether or not to show the root in the view
-    vizObj.view.userConfig.sort_gtypes = (x.sort == "T") ? true : false; // whether or not to vertically sort the genotypes based on emergence values
     vizObj.data.perturbations = x.perturbations;
     vizObj.data.patient_id = x.patient; // patient id
 
@@ -159,13 +157,13 @@ HTMLWidgets.widget({
             return (x.alpha == "NA") ? colour_assignment[d.gtype] : alpha_colour_assignment[d.gtype];
         }) 
         .attr('stroke', function(d) { 
-            return (d.gtype == "Root" && vizObj.view.userConfig.showRoot) ? dim.rootColour : colour_assignment[d.gtype]; 
+            return (d.gtype == "Root" && vizObj.view.userConfig.show_root) ? dim.rootColour : colour_assignment[d.gtype]; 
         })
         .attr('fill-opacity', function(d) {
-            return (d.gtype == "Root" && !vizObj.view.userConfig.showRoot) ? 0 : 1;
+            return (d.gtype == "Root" && !vizObj.view.userConfig.show_root) ? 0 : 1;
         })
         .attr('stroke-opacity', function(d) {
-            return (d.gtype == "Root" && !vizObj.view.userConfig.showRoot) ? 0 : 1;
+            return (d.gtype == "Root" && !vizObj.view.userConfig.show_root) ? 0 : 1;
         })
         .on('click', function() { 
             return _sweepClick(vizObj); 

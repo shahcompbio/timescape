@@ -58,13 +58,13 @@ function _sweepClick(vizObj) {
                 return (x.alpha == "NA") ? colour_assignment[d.gtype] : alpha_colour_assignment[d.gtype];
             }) 
             .attr('stroke', function(d) { 
-                return (d.gtype == "Root" && vizObj.view.userConfig.showRoot) ? dim.rootColour : colour_assignment[d.gtype]; 
+                return (d.gtype == "Root" && vizObj.view.userConfig.show_root) ? dim.rootColour : colour_assignment[d.gtype]; 
             })
             .attr('fill-opacity', function(d) {
-                return (d.gtype == "Root" && !vizObj.view.userConfig.showRoot) ? 0 : 1;
+                return (d.gtype == "Root" && !vizObj.view.userConfig.show_root) ? 0 : 1;
             })
             .attr('stroke-opacity', function(d) {
-                return (d.gtype == "Root" && !vizObj.view.userConfig.showRoot) ? 0 : 1;
+                return (d.gtype == "Root" && !vizObj.view.userConfig.show_root) ? 0 : 1;
             })
             .transition()
             .duration(1000)
@@ -107,7 +107,7 @@ function _sweepMouseover(d, vizObj) {
                 return _rgb2hex("rgb(" + brightness + "," + brightness + "," + brightness + ")");
             }
             else {
-                return (d.gtype == "Root" && vizObj.view.userConfig.showRoot) ? dim.rootColour : colour_assignment[d.gtype];
+                return (d.gtype == "Root" && vizObj.view.userConfig.show_root) ? dim.rootColour : colour_assignment[d.gtype];
             }
         });
 
@@ -148,7 +148,7 @@ function _sweepMouseout(d, vizObj) {
             return (x.alpha == "NA") ? colour_assignment[d.gtype] : alpha_colour_assignment[d.gtype];
         })
         .attr('stroke', function(d) { 
-            return (d.gtype == "Root" && vizObj.view.userConfig.showRoot) ? dim.rootColour : colour_assignment[d.gtype];
+            return (d.gtype == "Root" && vizObj.view.userConfig.show_root) ? dim.rootColour : colour_assignment[d.gtype];
         });
 
     // traditional view
