@@ -6,8 +6,8 @@
 \usage{
 timesweep(clonal_prev, tree_edges, clone_colours = "NA",
   xaxis_title = "Time Point", yaxis_title = "Relative Cellular Prevalence",
-  alpha = 30, genotype_position = "stack", show_root = "T",
-  perturbations = "NA", sort = "T", width = NULL, height = NULL)
+  alpha = 50, genotype_position = "stack", show_root = TRUE,
+  perturbations = "NA", sort = TRUE, width = NULL, height = NULL)
 }
 \arguments{
 \item{clonal_prev}{Clonal prevalence data frame.
@@ -41,7 +41,7 @@ e.g. data.frame(clone_id = c("1","2","3","4","5","6"),
 "stack" -- genotypes are stacked such that no genotype is split at any time point
 "space" -- genotypes are stacked but with a bit of spacing at the top (emergence is clearer)}
 
-\item{show_root}{Whether or not to show the root in the timesweep view.}
+\item{show_root}{Whether (TRUE) or not (FALSE) to show the root in the timesweep view.}
 
 \item{perturbations}{Data frame of any perturbations that occurred between two time points, 
 and the fraction of total tumour content left.
@@ -54,7 +54,7 @@ e.g. data.frame(pert_name = c("Chemo"),
                  prev_tp = c("T1"),
                  frac = c(0.1))}
 
-\item{sort}{Whether (T) or not (F) to vertically sort the genotypes by their emergence values (descending).}
+\item{sort}{Whether (TRUE) or not (FALSE) to vertically sort the genotypes by their emergence values (descending).}
 
 \item{width}{Width of the plot.}
 
