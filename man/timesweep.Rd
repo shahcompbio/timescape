@@ -4,17 +4,17 @@
 \alias{timesweep}
 \title{Timesweeps}
 \usage{
-timesweep(patient, clonal.prev.csv, tree.gml, node.col = "NA",
+timesweep(clonal.prev, tree.edges, node.col = "NA",
   xaxis.title = "Time Point", yaxis.title = "Relative Cellular Prevalence",
   alpha = 30, genotype.position = "stack", show.root = "T",
   perturbations = "NA", sort = "T", width = NULL, height = NULL)
 }
 \arguments{
-\item{patient}{Patient name.}
-
-\item{clonal.prev.csv}{Path to clonal prevalence csv file.}
-
-\item{tree.gml}{Path to GML file.}
+\item{clonal.prev}{Clonal prevalence data frame.
+Format: columns are (1) {String} patient name
+                    (2) {String} time point
+                    (3) {String} clone id
+                    (4) {Number} clonal prevalence.}
 
 \item{node.col}{Data frame with node labels and colours 
 Format: columns are (1) {String} the node labels
@@ -51,13 +51,22 @@ e.g. data.frame(perturbation = c("Chemo"),
 \item{width}{Width of the plot.}
 
 \item{height}{Height of the plot.}
+
+\item{tree}{Tree edges data frame.
+Format: columns are (1) {String} patient name
+                    (2) {String} source node id
+                    (3) {String} target node id.
+e.g. data.frame(patient_name = c("SAMPLE_PATIENT"), 
+                source = c("Root","1","1","6","5","3"), 
+                target=c("1","3","6","5","4","2"))}
 }
 \description{
 \code{timesweep} generates patient clonal timesweeps.
 }
 \examples{
 library("timesweep")
-timesweep("SAMPLE_PATIENT", system.file("extdata", "clonal_dynamics.csv", package = "timesweep"), 
-           system.file("extdata", "tree.gml", package = "timesweep"))
+clonal.prev <- read.csv(system.file("extdata", "clonal_dynamics.csv", package = "timesweep"))
+tree.edges <- data.frame(patient_name = c("SAMPLE_PATIENT"), source = c("Root","1","1","6","5","3"), target=c("1","3","6","5","4","2"))
+timesweep(clonal.prev = clonal.prev, tree.edges = tree.edges)
 }
 

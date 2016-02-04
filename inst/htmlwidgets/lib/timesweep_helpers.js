@@ -181,33 +181,18 @@ function _sweepMouseout(d, vizObj) {
 */
 function _getTreeInfo(vizObj) {
     var userConfig = vizObj.view.userConfig,
-        nodeRX = /id (\d+)\s+label \"(\w+)\"/g,
-        edgeRX = /source (\d+)\s+target (\d+)/g,
-        node_matches,
-        edge_matches,
         rootName = 'Root';
 
     // get tree nodes
-    var nodesObj = {};
-    while (node_matches = nodeRX.exec(userConfig.tree_gml)) {
-        nodesObj[node_matches[1]] = node_matches[2];
-    }
-    vizObj.data.treeNodes = Object.keys(nodesObj).map(function(node) {
-        return nodesObj[node];
-    });
-
-    // get genotype names from tree node ids
-    vizObj.data.genotypes = Object.keys(nodesObj).map(function(node, idx) {
-        return nodesObj[node];
-    });
+    vizObj.data.treeNodes = _.uniq(userConfig.tree_edges.source.concat(userConfig.tree_edges.target));
 
     // get tree edges
     vizObj.data.treeEdges = [];
-    while (edge_matches = edgeRX.exec(userConfig.tree_gml)) {
+    for (var i = 0; i < userConfig.tree_edges.source.length; i++) {
         vizObj.data.treeEdges.push({
-            "source": nodesObj[edge_matches[1]],
-            "target": nodesObj[edge_matches[2]]
-        });
+            "source": userConfig.tree_edges.source[i],
+            "target": userConfig.tree_edges.target[i]
+        })
     }
 
     // get tree structure
@@ -221,15 +206,15 @@ function _getTreeInfo(vizObj) {
     
     // get descendants for each node
     vizObj.data.treeDescendantsArr = {};
-    Object.keys(nodesObj).forEach(function(node, idx) {
-        var curRoot = _findNodeByName(nodesByName, nodesObj[node]);
+    vizObj.data.treeNodes.forEach(function(node, idx) {
+        var curRoot = _findNodeByName(nodesByName, node);
         var curDescendants = _getDescendantIds(curRoot, []);
-        vizObj.data.treeDescendantsArr[nodesObj[node]] = curDescendants;
+        vizObj.data.treeDescendantsArr[node] = curDescendants;
     })
     vizObj.data.direct_descendants = _getDirectDescendants(vizObj.data.treeStructure, {});
 
     // get ancestors for each node
-    vizObj.data.treeAncestorsArr = _getAncestorIds(vizObj.data.treeDescendantsArr, nodesObj);
+    vizObj.data.treeAncestorsArr = _getAncestorIds(vizObj);
     vizObj.data.direct_ancestors = _getDirectAncestors(vizObj.data.treeStructure, {});
 
     // get siblings for each node
@@ -271,25 +256,26 @@ function _getDescendantIds(root, descendants) {
 }
 
 /* function to get the ancestor ids for all nodes
-* @param descendants_arr {Array} -- array of nodes and their descendants 
-*      e.g. [{"id": "1", "descendants": ["2","3"]}, {"id": "2","descendants": []}]
+* @param {Object} vizObj
 */
-function _getAncestorIds(descendants_arr, nodes) {
+function _getAncestorIds(vizObj) {
     var ancestors = {},
-        curDescendants;
+        curDescendants,
+        descendants_arr = vizObj.data.treeDescendantsArr,
+        treeNodes = vizObj.data.treeNodes;
 
     // set up each node as originally containing an empty list of ancestors
-    Object.keys(nodes).forEach(function(key, idx) {
-        ancestors[nodes[key]] = [];
+    treeNodes.forEach(function(node, idx) {
+        ancestors[node] = [];
     })
 
     // get ancestors data from the descendants data
-    Object.keys(nodes).forEach(function(key, idx) {
+    treeNodes.forEach(function(node, idx) {
         // for each descendant of this node
-        curDescendants = descendants_arr[nodes[key]];
+        curDescendants = descendants_arr[node];
         for (var i = 0; i < curDescendants.length; i++) { 
             // add the node to descentant's ancestor list
-            ancestors[curDescendants[i]].push(nodes[key]);
+            ancestors[curDescendants[i]].push(node);
         }
     })
 
@@ -431,6 +417,7 @@ function _getCPData(vizObj) {
     // for each time point, for each genotype, get cellular prevalence
     var cp_data = {};
     $.each(x.clonal_prev_JSON, function(idx, hit) { // for each hit (genotype/timepoint combination)
+        
         // only parse data for a particular patient
         if (hit["patient_name"] == x.patient) {
             cp_data[hit["timepoint"]] = cp_data[hit["timepoint"]] || {};
@@ -442,7 +429,6 @@ function _getCPData(vizObj) {
     cp_data["T0"] = {};
     cp_data["T0"]["Root"] = 1;
     vizObj.data.cp_data = cp_data;
-
 }
 
 /* function to get the cellular prevalence value for each genotype at its emergence

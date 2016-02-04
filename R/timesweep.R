@@ -2,9 +2,18 @@
 #'
 #' \code{timesweep} generates patient clonal timesweeps.
 #'
-#' @param patient Patient name.
-#' @param clonal.prev.csv Path to clonal prevalence csv file.
-#' @param tree.gml Path to GML file.
+#' @param clonal.prev Clonal prevalence data frame.
+#'   Format: columns are (1) {String} patient name
+#'                       (2) {String} time point
+#'                       (3) {String} clone id
+#'                       (4) {Number} clonal prevalence.
+#' @param tree Tree edges data frame.
+#'   Format: columns are (1) {String} patient name
+#'                       (2) {String} source node id
+#'                       (3) {String} target node id.
+#'   e.g. data.frame(patient_name = c("SAMPLE_PATIENT"), 
+#'                   source = c("Root","1","1","6","5","3"), 
+#'                   target=c("1","3","6","5","4","2"))
 #' @param node.col Data frame with node labels and colours 
 #'   Format: columns are (1) {String} the node labels
 #'                       (2) {String} the corresponding colour for each node label.
@@ -34,11 +43,11 @@
 #' @export
 #' @examples
 #' library("timesweep")
-#' timesweep("SAMPLE_PATIENT", system.file("extdata", "clonal_dynamics.csv", package = "timesweep"), 
-#'            system.file("extdata", "tree.gml", package = "timesweep"))
-timesweep <- function(patient, 
-                      clonal.prev.csv, 
-                      tree.gml, 
+#' clonal.prev <- read.csv(system.file("extdata", "clonal_dynamics.csv", package = "timesweep"))
+#' tree.edges <- data.frame(patient_name = c("SAMPLE_PATIENT"), source = c("Root","1","1","6","5","3"), target=c("1","3","6","5","4","2"))
+#' timesweep(clonal.prev = clonal.prev, tree.edges = tree.edges)
+timesweep <- function(clonal.prev, 
+                      tree.edges, 
                       node.col = "NA", 
                       xaxis.title = "Time Point", 
                       yaxis.title = "Relative Cellular Prevalence", 
@@ -50,20 +59,65 @@ timesweep <- function(patient,
                       width = NULL, 
                       height = NULL) {
 
-  # parse csv
-  clonal.prev.data = read.csv(clonal.prev.csv)
-  clonal.prev.JSON <- jsonlite::toJSON(clonal.prev.data)
-  gmlString <- paste(readLines(tree.gml), collapse=" ")
-
   # check type of user inputs
   if (!is.numeric(alpha)) {
     stop("Alpha value must be numeric.")
   }
+  if (missing(clonal.prev)) {
+    stop("Clonal prevalence data frame must be provided.")
+  }
+  if (missing(tree.edges)) {
+    stop("Tree edge data frame must be provided.")
+  }
+
+  # CLONAL PREVALENCE DATA
+
+  # adjust column names 
+  colnames(clonal.prev)[1] <- "patient_name"
+  colnames(clonal.prev)[2] <- "timepoint"
+  colnames(clonal.prev)[3] <- "cluster"
+  colnames(clonal.prev)[4] <- "clonal_prev"
+
+  # ensure data is of the correct type
+  clonal.prev["patient_name"] <- lapply(clonal.prev["patient_name"], as.character)
+  clonal.prev["timepoint"] <- lapply(clonal.prev["timepoint"], as.character)
+  clonal.prev["cluster"] <- lapply(clonal.prev["cluster"], as.character)
+  clonal.prev["clonal_prev"] <- lapply(clonal.prev["clonal_prev"], as.numeric)
+
+  # parse clonal prevalence data
+  clonal.prev.JSON <- jsonlite::toJSON(clonal.prev)
+
+  # TREE EDGES DATA
+
+  # adjust column names 
+  colnames(tree.edges)[1] <- "patient_name"
+  colnames(tree.edges)[2] <- "source"
+  colnames(tree.edges)[3] <- "target"
+
+  # ensure data is of the correct type
+  tree.edges["patient_name"] <- lapply(tree.edges["patient_name"], as.character)
+  tree.edges["source"] <- lapply(tree.edges["source"], as.character)
+  tree.edges["target"] <- lapply(tree.edges["target"], as.character)
+
+  # catch multiple patients
+  if (length(unique(tree.edges[,"patient_name"])) > 1) {
+    stop("Currently, timesweep only takes in one patient - your tree edges data frame contains more than one patient.")
+  }
+  if (length(unique(clonal.prev[,"patient_name"])) > 1) {
+    stop("Currently, timesweep only takes in one patient - your clonal prevalence data frame contains more than one patient.")
+  }
+  if (unique(tree.edges[,"patient_name"]) != unique(clonal.prev[1])) {
+    stop("Your tree edge and clonal prevalence data frames contain different patient names. Please ensure the patient name is the same.")
+  }
+  patient = tree.edges[1,"patient_name"]
+
+  # GENOTYPE POSITIONING
+
   if (!(genotype.position %in% c("stack", "centre", "space"))) {
     stop("Genotype position must be one of c(\"stack\", \"centre\", \"space\")")
   }
 
-  # node colours
+  # NODE COLOURS
   if (is.data.frame(node.col)) {
 
     # catch error where node colour data frame is incorrectly formatted
@@ -81,7 +135,7 @@ timesweep <- function(patient,
     node.col <- jsonlite::toJSON(node.col) 
   }
 
-  # perturbations
+  # PERTURBATIONS
   if (is.data.frame(perturbations)) {
 
     # catch error where perturbations data frame is incorrectly formatted
@@ -93,26 +147,17 @@ timesweep <- function(patient,
         "(4) {Number} the fraction of total tumour content remaining at the time of perturbation.", sep=""))
     }
 
-    # check that columns are of the correct type
-    pert_classes <- sapply(perturbations, class);
-    if (!(pert_classes[1] %in% c("factor", "character"))) {
-      stop("In perturbations data frame, perturbation name must be of type String or Factor.")
-    }
-    if (!(pert_classes[2] %in% c("factor", "character"))) {
-      stop("In perturbations data frame, the time point before perturbation must be of type String or Factor.")
-    }
-    if (!(pert_classes[3] %in% c("factor", "character"))) {
-      stop("In perturbations data frame, the time point after perturbation must be of type String or Factor.")
-    }
-    if (!(pert_classes[4] == "numeric")) {
-      stop("In perturbations data frame, fraction of total tumour content remaining must be of type Numeric.")
-    }
-
     # adjust column names
     colnames(perturbations)[1] <- "perturbation"
     colnames(perturbations)[2] <- "prev_tp"
     colnames(perturbations)[3] <- "next_tp"
     colnames(perturbations)[4] <- "frac"
+
+    # check that columns are of the correct type
+    perturbations["perturbation"] <- lapply(perturbations["perturbation"], as.character)
+    perturbations["prev_tp"] <- lapply(perturbations["prev_tp"], as.character)
+    perturbations["next_tp"] <- lapply(perturbations["next_tp"], as.character)
+    perturbations["frac"] <- lapply(perturbations["frac"], as.numeric)
 
     # df to JSON
     perturbations <- jsonlite::toJSON(perturbations)
@@ -122,7 +167,7 @@ timesweep <- function(patient,
   x = list(
     patient = patient,
     clonal_prev_JSON = clonal.prev.JSON,
-    tree_gml = gmlString,
+    tree_edges = tree.edges,
     node_col_JSON = node.col,
     xaxis_title = xaxis.title,
     yaxis_title = yaxis.title,
