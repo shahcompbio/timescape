@@ -747,27 +747,36 @@ function _getStackedLayout(vizObj) {
             effective_cp = _calculateWidth(vizObj, tp, gtype, threshold).effective_cp;
             width = _calculateWidth(vizObj, tp, gtype, threshold).width;
 
-            // if this genotype is REPLACED by any descendant at this time point
-            if (!cp_data[tp][gtype] && (_getIntersection(curDescendants, gTypes_curTP).length > 0) && gtype != "Root") {
-                _createStackElement(vizObj, layout, tp, gtype, sHeight, sHeight + width, effective_cp, "replaced");
-            }
 
-            // if this genotype existed at the previous time point, 
-            // but neither it nor its descendants are present at this time point (they DISAPPEAR)
-            else if (cp_data[prev_tp] && cp_data[prev_tp][gtype] && !cp_data[tp][gtype] && _getIntersection(gTypeAndDescendants, gTypes_curTP).length == 0) {
+            // DISAPPEARING LINEAGE
+            // if this genotype existed at the prev time point, but neither it nor its descendants are currently present
+            if (cp_data[prev_tp] && cp_data[prev_tp][gtype] && !cp_data[tp][gtype] && _getIntersection(gTypeAndDescendants, gTypes_curTP).length == 0) {
                 _createStackElement(vizObj, layout, tp, gtype, sHeight, sHeight, effective_cp, "disappears_stretched");
             }
 
-            // if this genotype or any descendants EXIST at this time point
-            else if (_getIntersection(gTypeAndDescendants, gTypes_curTP).length > 0) {
-                var n_desc_present = _getIntersection(curDescendants, gTypes_curTP).length;
+            // NON-DISAPPEARING LINEAGE
+            else {
 
-                // create it as present
-                _createStackElement(vizObj, layout, tp, gtype, sHeight, sHeight + width, effective_cp, "present");
-                midpoint = (layout[tp][gtype]["bottom"] + layout[tp][gtype]["top"])/2;
+                // if this genotype is REPLACED by any descendant at this time point
+                if (!cp_data[tp][gtype] && (_getIntersection(curDescendants, gTypes_curTP).length > 0) && gtype != "Root") {
 
-                // update stack height
-                sHeight += effective_cp;
+                    _createStackElement(vizObj, layout, tp, gtype, sHeight, sHeight + width, effective_cp, "replaced");
+                    midpoint = (layout[tp][gtype]["bottom"] + layout[tp][gtype]["top"])/2;
+
+                }
+
+                // if this genotype or any descendants EXIST at this time point
+                else if (_getIntersection(gTypeAndDescendants, gTypes_curTP).length > 0) {
+                    var n_desc_present = _getIntersection(curDescendants, gTypes_curTP).length;
+
+                    // create it as present
+                    _createStackElement(vizObj, layout, tp, gtype, sHeight, sHeight + width, effective_cp, "present");
+                    midpoint = (layout[tp][gtype]["bottom"] + layout[tp][gtype]["top"])/2;
+
+                    // update stack height
+                    sHeight += effective_cp;
+                }
+
 
                 // if it EMERGED at the previous time point
                 if (cp_data[prev_tp] &&
