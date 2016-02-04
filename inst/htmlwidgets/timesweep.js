@@ -169,10 +169,10 @@ HTMLWidgets.widget({
             return _sweepClick(vizObj); 
         })
         .on('mouseover', function(d) {
-            return _sweepMouseover(d, vizObj);
+            return _gtypeMouseover(d.gtype, vizObj);
         })
         .on('mouseout', function(d) {
-            return _sweepMouseout(d, vizObj)
+            return _gtypeMouseout(d.gtype, vizObj)
         });
 
     // plot time point guides
@@ -411,7 +411,13 @@ HTMLWidgets.widget({
         .attr('height', 10)
         .attr('width', 10)
         .attr('fill', function(d) { return alpha_colour_assignment[d]; })
-        .attr('stroke', function(d) { return colour_assignment[d]; });
+        .attr('stroke', function(d) { return colour_assignment[d]; })
+        .on('mouseover', function(d) {
+            return _gtypeMouseover(d, vizObj);
+        })
+        .on('mouseout', function(d) {
+            return _gtypeMouseout(d, vizObj)
+        });
 
     // plot legend text
     vizObj.view.tsLegendSVG
@@ -502,8 +508,12 @@ HTMLWidgets.widget({
         })
         .attr("id", function(d) { return d.sc_id; })
         .attr("r", 4)
-        .append("title")
-        .text(function(d) { return d.id; });
+        .on('mouseover', function(d) {
+            return _gtypeMouseover(d.id, vizObj);
+        })
+        .on('mouseout', function(d) {
+            return _gtypeMouseout(d.id, vizObj)
+        });
   },
 
   resize: function(el, width, height, instance) {

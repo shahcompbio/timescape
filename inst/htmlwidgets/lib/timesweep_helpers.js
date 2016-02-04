@@ -73,104 +73,112 @@ function _sweepClick(vizObj) {
     dim.switchView = !dim.switchView;
 }
 
-function _sweepMouseover(d, vizObj) {
-    var curGtype = d.gtype,
-        brightness,
-        col,
-        dim = vizObj.view.config,
-        colour_assignment = vizObj.view.colour_assignment,
-        alpha_colour_assignment = vizObj.view.alpha_colour_assignment,
-        patientID_class = 'patientID_' + vizObj.data.patient_id,
-        x = vizObj.view.userConfig;
+/* function for genotype mouseover
+* @param {String} gtype -- the current genotype being moused over
+*/
+function _gtypeMouseover(gtype, vizObj) {
+    if (gtype != "Root") {
+        var brightness,
+            col,
+            dim = vizObj.view.config,
+            colour_assignment = vizObj.view.colour_assignment,
+            alpha_colour_assignment = vizObj.view.alpha_colour_assignment,
+            patientID_class = 'patientID_' + vizObj.data.patient_id,
+            x = vizObj.view.userConfig;
 
-    // dim other genotypes
-    d3.selectAll('.tsPlot.' + patientID_class)
-        .attr('fill', function(d) { 
-            if (d.gtype == "Root") {
-                return dim.rootColour;
-            }
-            else if (d.gtype != curGtype) {
-                col = (x.alpha == "NA") ? colour_assignment[d.gtype] : alpha_colour_assignment[d.gtype];
-                brightness = Math.round(_get_brightness(col));
-                return _rgb2hex("rgb(" + brightness + "," + brightness + "," + brightness + ")");
-            }
-            else {
-                return (x.alpha == "NA") ? colour_assignment[d.gtype] : alpha_colour_assignment[d.gtype];
-            }
-        })
-        .attr('stroke', function(d) { 
-            if (d.gtype == "Root") {
-                return dim.rootColour;
-            }
-            else if (d.gtype != curGtype) {
-                brightness = Math.round(_get_brightness(colour_assignment[d.gtype]));
-                return _rgb2hex("rgb(" + brightness + "," + brightness + "," + brightness + ")");
-            }
-            else {
-                return (d.gtype == "Root" && vizObj.view.userConfig.show_root) ? dim.rootColour : colour_assignment[d.gtype];
-            }
-        });
+        // dim other genotypes
+        d3.selectAll('.tsPlot.' + patientID_class)
+            .attr('fill', function(d) { 
+                if (d.gtype == "Root") {
+                    return dim.rootColour;
+                }
+                else if (d.gtype != gtype) {
+                    col = (x.alpha == "NA") ? colour_assignment[d.gtype] : alpha_colour_assignment[d.gtype];
+                    brightness = Math.round(_get_brightness(col));
+                    return _rgb2hex("rgb(" + brightness + "," + brightness + "," + brightness + ")");
+                }
+                else {
+                    return (x.alpha == "NA") ? colour_assignment[d.gtype] : alpha_colour_assignment[d.gtype];
+                }
+            })
+            .attr('stroke', function(d) { 
+                if (d.gtype == "Root") {
+                    return dim.rootColour;
+                }
+                else if (d.gtype != gtype) {
+                    brightness = Math.round(_get_brightness(colour_assignment[d.gtype]));
+                    return _rgb2hex("rgb(" + brightness + "," + brightness + "," + brightness + ")");
+                }
+                else {
+                    return (d.gtype == "Root" && vizObj.view.userConfig.show_root) ? dim.rootColour : colour_assignment[d.gtype];
+                }
+            });
 
-    // traditional view
-    if (dim.switchView) { 
-        // show labels
-        d3.selectAll(".label.gtype_" + curGtype + '.' + patientID_class)
-            .attr('opacity', 1);
+        // traditional view
+        if (dim.switchView) { 
+            // show labels
+            d3.selectAll(".label.gtype_" + gtype + '.' + patientID_class)
+                .attr('opacity', 1);
 
-        // show label backgrounds
-        d3.selectAll(".labelCirc.gtype_" + curGtype)
-            .attr('fill-opacity', 0.5);                
-    }
+            // show label backgrounds
+            d3.selectAll(".labelCirc.gtype_" + gtype)
+                .attr('fill-opacity', 0.5);                
+        }
 
-    // separate genotypes view
-    else { 
-        // show labels
-        d3.selectAll(".sepLabel.gtype_" + curGtype + '.' + patientID_class)
-            .attr('opacity', 1);
+        // separate genotypes view
+        else { 
+            // show labels
+            d3.selectAll(".sepLabel.gtype_" + gtype + '.' + patientID_class)
+                .attr('opacity', 1);
 
-        // show label backgrounds
-        d3.selectAll(".sepLabelCirc.gtype_" + curGtype)
-            .attr('fill-opacity', 0.5);                
+            // show label backgrounds
+            d3.selectAll(".sepLabelCirc.gtype_" + gtype)
+                .attr('fill-opacity', 0.5);                
+        }
     }
 }
 
-function _sweepMouseout(d, vizObj) {
-    var curGtype = d.gtype,
-        dim = vizObj.view.config,
-        colour_assignment = vizObj.view.colour_assignment,
-        alpha_colour_assignment = vizObj.view.alpha_colour_assignment,
-        patientID_class = 'patientID_' + vizObj.data.patient_id,
-        x = vizObj.view.userConfig;
+/* function for genotype mouseout
+* @param {String} gtype -- the current genotype being moused out
+*/
+function _gtypeMouseout(gtype, vizObj) {
+    if (gtype != "Root") {
+        var dim = vizObj.view.config,
+            colour_assignment = vizObj.view.colour_assignment,
+            alpha_colour_assignment = vizObj.view.alpha_colour_assignment,
+            patientID_class = 'patientID_' + vizObj.data.patient_id,
+            x = vizObj.view.userConfig;
 
-    // reset colours
-    d3.selectAll('.tsPlot.' + patientID_class)
-        .attr('fill', function(d) { 
-            return (x.alpha == "NA") ? colour_assignment[d.gtype] : alpha_colour_assignment[d.gtype];
-        })
-        .attr('stroke', function(d) { 
-            return (d.gtype == "Root" && vizObj.view.userConfig.show_root) ? dim.rootColour : colour_assignment[d.gtype];
-        });
+        // reset colours
+        d3.selectAll('.tsPlot.' + patientID_class)
+            .attr('fill', function(d) { 
+                return (x.alpha == "NA") ? colour_assignment[d.gtype] : alpha_colour_assignment[d.gtype];
+            })
+            .attr('stroke', function(d) { 
+                return (d.gtype == "Root" && vizObj.view.userConfig.show_root) ? dim.rootColour : colour_assignment[d.gtype];
+            });
 
-    // traditional view
-    if (dim.switchView) {
-        // hide labels
-        d3.selectAll(".label.gtype_" + curGtype + '.' + patientID_class)
-            .attr('opacity', 0);
+        // traditional view
+        if (dim.switchView) {
+            // hide labels
+            d3.selectAll(".label.gtype_" + gtype + '.' + patientID_class)
+                .attr('opacity', 0);
 
-        // hide label backgrounds
-        d3.selectAll(".labelCirc.gtype_" + curGtype)
-            .attr('fill-opacity', 0);
-    }
+            // hide label backgrounds
+            d3.selectAll(".labelCirc.gtype_" + gtype)
+                .attr('fill-opacity', 0);
+        }
 
-    // separate genotypes view
-    else {
-        // hide labels
-        d3.selectAll(".sepLabel.gtype_" + curGtype + '.' + patientID_class)
-            .attr('opacity', 0);
+        // separate genotypes view
+        else {
+            // hide labels
+            d3.selectAll(".sepLabel.gtype_" + gtype + '.' + patientID_class)
+                .attr('opacity', 0);
 
-        // hide label backgrounds
-        d3.selectAll(".sepLabelCirc.gtype_" + curGtype)
-            .attr('fill-opacity', 0);
+            // hide label backgrounds
+            d3.selectAll(".sepLabelCirc.gtype_" + gtype)
+                .attr('fill-opacity', 0);
+        }
     }
 }
 
