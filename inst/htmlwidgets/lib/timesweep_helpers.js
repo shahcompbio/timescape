@@ -416,12 +416,12 @@ function _getCPData(vizObj) {
 
     // for each time point, for each genotype, get cellular prevalence
     var cp_data = {};
-    $.each(x.clonal_prev_JSON, function(idx, hit) { // for each hit (genotype/timepoint combination)
+    $.each(x.clonal_prev, function(idx, hit) { // for each hit (genotype/timepoint combination)
 
         // only parse data for a particular patient
         if (hit["patient_name"] == x.patient) {
             cp_data[hit["timepoint"]] = cp_data[hit["timepoint"]] || {};
-            cp_data[hit["timepoint"]][hit["cluster"]] = parseFloat(hit["clonal_prev"]); 
+            cp_data[hit["timepoint"]][hit["clone_id"]] = parseFloat(hit["clonal_prev"]); 
         }
     });
 
@@ -480,7 +480,7 @@ function _getGenotypeCPData(vizObj) {
 * @param {Object} vizObj
 */
 function _getLayout(vizObj) {
-    var gtypePos = vizObj.view.userConfig.gtypePos;
+    var gtypePos = vizObj.view.userConfig.genotype_position;
 
     // ------> CENTRED 
     if (gtypePos == "centre") {
@@ -1089,7 +1089,7 @@ function _getTraditionalCPLabels(vizObj) {
                     label = {};
 
                     // CENTRED view
-                    if (vizObj.view.userConfig.gtypePos == "centre") { 
+                    if (vizObj.view.userConfig.genotype_position == "centre") { 
                         label['tp'] = tp;
                         label['gtype'] = gtype;
                         label['cp'] = data.cp;
@@ -1097,7 +1097,7 @@ function _getTraditionalCPLabels(vizObj) {
                         label['type'] = "traditional";
                     }
                     // STACKED view
-                    else if (vizObj.view.userConfig.gtypePos == "stack") { 
+                    else if (vizObj.view.userConfig.genotype_position == "stack") { 
                         label['tp'] = tp;
                         label['gtype'] = gtype;
                         label['cp'] = data.cp;
@@ -1105,7 +1105,7 @@ function _getTraditionalCPLabels(vizObj) {
                         label['type'] = "traditional";
                     }
                     // SPACED view
-                    else if (vizObj.view.userConfig.gtypePos == "space") { 
+                    else if (vizObj.view.userConfig.genotype_position == "space") { 
                         label['tp'] = tp;
                         label['gtype'] = gtype;
                         label['cp'] = data.cp;
@@ -1573,7 +1573,7 @@ function _getColours(vizObj) {
 
     // get colour assignment based on tree hierarchy
     // --> if unspecified, use default
-    if (x.node_col_JSON == "NA") {
+    if (x.clone_cols == "NA") {
         var colour_palette = _getColourPalette();
         var chains = _getLinearTreeSegments(vizObj.data.treeStructure, {}, "");
         colour_assignment = _colourTree(vizObj, chains, vizObj.data.treeStructure, colour_palette, {}, "Greens");
@@ -1581,15 +1581,15 @@ function _getColours(vizObj) {
     // --> otherwise, use specified colours
     else {
         // handling different inputs -- TODO should probably be done in R
-        x.node_col_JSON.forEach(function(col, col_idx) {
-            var col_value = col.col;
+        x.clone_cols.forEach(function(col, col_idx) {
+            var col_value = col.colour;
             if (col_value[0] != "#") { // append a hashtag if necessary
                 col_value = "#".concat(col_value);
             }
             if (col_value.length > 7) { // remove any alpha that may be present in the hex value
                 col_value = col_value.substring(0,7);
             }
-            colour_assignment[col.node_label] = col_value;
+            colour_assignment[col.clone_id] = col_value;
         });
         colour_assignment['Root'] = "#000000";
     }

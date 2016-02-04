@@ -4,69 +4,80 @@
 \alias{timesweep}
 \title{Timesweeps}
 \usage{
-timesweep(clonal.prev, tree.edges, node.col = "NA",
-  xaxis.title = "Time Point", yaxis.title = "Relative Cellular Prevalence",
-  alpha = 30, genotype.position = "stack", show.root = "T",
+timesweep(clonal_prev, tree_edges, clone_colours = "NA",
+  xaxis_title = "Time Point", yaxis_title = "Relative Cellular Prevalence",
+  alpha = 30, genotype_position = "stack", show_root = "T",
   perturbations = "NA", sort = "T", width = NULL, height = NULL)
 }
 \arguments{
-\item{clonal.prev}{Clonal prevalence data frame.
-Format: columns are (1) {String} patient name
-                    (2) {String} time point
-                    (3) {String} clone id
-                    (4) {Number} clonal prevalence.}
+\item{clonal_prev}{Clonal prevalence data frame.
+Format: columns are (1) {String} "patient_name" - patient name
+                    (2) {String} "timepoint" - time point
+                    (3) {String} "clone_id" - clone id
+                    (4) {Number} "clonal_prev" - clonal prevalence.}
 
-\item{node.col}{Data frame with node labels and colours 
-Format: columns are (1) {String} the node labels
-                    (2) {String} the corresponding colour for each node label.
-e.g. data.frame(node_label = c("1","2","3","4","5"), 
-                 col = c("F8766D66", "A3A50066", "00BF7D66", "00B0F666", "E76BF366"))}
+\item{tree_edges}{Tree edges data frame. The root of the tree (id: "Root") must be specified as a source.
+Format: columns are (1) {String} "patient_name" - patient name
+                    (2) {String} "source" - source node id
+                    (3) {String} "target" - target node id.
+e.g. data.frame(patient_name = c("SAMPLE_PATIENT"), 
+                source = c("Root","1","1","6","5","3"), 
+                target = c("1","3","6","5","4","2"))}
 
-\item{xaxis.title}{x-axis title.}
+\item{clone_colours}{Data frame with clone ids and their corresponding colours 
+Format: columns are (1) {String} "clone_id" - the clone ids
+                    (2) {String} "colour" - the corresponding Hex colour for each clone id.
+e.g. data.frame(clone_id = c("1","2","3","4","5","6"), 
+                 colour = c("F8766D66", "A3A50066", "00BF7D66", "00B0F666", "E76BF366", "B79F0066"))}
 
-\item{yaxis.title}{y-axis title.}
+\item{xaxis_title}{x-axis title.}
 
-\item{alpha}{Alpha value for sweeps}
+\item{yaxis_title}{y-axis title.}
 
-\item{genotype.position}{How to position the genotypes from ["centre", "stack", "space"] 
+\item{alpha}{Alpha value for sweeps, range [0, 100].}
+
+\item{genotype_position}{How to position the genotypes from ["centre", "stack", "space"] 
 "centre" -- genotypes are centred with respect to their ancestors
 "stack" -- genotypes are stacked such that no genotype is split at any time point
 "space" -- genotypes are stacked but with a bit of spacing at the top (emergence is clearer)}
 
-\item{show.root}{Whether or not to show the root in the timesweep view}
+\item{show_root}{Whether or not to show the root in the timesweep view.}
 
 \item{perturbations}{Data frame of any perturbations that occurred between two time points, 
 and the fraction of total tumour content left.
-Format: columns are (1) {String} the perturbation name
-                    (2) {String} the time point (as labelled in cellular prevalence data) BEFORE perturbation
-                    (3) {String} the time point (as labelled in cellular prevalence data) AFTER perturbation
-                    (4) {Number} the fraction of total tumour content remaining at the time of perturbation.
-e.g. data.frame(perturbation = c("Chemo"), 
+Format: columns are (1) {String} "pert_name" - the perturbation name
+                    (2) {String} "prev_tp" - the time point (as labelled in clonal prevalence data) 
+                                             BEFORE perturbation
+                    (3) {Number} "frac" - the fraction of total tumour content remaining at the 
+                                          time of perturbation, range [0, 1].
+e.g. data.frame(pert_name = c("Chemo"), 
                  prev_tp = c("T1"),
-                 next_tp = c("T2"), 
-                 frac = c(0.2))}
+                 frac = c(0.1))}
 
-\item{sort}{Whether (T) or not (F) to vertically sort the genotypes by their emergence values}
+\item{sort}{Whether (T) or not (F) to vertically sort the genotypes by their emergence values (descending).}
 
 \item{width}{Width of the plot.}
 
 \item{height}{Height of the plot.}
-
-\item{tree}{Tree edges data frame.
-Format: columns are (1) {String} patient name
-                    (2) {String} source node id
-                    (3) {String} target node id.
-e.g. data.frame(patient_name = c("SAMPLE_PATIENT"), 
-                source = c("Root","1","1","6","5","3"), 
-                target=c("1","3","6","5","4","2"))}
 }
 \description{
 \code{timesweep} generates patient clonal timesweeps.
 }
 \examples{
 library("timesweep")
-clonal.prev <- read.csv(system.file("extdata", "clonal_dynamics.csv", package = "timesweep"))
-tree.edges <- data.frame(patient_name = c("SAMPLE_PATIENT"), source = c("Root","1","1","6","5","3"), target=c("1","3","6","5","4","2"))
-timesweep(clonal.prev = clonal.prev, tree.edges = tree.edges)
+clonal_prev <- data.frame( patient_name = c("SAMPLE_PATIENT"), 
+                           timepoint = c(rep("T1", 6), rep("T2", 6)), 
+                           clone_id = c("1","6","5","4","3","2","1","6","5","4","3","2"),
+                           clonal_prev = c("0.0205127","0.284957","0.637239","0.0477972","0.00404099","0.00545235",
+                                           "0.0134362","0.00000150677","0.00000385311","0.000627522","0.551521","0.43441"))
+tree_edges <- data.frame(patient_name = c("SAMPLE_PATIENT"), 
+                         source = c("Root","1","1","6","5","3"), 
+                         target = c("1","3","6","5","4","2"))
+clone_colours <- data.frame( clone_id = c("1","2","3","4","5","6"), 
+                             colour = c("F8766D66", "B79F0066", "00BA3866", "00BFC466", "619CFF66", "F564E366"))
+perturbations <- data.frame( pert_name = c("Chemo"), 
+                             prev_tp = c("T1"),
+                              frac = c(0.1))
+timesweep(clonal_prev = clonal_prev, tree_edges = tree_edges, clone_colours = clone_colours, perturbations = perturbations)
 }
 

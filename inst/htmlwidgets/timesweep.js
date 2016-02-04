@@ -106,7 +106,7 @@ HTMLWidgets.widget({
     vizObj.view.userConfig = x;
     vizObj.view.userConfig.showRoot = (x.show_root == "T") ? true : false; // whether or not to show the root in the view
     vizObj.view.userConfig.sort_gtypes = (x.sort == "T") ? true : false; // whether or not to vertically sort the genotypes based on emergence values
-    vizObj.data.perturbations = x.perturbations_JSON;
+    vizObj.data.perturbations = x.perturbations;
     vizObj.data.patient_id = x.patient; // patient id
 
     // GET CONTENT
@@ -115,7 +115,7 @@ HTMLWidgets.widget({
     _getTreeInfo(vizObj);
 
     // get timepoints, prepend a "T0" timepoint to represent the timepoint before any data originated
-    var timepoints = _.uniq(_.pluck(x.clonal_prev_JSON, "timepoint"));
+    var timepoints = _.uniq(_.pluck(x.clonal_prev, "timepoint"));
     timepoints.unshift("T0");
     vizObj.data.timepoints = timepoints;
 
@@ -316,12 +316,12 @@ HTMLWidgets.widget({
         .attr('text-anchor', 'middle')
         .attr('font-family', 'sans-serif')
         .attr('font-size', '11px')
-        .text(function(d) { return d.perturbation; })
+        .text(function(d) { return d.pert_name; })
         .on('mouseover', function(d) {
-            d3.selectAll(".pertGuide.pert_" + d.perturbation + '.' + patientID_class).attr('stroke-opacity', 1); 
+            d3.selectAll(".pertGuide.pert_" + d.pert_name + '.' + patientID_class).attr('stroke-opacity', 1); 
         })
         .on('mouseout', function(d) {
-            d3.selectAll(".pertGuide.pert_" + d.perturbation + '.' + patientID_class).attr('stroke-opacity', 0);
+            d3.selectAll(".pertGuide.pert_" + d.pert_name + '.' + patientID_class).attr('stroke-opacity', 0);
         });
 
     // plot guides
@@ -329,7 +329,7 @@ HTMLWidgets.widget({
         .selectAll('.pertGuide')
         .data(vizObj.data.perturbations)
         .enter().append('line')
-        .attr('class', function(d) { return 'pertGuide pert_' + d.perturbation + ' ' + patientID_class; })
+        .attr('class', function(d) { return 'pertGuide pert_' + d.pert_name + ' ' + patientID_class; })
         .attr('x1', function(d) { 
             var prevTP_idx = vizObj.data.timepoints.indexOf(d.prev_tp);
             return ((prevTP_idx + 0.5) / (vizObj.data.timepoints.length-1)) * (dim.tsSVGWidth); 
@@ -541,9 +541,9 @@ HTMLWidgets.widget({
 
     // if we want the spaced stacked view, recalculate the layout
     var deferred = new $.Deferred();
-    if (!vizObj.view.userConfig.gtypePos) {
+    if (!vizObj.view.userConfig.genotype_position) {
         // get the layout of genotypes at each time point
-        _getLayout(vizObj, vizObj.view.userConfig.gtypePos);
+        _getLayout(vizObj, vizObj.view.userConfig.genotype_position);
 
         // in the layout, shift x-values if >1 genotype emerges at the 
         // same time point from the same clade in the tree
