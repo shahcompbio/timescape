@@ -7,7 +7,7 @@
 #'                       (2) {String} time point
 #'                       (3) {String} clone id
 #'                       (4) {Number} clonal prevalence.
-#' @param tree Tree edges data frame.
+#' @param tree Tree edges data frame. The root of the tree (id: "Root") must be specified as a source.
 #'   Format: columns are (1) {String} patient name
 #'                       (2) {String} source node id
 #'                       (3) {String} target node id.
@@ -98,6 +98,11 @@ timesweep <- function(clonal.prev,
   tree.edges["patient_name"] <- lapply(tree.edges["patient_name"], as.character)
   tree.edges["source"] <- lapply(tree.edges["source"], as.character)
   tree.edges["target"] <- lapply(tree.edges["target"], as.character)
+
+  # catch if no root is in the tree
+  if (!("Root" %in% tree.edges[,"source"])) {
+    stop("The root (id: \"Root\") must be specified as a source.")
+  }
 
   # catch multiple patients
   if (length(unique(tree.edges[,"patient_name"])) > 1) {
