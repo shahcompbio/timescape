@@ -604,11 +604,11 @@ HTMLWidgets.widget({
         vizObj.data.ts_trad_labels = _getTraditionalCPLabels(vizObj);
     }
 
-    // get bezier paths
+    // get traditional bezier paths
     vizObj.data.bezier_paths = _getBezierPaths(vizObj.data.traditional_paths, dim.tsSVGWidth, dim.tsSVGHeight);
 
-    // get separate bezier paths
-    vizObj.data.separate_bezier_paths = _getBezierPaths(vizObj.data.separate_paths, dim.tsSVGWidth, dim.tsSVGHeight);
+    // get tracks bezier paths
+    vizObj.data.tracks_bezier_paths = _getBezierPaths(vizObj.data.tracks_paths, dim.tsSVGWidth, dim.tsSVGHeight);
 
     // plot timesweep data
     var newTsPlot;
@@ -620,7 +620,7 @@ HTMLWidgets.widget({
             });
     } else {
         newTsPlot = d3.selectAll('.tsPlot')
-            .data(vizObj.data.separate_bezier_paths, function(d) {
+            .data(vizObj.data.tracks_bezier_paths, function(d) {
                 return d.gtype;
             });
     }

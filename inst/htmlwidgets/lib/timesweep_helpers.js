@@ -14,11 +14,11 @@ function _sweepClick(vizObj) {
     d3.selectAll(".labelCirc, .sepLabelCirc")
         .attr('fill-opacity', 0);
 
-    // transition to separate timesweep view
+    // transition to tracks timesweep view
     if (dim.switchView) {
         var sweeps = vizObj.view.tsSVG
             .selectAll('.tsPlot')
-            .data(vizObj.data.separate_bezier_paths, function(d) {
+            .data(vizObj.data.tracks_bezier_paths, function(d) {
                 return d.gtype;
             })
 
@@ -125,7 +125,7 @@ function _gtypeMouseover(gtype, vizObj) {
                 .attr('fill-opacity', 0.5);                
         }
 
-        // separate genotypes view
+        // tracks genotypes view
         else { 
             // show labels
             d3.selectAll(".sepLabel.gtype_" + gtype + '.' + patientID_class)
@@ -169,7 +169,7 @@ function _gtypeMouseout(gtype, vizObj) {
                 .attr('fill-opacity', 0);
         }
 
-        // separate genotypes view
+        // tracks genotypes view
         else {
             // hide labels
             d3.selectAll(".sepLabel.gtype_" + gtype + '.' + patientID_class)
@@ -1144,11 +1144,11 @@ function _getTraditionalCPLabels(vizObj) {
     return labels;
 }
 
-/* function to get cellular prevalence lables for each genotype at each time point, for separate timesweep view
+/* function to get cellular prevalence lables for each genotype at each time point, for tracks timesweep view
 * @param {Object} vizObj
 */
 function _getSeparateCPLabels(vizObj) {
-    var separate_paths = vizObj.data.separate_paths,
+    var tracks_paths = vizObj.data.tracks_paths,
         labels = [],
         label,
         gtype,
@@ -1158,10 +1158,10 @@ function _getSeparateCPLabels(vizObj) {
         tp; // time point
 
     // for each genotype
-    for (var i = 0; i < separate_paths.length; i++) {
-        gtype = separate_paths[i]["gtype"];
-        midpoint = separate_paths[i]["midpoint"];
-        path = separate_paths[i]["path"];
+    for (var i = 0; i < tracks_paths.length; i++) {
+        gtype = tracks_paths[i]["gtype"];
+        midpoint = tracks_paths[i]["midpoint"];
+        path = tracks_paths[i]["path"];
 
         // for each point in the path
         for (var j = 0; j < path.length; j++) {
@@ -1177,7 +1177,7 @@ function _getSeparateCPLabels(vizObj) {
                     label['cp'] = cp;
                     label['middle'] = midpoint;
                     label['gtype'] = gtype;
-                    label['type'] = "separate";
+                    label['type'] = "tracks";
                     labels.push(label);
                 }
             }
@@ -1199,14 +1199,14 @@ function _getPaths(vizObj) {
     // GET PROPORTIONATE, STRAIGHT EDGED PATHS
 
     // convert layout at each time point into a list of moves for each genotype's d3 path object
-    vizObj.data.separate_paths = _getSeparatePaths(vizObj);
+    vizObj.data.tracks_paths = _getSeparatePaths(vizObj);
     vizObj.data.traditional_paths = _getTraditionalPaths(vizObj);
 
     // GET BEZIER PATHS READY FOR PLOTTING
 
     // convert proportionate paths into paths ready for plotting, with bezier curves
     vizObj.data.bezier_paths = _getBezierPaths(vizObj.data.traditional_paths, dim.tsSVGWidth, dim.tsSVGHeight);
-    vizObj.data.separate_bezier_paths = _getBezierPaths(vizObj.data.separate_paths, dim.tsSVGWidth, dim.tsSVGHeight);
+    vizObj.data.tracks_bezier_paths = _getBezierPaths(vizObj.data.tracks_paths, dim.tsSVGWidth, dim.tsSVGHeight);
 
 }
 
@@ -1380,7 +1380,7 @@ function _getTraditionalPaths(vizObj) {
     return paths;
 }
 
-/* function to convert genotype stacks at each time point into a list of moves for each genotype's d3 path object (separate paths timesweep view)
+/* function to convert genotype stacks at each time point into a list of moves for each genotype's d3 path object (tracks timesweep view)
 * Note: the appearance timepoint is the time at which the genotype appears in the dataset
 *       the emergence timepoint is the time at which the genotype must have emerged (appearance timepoint - 1)
 * @param {Object} vizObj
