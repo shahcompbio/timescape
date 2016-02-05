@@ -579,11 +579,16 @@ HTMLWidgets.widget({
     var tsLegendSVG = d3.select(".tsLegendSVG")
         .attr("transform", "translate(" + (dim.yAxisWidth + dim.smallMargin + dim.tsSVGWidth + dim.paddingGeneral) + "," + 0 + ")");
 
+    // move the tree SVG down by the height of the legend
+    var legendHeight = vizObj.data.treeNodes.length * dim.legendGtypeHeight + 25 + 25; // 25 for legend title and space
+    vizObj.view.tsTree.attr("transform", "translate(" + 
+        (dim.yAxisWidth + dim.smallMargin + dim.tsSVGWidth + dim.paddingGeneral) + "," + 
+        legendHeight + ")");
 
-    var tsTree = d3.select(".tsTreeSVG")
-        .attr("transform", "translate(" + (dim.yAxisWidth + dim.smallMargin + dim.tsSVGWidth + dim.paddingGeneral) + "," + 
-            (dim.tsSVGHeight - dim.treeHeight) + ")");
-
+    // move the switch SVG down by the height of the legend + height of the tree
+    vizObj.view.tsSwitch.attr("transform", "translate(" + 
+        (dim.yAxisWidth + dim.smallMargin + dim.tsSVGWidth + dim.paddingGeneral) + "," + 
+        (dim.tsSVGHeight - 25) + ")");
     
     // SET CONTENT
 

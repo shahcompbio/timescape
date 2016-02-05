@@ -125,7 +125,7 @@ function _gtypeMouseover(gtype, vizObj) {
                 .attr('fill-opacity', 0.5);                
         }
 
-        // tracks genotypes view
+        // tracks view
         else { 
             // show labels
             d3.selectAll(".sepLabel.gtype_" + gtype + '.' + patientID_class)
@@ -169,7 +169,7 @@ function _gtypeMouseout(gtype, vizObj) {
                 .attr('fill-opacity', 0);
         }
 
-        // tracks genotypes view
+        // tracks view
         else {
             // hide labels
             d3.selectAll(".sepLabel.gtype_" + gtype + '.' + patientID_class)
