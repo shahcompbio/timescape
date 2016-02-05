@@ -10,8 +10,7 @@ HTMLWidgets.widget({
     // defaults
     var defaults = {
         paddingGeneral: 15,
-        legendWidth: 100,
-        legendHeight: 160,
+        legendWidth: 110,
         treeHeight: 100,
         treeWidth: 100,
         xAxisHeight: 30,
@@ -26,7 +25,8 @@ HTMLWidgets.widget({
         fontSize: 11,
         circleR: 20,
         rootColour: '#DDDADA',
-        threshold: 0.005 // cellular prevalence threshold of visual detection
+        threshold: 0.005, // cellular prevalence threshold of visual detection
+        legendGtypeHeight: 13 // height for each genotype in the legend
     };
 
     // global variable vizObj
@@ -81,12 +81,13 @@ HTMLWidgets.widget({
         .attr("class", "tsLegendSVG")
         .attr("transform", "translate(" + (dim.yAxisWidth + dim.smallMargin + dim.tsSVGWidth + dim.paddingGeneral) + "," + 0 + ")");
 
-
     var tsTree = d3.select(".canvasSVG")
         .append("g") 
-        .attr("class", "tsTreeSVG")
-        .attr("transform", "translate(" + (dim.yAxisWidth + dim.smallMargin + dim.tsSVGWidth + dim.paddingGeneral) + "," + 
-            (dim.tsSVGHeight - dim.treeHeight) + ")");
+        .attr("class", "tsTreeSVG");
+
+    var tsSwitch = d3.select(".canvasSVG")
+        .append("g") 
+        .attr("class", "tsSwitch");
 
     vizObj.view.canvasSVG = canvasSVG;
     vizObj.view.xAxisSVG = xAxisSVG;
@@ -94,6 +95,7 @@ HTMLWidgets.widget({
     vizObj.view.tsSVG = tsSVG;
     vizObj.view.tsLegendSVG = tsLegendSVG;
     vizObj.view.tsTree = tsTree;
+    vizObj.view.tsSwitch = tsSwitch;
 
     return {}
     
@@ -111,6 +113,17 @@ HTMLWidgets.widget({
 
     // extract all info from tree about nodes, edges, ancestors, descendants
     _getTreeInfo(vizObj);
+
+    // move the tree SVG down by the height of the legend
+    var legendHeight = vizObj.data.treeNodes.length * dim.legendGtypeHeight + 25 + 25; // 25 for legend title and space
+    vizObj.view.tsTree.attr("transform", "translate(" + 
+        (dim.yAxisWidth + dim.smallMargin + dim.tsSVGWidth + dim.paddingGeneral) + "," + 
+        legendHeight + ")");
+
+    // move the switch SVG down by the height of the legend + height of the tree
+    vizObj.view.tsSwitch.attr("transform", "translate(" + 
+        (dim.yAxisWidth + dim.smallMargin + dim.tsSVGWidth + dim.paddingGeneral) + "," + 
+        (dim.tsSVGHeight - 25) + ")");
 
     // get timepoints, prepend a "T0" timepoint to represent the timepoint before any data originated
     var timepoints = _.uniq(_.pluck(x.clonal_prev, "timepoint"));
@@ -164,9 +177,6 @@ HTMLWidgets.widget({
         })
         .attr('stroke-opacity', function(d) {
             return (d.gtype == "Root" && !vizObj.view.userConfig.show_root) ? 0 : 1;
-        })
-        .on('click', function() { 
-            return _sweepClick(vizObj); 
         })
         .on('mouseover', function(d) {
             return _gtypeMouseover(d.gtype, vizObj);
@@ -407,7 +417,7 @@ HTMLWidgets.widget({
         .enter().append('rect')
         .attr('class', 'legendRect')
         .attr('x', 0)
-        .attr('y', function(d, i) { return i*13 + 25; }) // 25 for legend title
+        .attr('y', function(d, i) { return i*dim.legendGtypeHeight + 25; }) // 25 for legend title
         .attr('height', 10)
         .attr('width', 10)
         .attr('fill', function(d) { return alpha_colour_assignment[d]; })
@@ -426,7 +436,7 @@ HTMLWidgets.widget({
         .enter().append('text')
         .attr('class', 'legendText')
         .attr('x', 20)
-        .attr('y', function(d, i) { return (i*13) + 5 + 25; }) // 25 for legend title, 5 for centring w/resp. to rectangle
+        .attr('y', function(d, i) { return (i*dim.legendGtypeHeight) + 5 + 25; }) // 25 for legend title, 5 for centring w/resp. to rectangle
         .attr('dy', '.35em')
         .attr('font-size', '11px')
         .attr('font-family', 'sans-serif')
@@ -463,7 +473,7 @@ HTMLWidgets.widget({
         .text('Tree'); 
 
     // d3 tree layout
-    var treePadding = 20,
+    var treePadding = 10,
         treeTitleHeight = d3.select('.treeTitle').node().getBBox().height,
         treeLayout = d3.layout.tree()           
             .size([dim.treeHeight - treePadding - treeTitleHeight, dim.treeWidth - treePadding]); 
@@ -514,6 +524,36 @@ HTMLWidgets.widget({
         .on('mouseout', function(d) {
             return _gtypeMouseout(d.id, vizObj)
         });
+
+    // SWITCH between traditional and tracks views
+
+    // checkbox
+    d3.select(".tsSwitch")
+        .append("foreignObject")
+        .attr('x', -10)
+        .attr('y', 0)
+        .attr('width', 50)
+        .attr('height', 20)
+        .append("xhtml:body")
+        .html("<input type=\"checkbox\">");
+
+    // checkbox text
+    d3.select(".tsSwitch")
+        .append("text")
+        .attr('x', 17)
+        .attr('y', 15)
+        .attr('text-anchor', 'left')
+        .attr('font-family', 'sans-serif')
+        .attr('font-size', '15px')
+        .attr('font-weight', 'bold')
+        .text("Tracks View")
+
+    // when checkbox selected, change view
+    d3.select("input").on("change", function() {
+        _sweepClick(vizObj);
+    });
+
+
   },
 
   resize: function(el, width, height, instance) {
