@@ -48,7 +48,27 @@ HTMLWidgets.widget({
     dim.xAxisWidth = dim.tsSVGWidth;
     dim.yAxisHeight = dim.tsSVGHeight;
 
-    var canvasSVG = d3.select(el)
+    return {}
+    
+  },
+
+  renderValue: function(el, x, instance) {
+    var dim = vizObj.view.config;
+
+    // get params from R
+    vizObj.view.userConfig = x;
+    vizObj.data.perturbations = x.perturbations;
+    vizObj.data.patient_id = x.patient; // patient id
+
+    // SET UP PAGE LAYOUT
+
+    d3.select(el).selectAll("div")
+        .data([vizObj.data.patient_id])
+        .enter()
+        .append("div")
+        .attr("class", function(d) { return "div_" + d; });
+
+    var canvasSVG = d3.select(".div_" + vizObj.data.patient_id)
         .append("svg:svg")  
         .attr("class", "canvasSVG")     
         .attr("x", 0)
@@ -98,17 +118,6 @@ HTMLWidgets.widget({
     vizObj.view.tsTree = tsTree;
     vizObj.view.tsSwitch = tsSwitch;
 
-    return {}
-    
-  },
-
-  renderValue: function(el, x, instance) {
-    var dim = vizObj.view.config;
-
-    // get params from R
-    vizObj.view.userConfig = x;
-    vizObj.data.perturbations = x.perturbations;
-    vizObj.data.patient_id = x.patient; // patient id
 
     // GET CONTENT
 
