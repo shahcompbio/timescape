@@ -1,6 +1,6 @@
 Package: timesweep
 Title: Patient Clonal Timesweeps
-Version: 0.0.2.9041
+Version: 0.0.2.9042
 Authors@R: person("Maia", "Smith", email = "maiaannesmith@gmail.com", role = c("aut", "cre"))
 Description: What the package does (one paragraph).
 Depends:

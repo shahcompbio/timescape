@@ -79,7 +79,8 @@ HTMLWidgets.widget({
     var tsLegendSVG = d3.select(".canvasSVG")
         .append("g") 
         .attr("class", "tsLegendSVG")
-        .attr("transform", "translate(" + (dim.yAxisWidth + dim.smallMargin + dim.tsSVGWidth + dim.paddingGeneral) + "," + 0 + ")");
+        .attr("transform", "translate(" + (dim.yAxisWidth + dim.smallMargin + dim.tsSVGWidth + dim.paddingGeneral) + 
+            "," + 0 + ")");
 
     var tsTree = d3.select(".canvasSVG")
         .append("g") 
@@ -115,7 +116,8 @@ HTMLWidgets.widget({
     _getTreeInfo(vizObj);
 
     // move the tree SVG down by the height of the legend
-    var legendHeight = vizObj.data.treeNodes.length * dim.legendGtypeHeight + 25 + 25; // 25 for legend title and space
+    // 25 for legend title and space
+    var legendHeight = vizObj.data.treeNodes.length * dim.legendGtypeHeight + 25 + 25; 
     vizObj.view.tsTree.attr("transform", "translate(" + 
         (dim.yAxisWidth + dim.smallMargin + dim.tsSVGWidth + dim.paddingGeneral) + "," + 
         legendHeight + ")");
@@ -170,7 +172,9 @@ HTMLWidgets.widget({
             return (x.alpha == "NA") ? colour_assignment[d.gtype] : alpha_colour_assignment[d.gtype];
         }) 
         .attr('stroke', function(d) { 
-            return (d.gtype == "Root" && vizObj.view.userConfig.show_root) ? dim.rootColour : colour_assignment[d.gtype]; 
+            return (d.gtype == "Root" && vizObj.view.userConfig.show_root) ? 
+                dim.rootColour : 
+                colour_assignment[d.gtype]; 
         })
         .attr('fill-opacity', function(d) {
             return (d.gtype == "Root" && !vizObj.view.userConfig.show_root) ? 0 : 1;
@@ -317,7 +321,8 @@ HTMLWidgets.widget({
         .attr('class', 'pertLabel')
         .attr('x', function(d) { 
             var prevTP_idx = vizObj.data.timepoints.indexOf(d.prev_tp);
-            return ((prevTP_idx + 0.5) / (vizObj.data.timepoints.length-1)) * (dim.tsSVGWidth) + dim.smallMargin + dim.yAxisWidth; 
+            return ((prevTP_idx + 0.5) / (vizObj.data.timepoints.length-1)) * (dim.tsSVGWidth) + 
+                dim.smallMargin + dim.yAxisWidth; 
         })
         .attr('y', 0)
         .attr('dy', '.71em')
@@ -436,7 +441,8 @@ HTMLWidgets.widget({
         .enter().append('text')
         .attr('class', 'legendText')
         .attr('x', 20)
-        .attr('y', function(d, i) { return (i*dim.legendGtypeHeight) + 5 + 25; }) // 25 for legend title, 5 for centring w/resp. to rectangle
+        // 25 for legend title, 5 for centring w/resp. to rectangle
+        .attr('y', function(d, i) { return (i*dim.legendGtypeHeight) + 5 + 25; }) 
         .attr('dy', '.35em')
         .attr('font-size', '11px')
         .attr('font-family', 'sans-serif')
@@ -577,10 +583,13 @@ HTMLWidgets.widget({
         .attr("transform", "translate(" + 0 + "," + (dim.tsSVGHeight + dim.smallMargin) + ")");
 
     var tsLegendSVG = d3.select(".tsLegendSVG")
-        .attr("transform", "translate(" + (dim.yAxisWidth + dim.smallMargin + dim.tsSVGWidth + dim.paddingGeneral) + "," + 0 + ")");
+        .attr("transform", "translate(" + 
+            (dim.yAxisWidth + dim.smallMargin + dim.tsSVGWidth + dim.paddingGeneral) + "," + 
+            0 + ")");
 
     // move the tree SVG down by the height of the legend
-    var legendHeight = vizObj.data.treeNodes.length * dim.legendGtypeHeight + 25 + 25; // 25 for legend title and space
+    // 25 for legend title and space
+    var legendHeight = vizObj.data.treeNodes.length * dim.legendGtypeHeight + 25 + 25; 
     vizObj.view.tsTree.attr("transform", "translate(" + 
         (dim.yAxisWidth + dim.smallMargin + dim.tsSVGWidth + dim.paddingGeneral) + "," + 
         legendHeight + ")");
