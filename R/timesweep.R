@@ -137,7 +137,7 @@ timesweep <- function(clonal_prev,
   if (length(unique(clonal_prev[,"patient_name"])) > 1) {
     stop("Currently, timesweep only takes in one patient - your clonal prevalence data frame contains more than one patient.")
   }
-  if (unique(tree_edges[,"patient_name"]) != unique(clonal_prev[1])) {
+  if (unique(tree_edges[,"patient_name"]) != unique(clonal_prev[,"patient_name"])) {
     stop("Your tree edge and clonal prevalence data frames contain different patient names. Please ensure the patient name is the same.")
   }
   patient = tree_edges[1,"patient_name"]
