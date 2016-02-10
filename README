@@ -1,6 +1,6 @@
-Commands in R :
+timesweep is an htmlwidget to visually display temporal clonal evolution. 
 
-devtools::install("<my_directory>/timesweep/")
-library(timesweep) 			
-timesweep("SAMPLE_PATIENT", system.file("extdata", "clonal_dynamics.csv", package = "timesweep"), system.file("extdata", "tree.gml", package = "timesweep"))
-​
+Run example:
+
+library("timesweep")
+example("timesweep")
