@@ -1639,8 +1639,8 @@ function _getPhyloColours(curVizObj) {
 
     // clone colours not specified
     else {
-        var s = 0.6, // saturation
-            l = 0.55; // lightness
+        var s = 0.88, // saturation
+            l = 0.77; // lightness
 
         // number of nodes
         var n_nodes = curVizObj.data.treeChainRoots.length;
@@ -1661,7 +1661,7 @@ function _getPhyloColours(curVizObj) {
                 if (desc != curVizObj.generalConfig.phantomRoot) {
                     // colour the descendant a lighter version of the previous colour in the chain
                     colour_assignment[desc] = 
-                        _increase_brightness(prev_colour, 20);
+                        _decrease_brightness(prev_colour, 20);
 
                     // set the previous colour to the lightened colour
                     prev_colour = colour_assignment[desc]; 
