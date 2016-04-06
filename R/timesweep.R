@@ -2,33 +2,43 @@
 #'
 #' \code{timesweep} generates patient clonal timesweeps.
 #'
-#' @param clonal_prev Clonal prevalence data frame.
+#' @param clonal_prev {Data Frame} Clonal prevalence.
 #'   Format: columns are (1) {String} "timepoint" - time point
 #'                       (2) {String} "clone_id" - clone id
 #'                       (3) {Number} "clonal_prev" - clonal prevalence.
-#' @param tree_edges Tree edges data frame. Must be a rooted tree.
+#' @param tree_edges {Data Frame} Tree edges of a rooted tree.
 #'   Format: columns are (1) {String} "source" - source node id
 #'                       (2) {String} "target" - target node id.
-#' @param clone_colours Data frame with clone ids and their corresponding colours 
+#' @param mutations {Data Frame} (Optional) Mutations occurring at each clone.
+#'   Format: columns are (1) {String} "chrom" - chromosome number
+#'                       (2) {Number} "coord" - coordinate of mutation on chromosome
+#'                       (3) {String} "clone_id" - clone id
+#'                       (4) {String} "timepoint" - time point
+#'                       (5) {Number} "VAF" - variant allele frequency of the mutation in the corresponding sample
+#'                       (6) {String} (Optional) "gene_name" - name of the affected gene (can be "" if none affected).
+#'                       (7) {String} (Optional) "effect" - effect of the mutation 
+#'                                                          (e.g. non-synonymous, upstream, etc.)
+#'                       (8) {String} (Optional) "impact" - impact of the mutation (e.g. low, moderate, high).
+#' @param clone_colours {Data Frame} (Optional) Clone ids and their corresponding colours 
 #'   Format: columns are (1) {String} "clone_id" - the clone ids
 #'                       (2) {String} "colour" - the corresponding Hex colour for each clone id.
-#' @param xaxis_title x-axis title. 
-#' @param yaxis_title y-axis title.
-#' @param alpha Alpha value for sweeps, range [0, 100].
-#' @param genotype_position How to position the genotypes from ["centre", "stack", "space"] 
+#' @param xaxis_title {String} (Optional) x-axis title. 
+#' @param yaxis_title {String} (Optional) y-axis title.
+#' @param alpha {Number} (Optional) Alpha value for sweeps, range [0, 100].
+#' @param genotype_position {String} (Optional) How to position the genotypes from ["centre", "stack", "space"] 
 #'   "centre" -- genotypes are centred with respect to their ancestors
 #'   "stack" -- genotypes are stacked such that no genotype is split at any time point
 #'   "space" -- genotypes are stacked but with a bit of spacing at the top (emergence is clearer)
-#' @param perturbations Data frame of any perturbations that occurred between two time points, 
+#' @param perturbations {Data Frame} (Optional) Any perturbations that occurred between two time points, 
 #'   and the fraction of total tumour content left.
 #'   Format: columns are (1) {String} "pert_name" - the perturbation name
 #'                       (2) {String} "prev_tp" - the time point (as labelled in clonal prevalence data) 
 #'                                                BEFORE perturbation
 #'                       (3) {Number} "frac" - the fraction of total tumour content remaining at the 
 #'                                             time of perturbation, range [0, 1].
-#' @param sort Whether (TRUE) or not (FALSE) to vertically sort the genotypes by their emergence values (descending).
-#' @param width Width of the plot. 
-#' @param height Height of the plot.
+#' @param sort {Boolean} (Optional) Whether (TRUE) or not (FALSE) to vertically sort the genotypes by their emergence values (descending).
+#' @param width {Number} (Optional) Width of the plot. 
+#' @param height {Number} (Optional) Height of the plot.
 #' @export
 #' @examples
 #' library("timesweep")
@@ -46,6 +56,7 @@
 #' timesweep(clonal_prev = clonal_prev, tree_edges = tree_edges, clone_colours = clone_colours, perturbations = perturbations)
 timesweep <- function(clonal_prev, 
                       tree_edges, 
+                      mutations = "NA",
                       clone_colours = "NA", 
                       xaxis_title = "Time Point", 
                       yaxis_title = "Relative Cellular Prevalence", 
@@ -54,8 +65,34 @@ timesweep <- function(clonal_prev,
                       perturbations = "NA", 
                       sort = FALSE, 
                       width = 900, 
-                      height = 300) {
+                      height = NULL) {
   
+  # ENSURE MINIMUM DIMENSIONS SATISFIED
+
+  # set height if not set by user
+  if (mutations == "NA") { # no mutations
+    height = 250
+  }
+  else { # mutations
+    height = 500
+  }
+
+  # check height is big enough 
+  min_width = 600
+  if (mutations == "NA") { # no mutations
+    min_height = 250
+  }
+  else { # mutations
+    min_height = 500
+  }
+
+  if (height < min_height) {
+    stop(paste("Height must be greater than or equal to ", min_height, "px.", sep=""))
+  }
+  if (width < min_width) {
+    stop(paste("Width must be greater than or equal to ", min_width, "px.", sep=""))
+  }
+
   # CHECK REQUIRED INPUTS ARE PRESENT 
   if (missing(clonal_prev)) {
     stop("Clonal prevalence data frame must be provided.")
@@ -102,6 +139,9 @@ timesweep <- function(clonal_prev,
   tree_edges$source <- as.character(tree_edges$source)
   tree_edges$target <- as.character(tree_edges$target)
 
+  # get list of clones in the phylogeny
+  clones_in_phylo <- unique(c(tree_edges$source, tree_edges$target))
+
   # GENOTYPE POSITIONING
 
   if (!(genotype_position %in% c("stack", "centre", "space"))) {
@@ -137,13 +177,108 @@ timesweep <- function(clonal_prev,
 
   }
 
-  # SORTED GENOTYPES
+  # MUTATIONS DATA
+
+  if (is.data.frame(mutations)) {
+    print("[Progress] Processing mutations data...")
+
+    # ensure column names are correct
+    if (!("chrom" %in% colnames(mutations)) ||
+        !("coord" %in% colnames(mutations)) ||
+        !("clone_id" %in% colnames(mutations)) ||
+        !("timepoint" %in% colnames(mutations)) ||
+        !("VAF" %in% colnames(mutations))) {
+      stop(paste("Mutations data frame must have the following column names: ", 
+          "\"chrom\", \"coord\", \"clone_id\", \"timepoint\", \"VAF\".", sep=""))
+    }
+
+    # ensure data is of the correct type
+    mutations$chrom <- toupper(as.character(mutations$chrom)) # upper case X & Y
+    mutations$coord <- as.character(mutations$coord)
+    mutations$timepoint <- as.character(mutations$timepoint)
+    mutations$clone_id <- as.character(mutations$clone_id)
+    mutations$VAF <- as.numeric(as.character(mutations$VAF))
+
+    # check for optional info, and ensure data of correct type
+    extra_columns <- vector()
+    if ("gene_name" %in% colnames(mutations)) {
+      extra_columns <- append(extra_columns, "gene_name")
+      mutations$gene_name <- as.character(mutations$gene_name)
+    }
+    if ("effect" %in% colnames(mutations)) {
+      extra_columns <- append(extra_columns, "effect")
+      mutations$effect <- as.character(mutations$effect)
+    }
+    if ("impact" %in% colnames(mutations)) {
+      extra_columns <- append(extra_columns, "impact")
+      mutations$impact <- as.character(mutations$impact)
+    }
+
+    # check that all CLONE IDS in the mutations data are present in the clonal prev data
+    mutations_clone_ids <- unique(mutations$clone_id)
+    clonal_prev_clone_ids <- unique(clonal_prev$clone_id)
+    clone_ids_missing_from_clonal_prev_data <- setdiff(mutations_clone_ids, clonal_prev_clone_ids)
+    if (length(clone_ids_missing_from_clonal_prev_data) > 0) {
+      stop(paste("The following clone ID(s) are present in the mutations data but ",
+        "are missing from the clonal prevalence data: ",
+        paste(clone_ids_missing_from_clonal_prev_data, collapse=", "), ".", sep=""))
+    }
+
+    # create a location column, combining the chromosome and the coordinate
+    mutations$location <- apply(mutations[, c("chrom","coord")], 1 , paste, collapse = ":")
+
+    # coordinate is now a number
+    mutations$coord <- as.numeric(as.character(mutations$coord))
+
+    # check X & Y chromosomes are labelled "X" and "Y", not "23", "24"
+    num_23 <- mutations[which(mutations$chrom == "23"),]
+    if (nrow(num_23) > 0) {
+      stop(paste("Chromosome numbered \"23\" was detected in mutations data frame - X and Y chromosomes ",
+        "must be labelled \"X\" and \"Y\".", sep=""))
+    }
+
+    # keep only those mutations whose clone ids are present in the phylogeny
+    mutations <- mutations[which(mutations$clone_id %in% clones_in_phylo),]
+
+
+    # MUTATION PREVALENCES DATA
+
+    mutation_prevalences <- mutations
+
+    print("[Progress] Processing mutation prevalences data...")
+
+    # keep only those mutations whose clone ids are present in the phylogeny
+    mutation_prevalences <- mutation_prevalences[which(mutation_prevalences$clone_id %in% clones_in_phylo),]
+    if (nrow(mutation_prevalences) > 10000) {
+      print(paste("[WARNING] Number of rows in mutations data exceeds 10,000. ",
+        "Resultantly, visualization may be slow. ",
+        "It is recommended to filter the data to a smaller set of mutations.", sep=""))
+    }
+
+    # compress results
+    prevs_split <- split(mutation_prevalences, f = mutation_prevalences$location)
+
+    # reduce the size of the data frame in each list
+    prevs_split_small <- lapply(prevs_split, function(prevs) {
+      return(prevs[,c("timepoint", "VAF")])
+    })
+
+
+    # MUTATION INFO 
+    mutation_info <- unique(mutations[,c("chrom","coord","clone_id",extra_columns)])
+  }
+  else {
+    prevs_split_small <- "NA"
+    mutation_info <- "NA"
+  }
 
   # forward options using x
   x = list(
     clonal_prev = jsonlite::toJSON(clonal_prev),
     tree_edges = jsonlite::toJSON(tree_edges),
     clone_cols = jsonlite::toJSON(clone_colours),
+    mutations = jsonlite::toJSON(mutation_info),
+    mutation_prevalences = jsonlite::toJSON(prevs_split_small),
     xaxis_title = xaxis_title,
     yaxis_title = yaxis_title,
     alpha = alpha,

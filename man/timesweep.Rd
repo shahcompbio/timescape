@@ -4,37 +4,48 @@
 \alias{timesweep}
 \title{Timesweeps}
 \usage{
-timesweep(clonal_prev, tree_edges, clone_colours = "NA",
+timesweep(clonal_prev, tree_edges, mutations = "NA", clone_colours = "NA",
   xaxis_title = "Time Point", yaxis_title = "Relative Cellular Prevalence",
   alpha = 50, genotype_position = "stack", perturbations = "NA",
-  sort = TRUE, width = NULL, height = NULL)
+  sort = FALSE, width = 900, height = 300)
 }
 \arguments{
-\item{clonal_prev}{Clonal prevalence data frame.
+\item{clonal_prev}{{Data Frame} Clonal prevalence.
 Format: columns are (1) {String} "timepoint" - time point
                     (2) {String} "clone_id" - clone id
                     (3) {Number} "clonal_prev" - clonal prevalence.}
 
-\item{tree_edges}{Tree edges data frame.
+\item{tree_edges}{{Data Frame} Tree edges of a rooted tree.
 Format: columns are (1) {String} "source" - source node id
                     (2) {String} "target" - target node id.}
 
-\item{clone_colours}{Data frame with clone ids and their corresponding colours 
+\item{mutations}{{Data Frame} (Optional) Mutations occurring at each clone.
+Format: columns are (1) {String} "chrom" - chromosome number
+                    (2) {Number} "coord" - coordinate of mutation on chromosome
+                    (3) {String} "clone_id" - clone id
+                    (4) {String} "sample_id" - id for the tumour sample 
+                    (5) {Number} "VAF" - variant allele frequency of the mutation in the corresponding sample
+                    (6) {String} (Optional) "gene_name" - name of the affected gene (can be "" if none affected).
+                    (7) {String} (Optional) "effect" - effect of the mutation 
+                                                       (e.g. non-synonymous, upstream, etc.)
+                    (8) {String} (Optional) "impact" - impact of the mutation (e.g. low, moderate, high).}
+
+\item{clone_colours}{{Data Frame} (Optional) Clone ids and their corresponding colours 
 Format: columns are (1) {String} "clone_id" - the clone ids
                     (2) {String} "colour" - the corresponding Hex colour for each clone id.}
 
-\item{xaxis_title}{x-axis title.}
+\item{xaxis_title}{{String} (Optional) x-axis title.}
 
-\item{yaxis_title}{y-axis title.}
+\item{yaxis_title}{{String} (Optional) y-axis title.}
 
-\item{alpha}{Alpha value for sweeps, range [0, 100].}
+\item{alpha}{{Number} (Optional) Alpha value for sweeps, range [0, 100].}
 
-\item{genotype_position}{How to position the genotypes from ["centre", "stack", "space"] 
+\item{genotype_position}{{String} (Optional) How to position the genotypes from ["centre", "stack", "space"] 
 "centre" -- genotypes are centred with respect to their ancestors
 "stack" -- genotypes are stacked such that no genotype is split at any time point
 "space" -- genotypes are stacked but with a bit of spacing at the top (emergence is clearer)}
 
-\item{perturbations}{Data frame of any perturbations that occurred between two time points, 
+\item{perturbations}{{Data Frame} (Optional) Any perturbations that occurred between two time points, 
 and the fraction of total tumour content left.
 Format: columns are (1) {String} "pert_name" - the perturbation name
                     (2) {String} "prev_tp" - the time point (as labelled in clonal prevalence data) 
@@ -42,11 +53,11 @@ Format: columns are (1) {String} "pert_name" - the perturbation name
                     (3) {Number} "frac" - the fraction of total tumour content remaining at the 
                                           time of perturbation, range [0, 1].}
 
-\item{sort}{Whether (TRUE) or not (FALSE) to vertically sort the genotypes by their emergence values (descending).}
+\item{sort}{{Boolean} (Optional) Whether (TRUE) or not (FALSE) to vertically sort the genotypes by their emergence values (descending).}
 
-\item{width}{Width of the plot.}
+\item{width}{{Number} (Optional) Width of the plot.}
 
-\item{height}{Height of the plot.}
+\item{height}{{Number} (Optional) Height of the plot.}
 }
 \description{
 \code{timesweep} generates patient clonal timesweeps.

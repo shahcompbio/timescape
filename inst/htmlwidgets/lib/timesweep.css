@@ -1,0 +1,27 @@
+
+.geneTableDIV {
+    overflow: scroll;
+}
+
+td, tr, th {
+    font-family: sans-serif;
+}
+
+.dataTables_info {
+    font-family: sans-serif;    
+    color: '#9E9A9A';
+}
+label {
+    font-family: sans-serif;
+}
+
+.mutationTableDIV .dataTable thead th {
+    font-weight: normal;
+}
+table {
+    table-layout: fixed
+}
+
+td {
+    word-wrap: break-word
+}

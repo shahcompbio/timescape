@@ -45,12 +45,6 @@ HTMLWidgets.widget({
 
     dim.width = width;
     dim.height = height;
-    dim.canvasSVGWidth = width - dim.paddingGeneral - dim.paddingGeneral;
-    dim.canvasSVGHeight = height - dim.paddingGeneral - dim.paddingGeneral;
-    dim.tsSVGHeight = dim.canvasSVGHeight - dim.xAxisHeight - dim.smallMargin;
-    dim.tsSVGWidth = dim.canvasSVGWidth - dim.legendWidth - dim.yAxisWidth - dim.smallMargin - dim.paddingGeneral;
-    dim.xAxisWidth = dim.tsSVGWidth;
-    dim.yAxisHeight = dim.tsSVGHeight;
 
     return {}
     
@@ -66,11 +60,37 @@ HTMLWidgets.widget({
     curVizObj.userConfig = x;
     curVizObj.data.perturbations = x.perturbations;
 
+    // configuration based on available data
+    dim.canvasSVGWidth = dim.width - dim.paddingGeneral - dim.paddingGeneral;
+    dim.canvasSVGHeight = dim.height - dim.paddingGeneral - dim.paddingGeneral;
+    dim.tsSVGHeight = (curVizObj.userConfig.mutations == ["NA"]) ? 
+                        dim.canvasSVGHeight - dim.xAxisHeight - dim.smallMargin :
+                        250;
+    dim.tsSVGWidth = dim.canvasSVGWidth - dim.legendWidth - dim.yAxisWidth - dim.smallMargin - dim.paddingGeneral;
+    dim.xAxisWidth = dim.tsSVGWidth;
+    dim.yAxisHeight = dim.tsSVGHeight;
+    dim.mutationTableHeight = dim.canvasSVGHeight - dim.tsSVGHeight;
+    dim.mutationTableWidth = dim.tsSVGWidth;
+
+    // adjust canvas SVG height if mutation table is present
+    dim.canvasSVGHeight -= (curVizObj.userConfig.mutations == ["NA"]) ? 
+                            0 : 
+                            dim.mutationTableHeight;
+
     // SET UP PAGE LAYOUT
 
     var canvasDIV = d3.select(el).append("div")
         .attr("class", "div")
         .attr("id", view_id);
+
+    curVizObj.view.mutationTableDIV = d3.select(el)
+        .append("div")
+        .attr("class", "mutationTableDIV")
+        .style("position", "relative")
+        .style("width", dim.mutationTableWidth + "px")
+        .style("height", dim.mutationTableHeight + "px")
+        .style("left", (dim.yAxisWidth + dim.smallMargin + dim.paddingGeneral) + "px")
+        .style("float", "left");
 
     var canvasSVG = canvasDIV
         .append("svg:svg")  
@@ -124,6 +144,27 @@ HTMLWidgets.widget({
 
 
     // GET CONTENT
+
+    // get mutation data in better format
+    if (curVizObj.userConfig.mutations[0] != "NA") {
+        _reformatMutations(curVizObj);
+
+        // get column names (depending on the available data, which columns will be shown)
+        dim.mutationColumns = [
+                        { "data": "chrom", "title": "Chromosome" },
+                        { "data": "coord", "title": "Coordinate" },
+                        { "data": "empty", "title": "Clone", "bSortable": false }
+                    ];
+        if (curVizObj.userConfig.mutations[0].hasOwnProperty("gene_name")) {
+            dim.mutationColumns.push({ "data": "gene_name", "title": "Gene Name" });
+        }
+        if (curVizObj.userConfig.mutations[0].hasOwnProperty("effect")) {
+            dim.mutationColumns.push({ "data": "effect", "title": "Effect" });
+        }
+        if (curVizObj.userConfig.mutations[0].hasOwnProperty("impact")) {
+            dim.mutationColumns.push({ "data": "impact", "title": "Impact" });
+        } 
+    }
 
     // extract all info from tree about nodes, edges, ancestors, descendants
     _getTreeInfo(curVizObj);
@@ -546,7 +587,15 @@ HTMLWidgets.widget({
         _sweepClick(curVizObj);
     });
 
+    // MUTATION TABLE
 
+    // if mutations are specified by the user
+    if (curVizObj.userConfig.mutations != "NA") {
+
+        // make the table
+        _makeMutationTable(curVizObj, curVizObj.view.mutationTableDIV, curVizObj.data.mutations,
+            dim.mutationTableHeight);
+    }
   },
 
   resize: function(el, width, height, instance) {

@@ -1777,6 +1777,40 @@ function _decrease_brightness(hex, percent){
        ((0|(1<<8) + b * (100 - percent) / 100).toString(16)).substr(1);
 }
 
+// MUTATION FUNCTIONS
+
+/* function to get the mutations into a better format
+* @param {Object} curVizObj -- vizObj for the current view
+*/
+function _reformatMutations(curVizObj) {
+    var original_muts = curVizObj.userConfig.mutations, // muts from user data
+        muts_arr = [];
+
+    // convert object into array
+    original_muts.forEach(function(mut) {
+
+        // add this gene to the array
+        var cur_mut = {
+            "chrom": mut.chrom,
+            "coord": mut.coord,
+            "empty": "", // add an empty string for an empty column (clone column) that will contain an SVG
+            "clone_id": mut.clone_id
+        }
+        if (mut.hasOwnProperty("gene_name")) {
+            cur_mut["gene_name"] = mut.gene_name;
+        }
+        if (mut.hasOwnProperty("effect")) {
+            cur_mut["effect"] = mut.effect;
+        }
+        if (mut.hasOwnProperty("impact")) {
+            cur_mut["impact"] = mut.impact;
+        }
+        muts_arr.push(cur_mut);
+    });
+
+    curVizObj.data.mutations = muts_arr;
+}
+
 // GENERAL FUNCTIONS
 
 /* function to get the intersection of two arrays
