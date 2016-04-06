@@ -129,8 +129,7 @@ HTMLWidgets.widget({
     // 25 for legend title and space
     var legendHeight = vizObj.data.treeNodes.length * dim.legendGtypeHeight + 25 + 25; 
     vizObj.view.tsTree.attr("transform", "translate(" + 
-        (dim.yAxisWidth + dim.smallMargin + dim.tsSVGWidth + dim.paddingGeneral) + "," + 
-        legendHeight + ")");
+        (dim.yAxisWidth + dim.smallMargin + dim.tsSVGWidth + dim.paddingGeneral) + ",0)");
 
     // move the switch SVG down by the height of the legend + height of the tree
     vizObj.view.tsSwitch.attr("transform", "translate(" + 
@@ -422,55 +421,6 @@ HTMLWidgets.widget({
         .text(function() { 
             return x.xaxis_title;
         });
-
-    // PLOT LEGEND
-
-    // plot legend rectangles
-    vizObj.view.tsLegendSVG
-        .selectAll('.legendRect')
-        .data(vizObj.data.treeNodes)
-        .enter().append('rect')
-        .attr('class', 'legendRect')
-        .attr('x', 0)
-        .attr('y', function(d, i) { return i*dim.legendGtypeHeight + 25; }) // 25 for legend title
-        .attr('height', 10)
-        .attr('width', 10)
-        .attr('fill', function(d) { return alpha_colour_assignment[d]; })
-        .attr('stroke', function(d) { return colour_assignment[d]; })
-        .on('mouseover', function(d) {
-            return _gtypeMouseover(d, vizObj);
-        })
-        .on('mouseout', function(d) {
-            return _gtypeMouseout(d, vizObj)
-        });
-
-    // plot legend text
-    vizObj.view.tsLegendSVG
-        .selectAll('.legendText')
-        .data(vizObj.data.treeNodes)
-        .enter().append('text')
-        .attr('class', 'legendText')
-        .attr('x', 20)
-        // 25 for legend title, 5 for centring w/resp. to rectangle
-        .attr('y', function(d, i) { return (i*dim.legendGtypeHeight) + 5 + 25; }) 
-        .attr('dy', '.35em')
-        .attr('font-size', '11px')
-        .attr('font-family', 'sans-serif')
-        .style('text-anchor', 'left')
-        .text(function(d) { return d; });
-
-    // plot legend title
-    vizObj.view.tsLegendSVG
-        .append('text')
-        .attr('class', 'legendTitle')
-        .attr('x', 0)
-        .attr('y', 0)
-        .attr('dy', '.71em')
-        .attr('text-anchor', 'left')
-        .attr('font-family', 'sans-serif')
-        .attr('font-size', '15px')
-        .attr('font-weight', 'bold')
-        .text('Genotype');
 
 
     // PLOT TREE GLYPH
