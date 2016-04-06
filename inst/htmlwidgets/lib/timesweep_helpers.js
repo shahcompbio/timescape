@@ -433,12 +433,8 @@ function _getCPData(vizObj) {
     // for each time point, for each genotype, get cellular prevalence
     var cp_data = {};
     $.each(x.clonal_prev, function(idx, hit) { // for each hit (genotype/timepoint combination)
-
-        // only parse data for a particular patient
-        if (hit["patient_name"] == x.patient) {
-            cp_data[hit["timepoint"]] = cp_data[hit["timepoint"]] || {};
-            cp_data[hit["timepoint"]][hit["clone_id"]] = parseFloat(hit["clonal_prev"]); 
-        }
+        cp_data[hit["timepoint"]] = cp_data[hit["timepoint"]] || {};
+        cp_data[hit["timepoint"]][hit["clone_id"]] = parseFloat(hit["clonal_prev"]); 
     });
 
     // create timepoint zero with 100% cellular prevalence for the root of the tree

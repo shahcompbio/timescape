@@ -3,22 +3,15 @@
 #' \code{timesweep} generates patient clonal timesweeps.
 #'
 #' @param clonal_prev Clonal prevalence data frame.
-#'   Format: columns are (1) {String} "patient_name" - patient name
-#'                       (2) {String} "timepoint" - time point
-#'                       (3) {String} "clone_id" - clone id
-#'                       (4) {Number} "clonal_prev" - clonal prevalence.
+#'   Format: columns are (1) {String} "timepoint" - time point
+#'                       (2) {String} "clone_id" - clone id
+#'                       (3) {Number} "clonal_prev" - clonal prevalence.
 #' @param tree_edges Tree edges data frame. The root of the tree (id: "Root") must be specified as a source.
-#'   Format: columns are (1) {String} "patient_name" - patient name
-#'                       (2) {String} "source" - source node id
-#'                       (3) {String} "target" - target node id.
-#'   e.g. data.frame(patient_name = c("SAMPLE_PATIENT"), 
-#'                   source = c("Root","1","1","6","5","3"), 
-#'                   target = c("1","3","6","5","4","2"))
+#'   Format: columns are (1) {String} "source" - source node id
+#'                       (2) {String} "target" - target node id.
 #' @param clone_colours Data frame with clone ids and their corresponding colours 
 #'   Format: columns are (1) {String} "clone_id" - the clone ids
 #'                       (2) {String} "colour" - the corresponding Hex colour for each clone id.
-#'   e.g. data.frame(clone_id = c("1","2","3","4","5","6"), 
-#'                    colour = c("F8766D66", "A3A50066", "00BF7D66", "00B0F666", "E76BF366", "B79F0066"))
 #' @param xaxis_title x-axis title. 
 #' @param yaxis_title y-axis title.
 #' @param alpha Alpha value for sweeps, range [0, 100].
@@ -34,22 +27,17 @@
 #'                                                BEFORE perturbation
 #'                       (3) {Number} "frac" - the fraction of total tumour content remaining at the 
 #'                                             time of perturbation, range [0, 1].
-#'   e.g. data.frame(pert_name = c("Chemo"), 
-#'                    prev_tp = c("T1"),
-#'                    frac = c(0.1))
 #' @param sort Whether (TRUE) or not (FALSE) to vertically sort the genotypes by their emergence values (descending).
 #' @param width Width of the plot. 
 #' @param height Height of the plot.
 #' @export
 #' @examples
 #' library("timesweep")
-#' clonal_prev <- data.frame( patient_name = c("SAMPLE_PATIENT"), 
-#'                            timepoint = c(rep("T1", 6), rep("T2", 6)), 
+#' clonal_prev <- data.frame( timepoint = c(rep("T1", 6), rep("T2", 6)), 
 #'                            clone_id = c("1","6","5","4","3","2","1","6","5","4","3","2"),
 #'                            clonal_prev = c("0.0205127","0.284957","0.637239","0.0477972","0.00404099","0.00545235",
 #'                                            "0.0134362","0.00000150677","0.00000385311","0.000627522","0.551521","0.43441"))
-#' tree_edges <- data.frame(patient_name = c("SAMPLE_PATIENT"), 
-#'                          source = c("Root","1","1","6","5","3"), 
+#' tree_edges <- data.frame(source = c("Root","1","1","6","5","3"), 
 #'                          target = c("1","3","6","5","4","2"))
 #' clone_colours <- data.frame( clone_id = c("1","2","3","4","5","6"), 
 #'                              colour = c("F8766D66", "B79F0066", "00BA3866", "00BFC466", "619CFF66", "F564E366"))
@@ -96,16 +84,14 @@ timesweep <- function(clonal_prev,
   # CLONAL PREVALENCE DATA
 
   # ensure column names are correct
-  if (!("patient_name" %in% colnames(clonal_prev)) ||
-      !("timepoint" %in% colnames(clonal_prev)) ||
+  if (!("timepoint" %in% colnames(clonal_prev)) ||
       !("clone_id" %in% colnames(clonal_prev)) ||
       !("clonal_prev" %in% colnames(clonal_prev))) {
     stop(paste("Clonal prevalence data frame must have the following column names: ", 
-        "\"patient_name\", \"timepoint\", \"clone_id\", \"clonal_prev\"", sep=""))
+        "\"timepoint\", \"clone_id\", \"clonal_prev\"", sep=""))
   }
 
   # ensure data is of the correct type
-  clonal_prev$patient_name <- as.character(clonal_prev$patient_name)
   clonal_prev$timepoint <- as.character(clonal_prev$timepoint)
   clonal_prev$clone_id <- as.character(clonal_prev$clone_id)
   clonal_prev$clonal_prev <- as.numeric(as.character(clonal_prev$clonal_prev))
@@ -113,15 +99,13 @@ timesweep <- function(clonal_prev,
   # TREE EDGES DATA
 
   # ensure column names are correct
-  if (!("patient_name" %in% colnames(tree_edges)) ||
-      !("source" %in% colnames(tree_edges)) ||
+  if (!("source" %in% colnames(tree_edges)) ||
       !("target" %in% colnames(tree_edges))) {
     stop(paste("Tree edges data frame must have the following column names: ", 
-        "\"patient_name\", \"source\", \"target\"", sep=""))
+        "\"source\", \"target\"", sep=""))
   }
 
   # ensure data is of the correct type
-  tree_edges$patient_name <- as.character(tree_edges$patient_name)
   tree_edges$source <- as.character(tree_edges$source)
   tree_edges$target <- as.character(tree_edges$target)
 
@@ -129,18 +113,6 @@ timesweep <- function(clonal_prev,
   if (!("Root" %in% tree_edges[,"source"])) {
     stop("The root (id: \"Root\") must be specified as a source.")
   }
-
-  # catch multiple patients
-  if (length(unique(tree_edges[,"patient_name"])) > 1) {
-    stop("Currently, timesweep only takes in one patient - your tree edges data frame contains more than one patient.")
-  }
-  if (length(unique(clonal_prev[,"patient_name"])) > 1) {
-    stop("Currently, timesweep only takes in one patient - your clonal prevalence data frame contains more than one patient.")
-  }
-  if (unique(tree_edges[,"patient_name"]) != unique(clonal_prev[,"patient_name"])) {
-    stop("Your tree edge and clonal prevalence data frames contain different patient names. Please ensure the patient name is the same.")
-  }
-  patient = tree_edges[1,"patient_name"]
 
   # GENOTYPE POSITIONING
 
@@ -181,7 +153,6 @@ timesweep <- function(clonal_prev,
 
   # forward options using x
   x = list(
-    patient = patient,
     clonal_prev = jsonlite::toJSON(clonal_prev),
     tree_edges = tree_edges,
     clone_cols = jsonlite::toJSON(clone_colours),

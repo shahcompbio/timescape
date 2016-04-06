@@ -59,7 +59,7 @@ HTMLWidgets.widget({
     // get params from R
     vizObj.view.userConfig = x;
     vizObj.data.perturbations = x.perturbations;
-    vizObj.data.patient_id = x.patient; // patient id
+    vizObj.data.patient_id = "TMP_PATIENT"; // TODO REMOVE
 
     // SET UP PAGE LAYOUT
 
@@ -168,7 +168,7 @@ HTMLWidgets.widget({
         alpha_colour_assignment = vizObj.view.alpha_colour_assignment;
 
     // plot timesweep data
-    var patientID_class = 'patientID_' + vizObj.data.patient_id;
+    var patientID_class = 'patientID_tmp' + vizObj.data.patient_id;
     vizObj.view.tsSVG
         .selectAll('.tsPlot')
         .data(vizObj.data.bezier_paths, function(d) {
