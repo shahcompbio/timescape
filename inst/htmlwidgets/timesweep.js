@@ -249,19 +249,24 @@ HTMLWidgets.widget({
             return x_val; 
         })
         .attr('cy', function(d) { 
+            var y;
             // if the label, when centered vertically...
             // ... is cut off at the top, shift down
             if ((dim.tsSVGHeight-(d.middle*dim.tsSVGHeight)) < dim.circleR) {
-                return 1 + dim.circleR;
+                y = 1 + dim.circleR;
             }
 
             // ... is cut off at the bottom, shift up
             else if ((d.middle*dim.tsSVGHeight) < dim.circleR) {
-                return dim.tsSVGHeight - 1 - dim.circleR;
+                y = dim.tsSVGHeight - 1 - dim.circleR;
             }
 
             // ... is not cut off, center vertically
-            return (1 - d.middle)*dim.tsSVGHeight; 
+            else {
+                y = (1 - d.middle)*dim.tsSVGHeight; 
+            }
+
+            return dim.tsSVGHeight - y;
         })
         .attr('r', dim.circleR)
         .attr('fill', 'white')
@@ -300,18 +305,18 @@ HTMLWidgets.widget({
 
             return x_val; 
         })
-        .attr('y', function(d) { return (1 - d.middle)*dim.tsSVGHeight; })
+        .attr('y', function(d) { return dim.tsSVGHeight - (1 - d.middle)*dim.tsSVGHeight; })
         .attr('dy', function(d) {
 
             // if the label, when centered vertically...
             // ... is cut off at the top, shift down
             if ((dim.tsSVGHeight-(d.middle*dim.tsSVGHeight)) < dim.circleR) {
-                d3.select(this).attr('y', 1 + dim.circleR);
+                d3.select(this).attr('y', dim.tsSVGHeight - 1 - dim.circleR);
             }
 
             // ... is cut off at the bottom, shift up
             else if ((d.middle*dim.tsSVGHeight) < dim.circleR) {
-                d3.select(this).attr('y', dim.tsSVGHeight - 1 - dim.circleR);
+                d3.select(this).attr('y', 1 + dim.circleR);
             }
 
             // ... is not cut off, center vertically

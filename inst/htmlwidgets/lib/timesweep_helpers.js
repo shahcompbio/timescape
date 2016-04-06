@@ -1584,8 +1584,8 @@ function _getBezierPaths(paths, tsSVGWidth, tsSVGHeight) {
         for (var i = 0; i < path.length-1; i++) {
             xsource = path[i].x * tsSVGWidth;
             xtarget = path[i+1].x * tsSVGWidth;
-            ysource = (1-path[i].y) * tsSVGHeight;
-            ytarget = (1-path[i+1].y) * tsSVGHeight;
+            ysource = path[i].y * tsSVGHeight;
+            ytarget = path[i+1].y * tsSVGHeight;
 
             // diagonal line generator for bezier curve between two points
             diagonal = d3.svg.diagonal()
