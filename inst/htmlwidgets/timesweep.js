@@ -24,10 +24,10 @@ HTMLWidgets.widget({
         panel_width: 30,
         fontSize: 11,
         circleR: 20,
-        rootColour: '#DDDADA',
         threshold: 0.005, // cellular prevalence threshold of visual detection
         legendGtypeHeight: 13, // height for each genotype in the legend
-        clonalTrajectoryLabelHeight: 42 
+        clonalTrajectoryLabelHeight: 42,
+        phantomRoot: "phantomRoot" 
     };
 
     // global variable vizObj
@@ -40,8 +40,8 @@ HTMLWidgets.widget({
 
     // set configurations
     var config = $.extend(true, {}, defaults);
-    curVizObj.view.config = config;
-    var dim = curVizObj.view.config;
+    curVizObj.generalConfig = config;
+    var dim = curVizObj.generalConfig;
 
     dim.width = width;
     dim.height = height;
@@ -60,10 +60,10 @@ HTMLWidgets.widget({
     var view_id = el.id;
     var curVizObj = vizObj[view_id]; 
     curVizObj.view_id = view_id;
-    var dim = curVizObj.view.config;
+    var dim = curVizObj.generalConfig;
 
     // get params from R
-    curVizObj.view.userConfig = x;
+    curVizObj.userConfig = x;
     curVizObj.data.perturbations = x.perturbations;
 
     // SET UP PAGE LAYOUT
@@ -183,15 +183,7 @@ HTMLWidgets.widget({
             return alpha_colour_assignment[d.gtype];
         }) 
         .attr('stroke', function(d) { 
-            return (d.gtype == "Root" && curVizObj.view.userConfig.show_root) ? 
-                dim.rootColour : 
-                colour_assignment[d.gtype]; 
-        })
-        .attr('fill-opacity', function(d) {
-            return (d.gtype == "Root" && !curVizObj.view.userConfig.show_root) ? 0 : 1;
-        })
-        .attr('stroke-opacity', function(d) {
-            return (d.gtype == "Root" && !curVizObj.view.userConfig.show_root) ? 0 : 1;
+            return colour_assignment[d.gtype]; 
         })
         .on('mouseover', function(d) {
             return _gtypeMouseover(d.gtype, curVizObj);
@@ -485,10 +477,10 @@ HTMLWidgets.widget({
         .attr("cy", function(d) { return d.y})              
         .classed("treeNode", true) 
         .attr("fill", function(d) {
-            return alpha_colour_assignment[d.id];
+            return (d.id == dim.phantomRoot) ? "none" : alpha_colour_assignment[d.id];
         })
         .attr('stroke', function(d) {
-            return colour_assignment[d.id];
+            return (d.id == dim.phantomRoot) ? "none" : colour_assignment[d.id];
         })
         .attr("id", function(d) { return d.sc_id; })
         .attr("r", 4)

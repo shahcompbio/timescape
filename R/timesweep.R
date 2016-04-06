@@ -6,7 +6,7 @@
 #'   Format: columns are (1) {String} "timepoint" - time point
 #'                       (2) {String} "clone_id" - clone id
 #'                       (3) {Number} "clonal_prev" - clonal prevalence.
-#' @param tree_edges Tree edges data frame. The root of the tree (id: "Root") must be specified as a source.
+#' @param tree_edges Tree edges data frame.
 #'   Format: columns are (1) {String} "source" - source node id
 #'                       (2) {String} "target" - target node id.
 #' @param clone_colours Data frame with clone ids and their corresponding colours 
@@ -19,7 +19,6 @@
 #'   "centre" -- genotypes are centred with respect to their ancestors
 #'   "stack" -- genotypes are stacked such that no genotype is split at any time point
 #'   "space" -- genotypes are stacked but with a bit of spacing at the top (emergence is clearer)
-#' @param show_root Whether (TRUE) or not (FALSE) to show the root in the timesweep view.
 #' @param perturbations Data frame of any perturbations that occurred between two time points, 
 #'   and the fraction of total tumour content left.
 #'   Format: columns are (1) {String} "pert_name" - the perturbation name
@@ -37,8 +36,8 @@
 #'                            clone_id = c("1","6","5","4","3","2","1","6","5","4","3","2"),
 #'                            clonal_prev = c("0.0205127","0.284957","0.637239","0.0477972","0.00404099","0.00545235",
 #'                                            "0.0134362","0.00000150677","0.00000385311","0.000627522","0.551521","0.43441"))
-#' tree_edges <- data.frame(source = c("Root","1","1","6","5","3"), 
-#'                          target = c("1","3","6","5","4","2"))
+#' tree_edges <- data.frame(source = c("1","1","6","5","3"), 
+#'                          target = c("3","6","5","4","2"))
 #' clone_colours <- data.frame( clone_id = c("1","2","3","4","5","6"), 
 #'                              colour = c("F8766D66", "B79F0066", "00BA3866", "00BFC466", "619CFF66", "F564E366"))
 #' perturbations <- data.frame( pert_name = c("Chemo"), 
@@ -52,7 +51,6 @@ timesweep <- function(clonal_prev,
                       yaxis_title = "Relative Cellular Prevalence", 
                       alpha = 50, 
                       genotype_position = "stack", 
-                      show_root = TRUE, 
                       perturbations = "NA", 
                       sort = TRUE, 
                       width = NULL, 
@@ -76,11 +74,6 @@ timesweep <- function(clonal_prev,
     stop("Sort parameter must be a boolean.")
   }
 
-  # SHOW ROOT
-  if (!is.logical(show_root)) {
-    stop("Show root parameter must be a boolean.")
-  }
-  
   # CLONAL PREVALENCE DATA
 
   # ensure column names are correct
@@ -108,11 +101,6 @@ timesweep <- function(clonal_prev,
   # ensure data is of the correct type
   tree_edges$source <- as.character(tree_edges$source)
   tree_edges$target <- as.character(tree_edges$target)
-
-  # catch if no root is in the tree
-  if (!("Root" %in% tree_edges[,"source"])) {
-    stop("The root (id: \"Root\") must be specified as a source.")
-  }
 
   # GENOTYPE POSITIONING
 
@@ -154,13 +142,12 @@ timesweep <- function(clonal_prev,
   # forward options using x
   x = list(
     clonal_prev = jsonlite::toJSON(clonal_prev),
-    tree_edges = tree_edges,
+    tree_edges = jsonlite::toJSON(tree_edges),
     clone_cols = jsonlite::toJSON(clone_colours),
     xaxis_title = xaxis_title,
     yaxis_title = yaxis_title,
     alpha = alpha,
     genotype_position = genotype_position,
-    show_root = show_root,
     perturbations = jsonlite::toJSON(perturbations),
     sort_gtypes = sort
   )
