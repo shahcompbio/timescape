@@ -170,6 +170,15 @@ HTMLWidgets.widget({
     var colour_assignment = curVizObj.view.colour_assignment,
         alpha_colour_assignment = curVizObj.view.alpha_colour_assignment;
 
+    // plot light grey timesweep background
+    curVizObj.view.tsSVG
+        .append("rect")
+        .attr("x", 0)
+        .attr("y", 0)
+        .attr("height", dim.tsSVGHeight)
+        .attr("width", dim.tsSVGWidth)
+        .attr("fill", "#F1F1F1");
+
     // plot timesweep data
     curVizObj.view.tsSVG
         .selectAll('.tsPlot')

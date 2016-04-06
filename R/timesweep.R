@@ -6,7 +6,7 @@
 #'   Format: columns are (1) {String} "timepoint" - time point
 #'                       (2) {String} "clone_id" - clone id
 #'                       (3) {Number} "clonal_prev" - clonal prevalence.
-#' @param tree_edges Tree edges data frame.
+#' @param tree_edges Tree edges data frame. Must be a rooted tree.
 #'   Format: columns are (1) {String} "source" - source node id
 #'                       (2) {String} "target" - target node id.
 #' @param clone_colours Data frame with clone ids and their corresponding colours 
