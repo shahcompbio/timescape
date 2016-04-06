@@ -178,7 +178,7 @@ HTMLWidgets.widget({
         .attr('class', function() { return 'tsPlot ' + patientID_class; })
         .attr('d', function(d) { return d.path; })
         .attr('fill', function(d) { 
-            return (x.alpha == "NA") ? colour_assignment[d.gtype] : alpha_colour_assignment[d.gtype];
+            return alpha_colour_assignment[d.gtype];
         }) 
         .attr('stroke', function(d) { 
             return (d.gtype == "Root" && vizObj.view.userConfig.show_root) ? 

@@ -55,7 +55,7 @@ function _sweepClick(vizObj) {
             .attr('class', 'tsPlot')
             .attr("d", _centreLine(vizObj))
             .attr('fill', function(d) { 
-                return (x.alpha == "NA") ? colour_assignment[d.gtype] : alpha_colour_assignment[d.gtype];
+                return alpha_colour_assignment[d.gtype];
             }) 
             .attr('stroke', function(d) { 
                 return (d.gtype == "Root" && vizObj.view.userConfig.show_root) ? 
@@ -95,12 +95,12 @@ function _gtypeMouseover(gtype, vizObj) {
                     return dim.rootColour;
                 }
                 else if (d.gtype != gtype) {
-                    col = (x.alpha == "NA") ? colour_assignment[d.gtype] : alpha_colour_assignment[d.gtype];
+                    col = alpha_colour_assignment[d.gtype];
                     brightness = Math.round(_get_brightness(col));
                     return _rgb2hex("rgb(" + brightness + "," + brightness + "," + brightness + ")");
                 }
                 else {
-                    return (x.alpha == "NA") ? colour_assignment[d.gtype] : alpha_colour_assignment[d.gtype];
+                    return alpha_colour_assignment[d.gtype];
                 }
             })
             .attr('stroke', function(d) { 
@@ -156,7 +156,7 @@ function _gtypeMouseout(gtype, vizObj) {
         // reset colours
         d3.selectAll('.tsPlot.' + patientID_class)
             .attr('fill', function(d) { 
-                return (x.alpha == "NA") ? colour_assignment[d.gtype] : alpha_colour_assignment[d.gtype];
+                return alpha_colour_assignment[d.gtype];
             })
             .attr('stroke', function(d) { 
                 return (d.gtype == "Root" && vizObj.view.userConfig.show_root) ? 
