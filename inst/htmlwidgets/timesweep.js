@@ -26,7 +26,8 @@ HTMLWidgets.widget({
         circleR: 20,
         rootColour: '#DDDADA',
         threshold: 0.005, // cellular prevalence threshold of visual detection
-        legendGtypeHeight: 13 // height for each genotype in the legend
+        legendGtypeHeight: 13, // height for each genotype in the legend
+        clonalTrajectoryLabelHeight: 42 
     };
 
     // global variable vizObj
@@ -134,7 +135,7 @@ HTMLWidgets.widget({
     // move the switch SVG down by the height of the legend + height of the tree
     vizObj.view.tsSwitch.attr("transform", "translate(" + 
         (dim.yAxisWidth + dim.smallMargin + dim.tsSVGWidth + dim.paddingGeneral) + "," + 
-        (dim.tsSVGHeight - 25) + ")");
+        (dim.tsSVGHeight - dim.clonalTrajectoryLabelHeight) + ")");
 
     // get timepoints, prepend a "T0" timepoint to represent the timepoint before any data originated
     var timepoints = _.uniq(_.pluck(x.clonal_prev, "timepoint"));
@@ -546,22 +547,35 @@ HTMLWidgets.widget({
     d3.select(".tsSwitch")
         .append("foreignObject")
         .attr('x', -10)
-        .attr('y', 0)
+        .attr('y', 5)
         .attr('width', 50)
         .attr('height', 20)
         .append("xhtml:body")
         .html("<input type=\"checkbox\">");
 
     // checkbox text
+    var bottomPadding = 5,
+        betweenTextPadding = 2,
+        clonalTrajectoryFontSize = 15;
     d3.select(".tsSwitch")
         .append("text")
         .attr('x', 17)
-        .attr('y', 15)
+        .attr('y', dim.clonalTrajectoryLabelHeight - bottomPadding - 
+            betweenTextPadding - clonalTrajectoryFontSize)
         .attr('text-anchor', 'left')
         .attr('font-family', 'sans-serif')
-        .attr('font-size', '15px')
+        .attr('font-size', clonalTrajectoryFontSize + 'px')
         .attr('font-weight', 'bold')
-        .text("Tracks View")
+        .text("Clonal")
+    d3.select(".tsSwitch")
+        .append("text")
+        .attr('x', 17)
+        .attr('y', dim.clonalTrajectoryLabelHeight - bottomPadding)
+        .attr('text-anchor', 'left')
+        .attr('font-family', 'sans-serif')
+        .attr('font-size', clonalTrajectoryFontSize + 'px')
+        .attr('font-weight', 'bold')
+        .text("Trajectory")
 
     // when checkbox selected, change view
     d3.select("input").on("change", function() {
