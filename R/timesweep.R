@@ -52,7 +52,7 @@ timesweep <- function(clonal_prev,
                       alpha = 50, 
                       genotype_position = "stack", 
                       perturbations = "NA", 
-                      sort = TRUE, 
+                      sort = FALSE, 
                       width = 900, 
                       height = 300) {
   
