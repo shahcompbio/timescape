@@ -32,13 +32,16 @@ HTMLWidgets.widget({
 
     // global variable vizObj
     vizObj = {};
-    vizObj.data = {};
-    vizObj.view = {};
+    var view_id = el.id;
+    vizObj[view_id] = {};
+    curVizObj = vizObj[view_id];
+    curVizObj.data = {};
+    curVizObj.view = {};
 
     // set configurations
     var config = $.extend(true, {}, defaults);
-    vizObj.view.config = config;
-    var dim = vizObj.view.config;
+    curVizObj.view.config = config;
+    var dim = curVizObj.view.config;
 
     dim.width = width;
     dim.height = height;
@@ -54,22 +57,22 @@ HTMLWidgets.widget({
   },
 
   renderValue: function(el, x, instance) {
-    var dim = vizObj.view.config;
+    var view_id = el.id;
+    var curVizObj = vizObj[view_id]; 
+    curVizObj.view_id = view_id;
+    var dim = curVizObj.view.config;
 
     // get params from R
-    vizObj.view.userConfig = x;
-    vizObj.data.perturbations = x.perturbations;
-    vizObj.data.patient_id = "TMP_PATIENT"; // TODO REMOVE
+    curVizObj.view.userConfig = x;
+    curVizObj.data.perturbations = x.perturbations;
 
     // SET UP PAGE LAYOUT
 
-    d3.select(el).selectAll("div")
-        .data([vizObj.data.patient_id])
-        .enter()
-        .append("div")
-        .attr("class", function(d) { return "div_" + d; });
+    var canvasDIV = d3.select(el).append("div")
+        .attr("class", "div")
+        .attr("id", view_id);
 
-    var canvasSVG = d3.select(".div_" + vizObj.data.patient_id)
+    var canvasSVG = canvasDIV
         .append("svg:svg")  
         .attr("class", "canvasSVG")     
         .attr("x", 0)
@@ -82,130 +85,129 @@ HTMLWidgets.widget({
         .style("margin-top",  dim.paddingGeneral)
         .style("margin-bottom",  dim.paddingGeneral);
 
-    var tsSVG = d3.select(".canvasSVG")
+    var tsSVG = canvasSVG
         .append("g")  
         .attr("class", "tsSVG")     
         .attr("transform", "translate(" + (dim.yAxisWidth + dim.smallMargin) + "," + 0 + ")");
 
-    var yAxisSVG = d3.select(".canvasSVG") 
+    var yAxisSVG = canvasSVG
         .append("g") 
         .attr("class", "yAxisSVG")      
         .attr("transform", "translate(" + 0 + "," + 0 + ")");
 
-    var xAxisSVG = d3.select(".canvasSVG") 
+    var xAxisSVG = canvasSVG
         .append("g") 
         .attr("class", "xAxisSVG")      
         .attr("transform", "translate(" + 0 + "," + (dim.tsSVGHeight + dim.smallMargin) + ")");
 
-    var tsLegendSVG = d3.select(".canvasSVG")
+    var tsLegendSVG = canvasSVG
         .append("g") 
         .attr("class", "tsLegendSVG")
         .attr("transform", "translate(" + (dim.yAxisWidth + dim.smallMargin + dim.tsSVGWidth + dim.paddingGeneral) + 
             "," + 0 + ")");
 
-    var tsTree = d3.select(".canvasSVG")
+    var tsTree = canvasSVG
         .append("g") 
         .attr("class", "tsTreeSVG");
 
-    var tsSwitch = d3.select(".canvasSVG")
+    var tsSwitch = canvasSVG
         .append("g") 
         .attr("class", "tsSwitch");
 
-    vizObj.view.canvasSVG = canvasSVG;
-    vizObj.view.xAxisSVG = xAxisSVG;
-    vizObj.view.yAxisSVG = yAxisSVG;
-    vizObj.view.tsSVG = tsSVG;
-    vizObj.view.tsLegendSVG = tsLegendSVG;
-    vizObj.view.tsTree = tsTree;
-    vizObj.view.tsSwitch = tsSwitch;
+    curVizObj.view.canvasSVG = canvasSVG;
+    curVizObj.view.xAxisSVG = xAxisSVG;
+    curVizObj.view.yAxisSVG = yAxisSVG;
+    curVizObj.view.tsSVG = tsSVG;
+    curVizObj.view.tsLegendSVG = tsLegendSVG;
+    curVizObj.view.tsTree = tsTree;
+    curVizObj.view.tsSwitch = tsSwitch;
 
 
     // GET CONTENT
 
     // extract all info from tree about nodes, edges, ancestors, descendants
-    _getTreeInfo(vizObj);
+    _getTreeInfo(curVizObj);
 
     // move the tree SVG down by the height of the legend
     // 25 for legend title and space
-    var legendHeight = vizObj.data.treeNodes.length * dim.legendGtypeHeight + 25 + 25; 
-    vizObj.view.tsTree.attr("transform", "translate(" + 
+    var legendHeight = curVizObj.data.treeNodes.length * dim.legendGtypeHeight + 25 + 25; 
+    curVizObj.view.tsTree.attr("transform", "translate(" + 
         (dim.yAxisWidth + dim.smallMargin + dim.tsSVGWidth + dim.paddingGeneral) + ",0)");
 
     // move the switch SVG down by the height of the legend + height of the tree
-    vizObj.view.tsSwitch.attr("transform", "translate(" + 
+    curVizObj.view.tsSwitch.attr("transform", "translate(" + 
         (dim.yAxisWidth + dim.smallMargin + dim.tsSVGWidth + dim.paddingGeneral) + "," + 
         (dim.tsSVGHeight - dim.clonalTrajectoryLabelHeight) + ")");
 
     // get timepoints, prepend a "T0" timepoint to represent the timepoint before any data originated
     var timepoints = _.uniq(_.pluck(x.clonal_prev, "timepoint"));
     timepoints.unshift("T0");
-    vizObj.data.timepoints = timepoints;
+    curVizObj.data.timepoints = timepoints;
 
     // get cellular prevalence info
-    _getCPData(vizObj);
+    _getCPData(curVizObj);
 
     // get emergence values for each genotype
-    vizObj.data.emergence_values = _getEmergenceValues(vizObj);
+    curVizObj.data.emergence_values = _getEmergenceValues(curVizObj);
 
     // convert time-centric cellular prevalence data into genotype-centric cellular prevalence data
-    _getGenotypeCPData(vizObj);
+    _getGenotypeCPData(curVizObj);
 
     // get the layout of the traditional timesweep
-    _getLayout(vizObj);
+    _getLayout(curVizObj);
 
     // get paths for plotting
-    _getPaths(vizObj);
+    _getPaths(curVizObj);
 
     // get cellular prevalence labels
-    vizObj.data.ts_trad_labels = _getTraditionalCPLabels(vizObj);
-    vizObj.data.ts_sep_labels = _getSeparateCPLabels(vizObj);
+    curVizObj.data.ts_trad_labels = _getTraditionalCPLabels(curVizObj);
+    curVizObj.data.ts_sep_labels = _getSeparateCPLabels(curVizObj);
 
     // SET CONTENT
 
     // get colour scheme
-    _getColours(vizObj);
-    var colour_assignment = vizObj.view.colour_assignment,
-        alpha_colour_assignment = vizObj.view.alpha_colour_assignment;
+    _getColours(curVizObj);
+    var colour_assignment = curVizObj.view.colour_assignment,
+        alpha_colour_assignment = curVizObj.view.alpha_colour_assignment;
 
     // plot timesweep data
-    var patientID_class = 'patientID_tmp' + vizObj.data.patient_id;
-    vizObj.view.tsSVG
+    curVizObj.view.tsSVG
         .selectAll('.tsPlot')
-        .data(vizObj.data.bezier_paths, function(d) {
+        .data(curVizObj.data.bezier_paths, function(d) {
             return d.gtype;
         })
         .enter().append('path')
-        .attr('class', function() { return 'tsPlot ' + patientID_class; })
+        .attr('class', function() { return 'tsPlot'; })
         .attr('d', function(d) { return d.path; })
         .attr('fill', function(d) { 
             return alpha_colour_assignment[d.gtype];
         }) 
         .attr('stroke', function(d) { 
-            return (d.gtype == "Root" && vizObj.view.userConfig.show_root) ? 
+            return (d.gtype == "Root" && curVizObj.view.userConfig.show_root) ? 
                 dim.rootColour : 
                 colour_assignment[d.gtype]; 
         })
         .attr('fill-opacity', function(d) {
-            return (d.gtype == "Root" && !vizObj.view.userConfig.show_root) ? 0 : 1;
+            return (d.gtype == "Root" && !curVizObj.view.userConfig.show_root) ? 0 : 1;
         })
         .attr('stroke-opacity', function(d) {
-            return (d.gtype == "Root" && !vizObj.view.userConfig.show_root) ? 0 : 1;
+            return (d.gtype == "Root" && !curVizObj.view.userConfig.show_root) ? 0 : 1;
         })
         .on('mouseover', function(d) {
-            return _gtypeMouseover(d.gtype, vizObj);
+            return _gtypeMouseover(d.gtype, curVizObj);
         })
         .on('mouseout', function(d) {
-            return _gtypeMouseout(d.gtype, vizObj)
+            return _gtypeMouseout(d.gtype, curVizObj)
         });
 
     // plot time point guides
-    vizObj.view.tsSVG
+    curVizObj.view.tsSVG
         .selectAll('.tpGuide')
-        .data(vizObj.data.timepoints)
+        .data(curVizObj.data.timepoints)
         .enter().append('line')
-        .attr('class', function(d) { return 'tpGuide tp_' + d + ' ' + patientID_class; })
-        .attr('x1', function(d, i) { return (i / (vizObj.data.timepoints.length - 1)) * dim.tsSVGWidth; })
-        .attr('x2', function(d, i) { return (i / (vizObj.data.timepoints.length - 1)) * dim.tsSVGWidth; })
+        .attr('class', function(d) { return 'tpGuide tp_' + d; })
+        .attr('x1', function(d, i) { return (i / (curVizObj.data.timepoints.length - 1)) * dim.tsSVGWidth; })
+        .attr('x2', function(d, i) { return (i / (curVizObj.data.timepoints.length - 1)) * dim.tsSVGWidth; })
         .attr('y1', 0)
         .attr('y2', dim.tsSVGHeight)
         .attr('stroke', 'grey')
@@ -214,9 +216,9 @@ HTMLWidgets.widget({
         .style('pointer-events', 'none');
 
     // plot cellular prevalence labels at each time point - traditional timesweep view 
-    var labels = vizObj.data.ts_trad_labels.concat(vizObj.data.ts_sep_labels);
+    var labels = curVizObj.data.ts_trad_labels.concat(curVizObj.data.ts_sep_labels);
 
-    var labelG = vizObj.view.tsSVG
+    var labelG = curVizObj.view.tsSVG
         .selectAll('.gLabel')
         .data(labels)
         .enter().append('g')
@@ -226,19 +228,19 @@ HTMLWidgets.widget({
         .append('circle')
         .attr('class', function(d) { 
             if (d.type == "traditional") {
-                return 'labelCirc tp_' + d.tp + ' gtype_' + d.gtype + ' ' + patientID_class; 
+                return 'labelCirc tp_' + d.tp + ' gtype_' + d.gtype; 
             }
-            return 'sepLabelCirc tp_' + d.tp + ' gtype_' + d.gtype + ' ' + patientID_class; 
+            return 'sepLabelCirc tp_' + d.tp + ' gtype_' + d.gtype; 
         }) 
         .attr('cx', function(d) { 
 
             // index of this time point relative to others
-            var index = vizObj.data.timepoints.indexOf(d.tp); 
+            var index = curVizObj.data.timepoints.indexOf(d.tp); 
 
-            var x_val = (index / (vizObj.data.timepoints.length-1)) * (dim.tsSVGWidth);
+            var x_val = (index / (curVizObj.data.timepoints.length-1)) * (dim.tsSVGWidth);
 
             // if the time point is the last
-            if (index == vizObj.data.timepoints.length - 1) {
+            if (index == curVizObj.data.timepoints.length - 1) {
                 // shift it to the left
                 x_val -= dim.circleR;
             }
@@ -271,9 +273,9 @@ HTMLWidgets.widget({
         .attr('font-size', dim.fontSize)
         .attr('class', function(d) { 
             if (d.type == "traditional") {
-                return 'label tp_' + d.tp + ' gtype_' + d.gtype + ' ' + patientID_class; 
+                return 'label tp_' + d.tp + ' gtype_' + d.gtype; 
             }
-            return 'sepLabel tp_' + d.tp + ' gtype_' + d.gtype + ' ' + patientID_class; 
+            return 'sepLabel tp_' + d.tp + ' gtype_' + d.gtype; 
         }) 
         .text(function(d) {
             var cp = (Math.round(d.cp * 100) / 1);
@@ -285,12 +287,12 @@ HTMLWidgets.widget({
         .attr('x', function(d) { 
 
             // index of this time point relative to others
-            var index = vizObj.data.timepoints.indexOf(d.tp); 
+            var index = curVizObj.data.timepoints.indexOf(d.tp); 
 
-            var x_val = (index / (vizObj.data.timepoints.length-1)) * (dim.tsSVGWidth);
+            var x_val = (index / (curVizObj.data.timepoints.length-1)) * (dim.tsSVGWidth);
 
             // if the time point is the last
-            if (index == vizObj.data.timepoints.length - 1) {
+            if (index == curVizObj.data.timepoints.length - 1) {
                 // shift it to the left
                 x_val -= dim.circleR;
             }
@@ -323,14 +325,14 @@ HTMLWidgets.widget({
     // PLOT PERTURBATIONS INFO
 
     // plot labels
-    vizObj.view.xAxisSVG
+    curVizObj.view.xAxisSVG
         .selectAll('.pertLabel')
-        .data(vizObj.data.perturbations)
+        .data(curVizObj.data.perturbations)
         .enter().append('text')
         .attr('class', 'pertLabel')
         .attr('x', function(d) { 
-            var prevTP_idx = vizObj.data.timepoints.indexOf(d.prev_tp);
-            return ((prevTP_idx + 0.5) / (vizObj.data.timepoints.length-1)) * (dim.tsSVGWidth) + 
+            var prevTP_idx = curVizObj.data.timepoints.indexOf(d.prev_tp);
+            return ((prevTP_idx + 0.5) / (curVizObj.data.timepoints.length-1)) * (dim.tsSVGWidth) + 
                 dim.smallMargin + dim.yAxisWidth; 
         })
         .attr('y', 0)
@@ -340,25 +342,27 @@ HTMLWidgets.widget({
         .attr('font-size', '11px')
         .text(function(d) { return d.pert_name; })
         .on('mouseover', function(d) {
-            d3.selectAll(".pertGuide.pert_" + d.pert_name + '.' + patientID_class).attr('stroke-opacity', 1); 
+            d3.select("#" + curVizObj.view_id)
+                .selectAll(".pertGuide.pert_" + d.pert_name).attr('stroke-opacity', 1); 
         })
         .on('mouseout', function(d) {
-            d3.selectAll(".pertGuide.pert_" + d.pert_name + '.' + patientID_class).attr('stroke-opacity', 0);
+            d3.select("#" + curVizObj.view_id)
+                .selectAll(".pertGuide.pert_" + d.pert_name).attr('stroke-opacity', 0);
         });
 
     // plot guides
-    vizObj.view.tsSVG
+    curVizObj.view.tsSVG
         .selectAll('.pertGuide')
-        .data(vizObj.data.perturbations)
+        .data(curVizObj.data.perturbations)
         .enter().append('line')
-        .attr('class', function(d) { return 'pertGuide pert_' + d.pert_name + ' ' + patientID_class; })
+        .attr('class', function(d) { return 'pertGuide pert_' + d.pert_name; })
         .attr('x1', function(d) { 
-            var prevTP_idx = vizObj.data.timepoints.indexOf(d.prev_tp);
-            return ((prevTP_idx + 0.5) / (vizObj.data.timepoints.length-1)) * (dim.tsSVGWidth); 
+            var prevTP_idx = curVizObj.data.timepoints.indexOf(d.prev_tp);
+            return ((prevTP_idx + 0.5) / (curVizObj.data.timepoints.length-1)) * (dim.tsSVGWidth); 
         })
         .attr('x2', function(d) { 
-            var prevTP_idx = vizObj.data.timepoints.indexOf(d.prev_tp);
-            return ((prevTP_idx + 0.5) / (vizObj.data.timepoints.length-1)) * (dim.tsSVGWidth); 
+            var prevTP_idx = curVizObj.data.timepoints.indexOf(d.prev_tp);
+            return ((prevTP_idx + 0.5) / (curVizObj.data.timepoints.length-1)) * (dim.tsSVGWidth); 
         })
         .attr('y1', 0)
         .attr('y2', dim.tsSVGHeight)
@@ -371,13 +375,13 @@ HTMLWidgets.widget({
     // PLOT AXES
 
     // plot x-axis labels
-    vizObj.view.xAxisSVG
+    curVizObj.view.xAxisSVG
         .selectAll('.xAxisLabels')
-        .data(vizObj.data.timepoints)
+        .data(curVizObj.data.timepoints)
         .enter().append('text')
         .attr('class', 'xAxisLabels')
         .attr('x', function(d, i) { 
-            return (i / (vizObj.data.timepoints.length-1)) * (dim.tsSVGWidth) + dim.smallMargin + dim.yAxisWidth; 
+            return (i / (curVizObj.data.timepoints.length-1)) * (dim.tsSVGWidth) + dim.smallMargin + dim.yAxisWidth; 
         })
         .attr('y', 0)
         .attr('dy', '.71em')
@@ -386,14 +390,14 @@ HTMLWidgets.widget({
         .attr('font-size', '11px')
         .text(function(d) { return d; })
         .on('mouseover', function(d) {
-            d3.selectAll(".tpGuide.tp_" + d + '.' + patientID_class).attr('stroke-opacity', 1); 
+            d3.select("#" + curVizObj.view_id).selectAll(".tpGuide.tp_" + d).attr('stroke-opacity', 1); 
         })
         .on('mouseout', function(d) {
-            d3.selectAll(".tpGuide.tp_" + d + '.' + patientID_class).attr('stroke-opacity', 0);
+            d3.select("#" + curVizObj.view_id).selectAll(".tpGuide.tp_" + d).attr('stroke-opacity', 0);
         });
 
     // plot y-axis title
-    vizObj.view.yAxisSVG
+    curVizObj.view.yAxisSVG
         .append('text')
         .attr('class', 'axisTitle yAxis')
         .attr('x', 0)
@@ -409,7 +413,7 @@ HTMLWidgets.widget({
         });
 
     // plot x-axis title
-    vizObj.view.xAxisSVG
+    curVizObj.view.xAxisSVG
         .append('text')
         .attr('class', 'axisTitle xAxis')
         .attr('x', dim.yAxisWidth + dim.smallMargin + dim.xAxisWidth/2)
@@ -425,8 +429,11 @@ HTMLWidgets.widget({
 
     // PLOT TREE GLYPH
 
+    console.log("curVizObj");
+    console.log(curVizObj);
+
     // plot tree title
-    vizObj.view.tsTree
+    curVizObj.view.tsTree
         .append('text')
         .attr('class', 'treeTitle')
         .attr('x', 0)
@@ -440,12 +447,13 @@ HTMLWidgets.widget({
 
     // d3 tree layout
     var treePadding = 10,
-        treeTitleHeight = d3.select('.treeTitle').node().getBBox().height,
+        treeTitleHeight = d3.select("#" + curVizObj.view_id)
+                            .select('.treeTitle').node().getBBox().height,
         treeLayout = d3.layout.tree()           
             .size([dim.treeHeight - treePadding - treeTitleHeight, dim.treeWidth - treePadding]); 
 
     // get nodes and links
-    var root = $.extend({}, vizObj.data.treeStructure), // copy tree into new variable
+    var root = $.extend({}, curVizObj.data.treeStructure), // copy tree into new variable
         nodes = treeLayout.nodes(root), 
         links = treeLayout.links(nodes);   
  
@@ -458,7 +466,7 @@ HTMLWidgets.widget({
     });
 
     // create links
-    var link = vizObj.view.tsTree.append("g")
+    var link = curVizObj.view.tsTree.append("g")
         .classed("treeLinks", true)
         .selectAll(".treeLink")                  
         .data(links)                   
@@ -469,7 +477,7 @@ HTMLWidgets.widget({
         .attr("d", _elbow); 
 
     // create nodes
-    var node = vizObj.view.tsTree.selectAll(".treeNode")                  
+    var node = curVizObj.view.tsTree.selectAll(".treeNode")                  
         .data(nodes)                   
         .enter()
         .append("circle")     
@@ -485,16 +493,16 @@ HTMLWidgets.widget({
         .attr("id", function(d) { return d.sc_id; })
         .attr("r", 4)
         .on('mouseover', function(d) {
-            return _gtypeMouseover(d.id, vizObj);
+            return _gtypeMouseover(d.id, curVizObj);
         })
         .on('mouseout', function(d) {
-            return _gtypeMouseout(d.id, vizObj)
+            return _gtypeMouseout(d.id, curVizObj)
         });
 
     // SWITCH between traditional and tracks views
 
     // checkbox
-    d3.select(".tsSwitch")
+    var input = curVizObj.view.tsSwitch
         .append("foreignObject")
         .attr('x', -10)
         .attr('y', 5)
@@ -507,7 +515,7 @@ HTMLWidgets.widget({
     var bottomPadding = 5,
         betweenTextPadding = 2,
         clonalTrajectoryFontSize = 15;
-    d3.select(".tsSwitch")
+    curVizObj.view.tsSwitch
         .append("text")
         .attr('x', 17)
         .attr('y', dim.clonalTrajectoryLabelHeight - bottomPadding - 
@@ -517,7 +525,7 @@ HTMLWidgets.widget({
         .attr('font-size', clonalTrajectoryFontSize + 'px')
         .attr('font-weight', 'bold')
         .text("Clonal")
-    d3.select(".tsSwitch")
+    curVizObj.view.tsSwitch
         .append("text")
         .attr('x', 17)
         .attr('y', dim.clonalTrajectoryLabelHeight - bottomPadding)
@@ -528,214 +536,14 @@ HTMLWidgets.widget({
         .text("Trajectory")
 
     // when checkbox selected, change view
-    d3.select("input").on("change", function() {
-        _sweepClick(vizObj);
+    input.on("change", function() {
+        _sweepClick(curVizObj);
     });
 
 
   },
 
   resize: function(el, width, height, instance) {
-
-    var dim = vizObj.view.config;
-
-    dim.width = width;
-    dim.height = height;
-    dim.canvasSVGWidth = width - dim.paddingGeneral - dim.paddingGeneral;
-    dim.canvasSVGHeight = height - dim.paddingGeneral - dim.paddingGeneral;
-    dim.tsSVGHeight = dim.canvasSVGHeight - dim.xAxisHeight - dim.smallMargin;
-    dim.tsSVGWidth = dim.canvasSVGWidth - dim.legendWidth - dim.yAxisWidth - dim.smallMargin - dim.paddingGeneral;
-    dim.xAxisWidth = dim.tsSVGWidth;
-    dim.yAxisHeight = dim.tsSVGHeight;
-
-    var canvasSVG = d3.select(".canvasSVG")
-        .attr("width", dim.canvasSVGWidth) 
-        .attr("height", dim.canvasSVGHeight);
-
-    var xAxisSVG = d3.select(".xAxisSVG")    
-        .attr("transform", "translate(" + 0 + "," + (dim.tsSVGHeight + dim.smallMargin) + ")");
-
-    var tsLegendSVG = d3.select(".tsLegendSVG")
-        .attr("transform", "translate(" + 
-            (dim.yAxisWidth + dim.smallMargin + dim.tsSVGWidth + dim.paddingGeneral) + "," + 
-            0 + ")");
-
-    // move the tree SVG down by the height of the legend
-    // 25 for legend title and space
-    var legendHeight = vizObj.data.treeNodes.length * dim.legendGtypeHeight + 25 + 25; 
-    vizObj.view.tsTree.attr("transform", "translate(" + 
-        (dim.yAxisWidth + dim.smallMargin + dim.tsSVGWidth + dim.paddingGeneral) + "," + 
-        legendHeight + ")");
-
-    // move the switch SVG down by the height of the legend + height of the tree
-    vizObj.view.tsSwitch.attr("transform", "translate(" + 
-        (dim.yAxisWidth + dim.smallMargin + dim.tsSVGWidth + dim.paddingGeneral) + "," + 
-        (dim.tsSVGHeight - 25) + ")");
-    
-    // SET CONTENT
-
-    // if we want the spaced stacked view, recalculate the layout
-    var deferred = new $.Deferred();
-    if (!vizObj.view.userConfig.genotype_position) {
-        // get the layout of genotypes at each time point
-        _getLayout(vizObj, vizObj.view.userConfig.genotype_position);
-
-        // in the layout, shift x-values if >1 genotype emerges at the 
-        // same time point from the same clade in the tree
-        _shiftEmergence(vizObj)
-        
-        // convert layout at each time point into a list of moves for each genotype's d3 path object
-        vizObj.data.traditional_paths = _getTraditionalPaths(vizObj);
-
-        // get cellular prevalence labels
-        vizObj.data.ts_trad_labels = _getTraditionalCPLabels(vizObj);
-    }
-
-    // get traditional bezier paths
-    vizObj.data.bezier_paths = _getBezierPaths(vizObj.data.traditional_paths, dim.tsSVGWidth, dim.tsSVGHeight);
-
-    // get tracks bezier paths
-    vizObj.data.tracks_bezier_paths = _getBezierPaths(vizObj.data.tracks_paths, dim.tsSVGWidth, dim.tsSVGHeight);
-
-    // plot timesweep data
-    var newTsPlot;
-
-    if (dim.switchView) {
-        newTsPlot = d3.selectAll('.tsPlot')
-            .data(vizObj.data.bezier_paths, function(d) {
-                return d.gtype;
-            });
-    } else {
-        newTsPlot = d3.selectAll('.tsPlot')
-            .data(vizObj.data.tracks_bezier_paths, function(d) {
-                return d.gtype;
-            });
-    }
-    newTsPlot.enter().append('path');
-    newTsPlot.exit().remove();
-    newTsPlot
-        .attr('d', function(d) { return d.path});
-
-    // plot time point guides
-    d3.selectAll('.tpGuide')
-        .attr('x1', function(d, i) { return (i / (vizObj.data.timepoints.length - 1)) * dim.tsSVGWidth; })
-        .attr('x2', function(d, i) { return (i / (vizObj.data.timepoints.length - 1)) * dim.tsSVGWidth; })
-        .attr('y2', dim.tsSVGHeight);
-
-    // adjust cellular prevalence label (and background) positioning
-    d3.selectAll('.labelCirc, .sepLabelCirc')
-        .attr('cx', function(d) { 
-
-            // index of this time point relative to others
-            var index = vizObj.data.timepoints.indexOf(d.tp); 
-
-            var x_val = (index / (vizObj.data.timepoints.length-1)) * (dim.tsSVGWidth);
-
-            // if the time point is the last
-            if (index == vizObj.data.timepoints.length - 1) {
-                // shift it to the left
-                x_val -= dim.circleR;
-            }
-
-            return x_val; 
-        })
-        .attr('cy', function(d) { 
-            // if the label, when centered vertically...
-            // ... is cut off at the top, shift down
-            if (((dim.tsSVGHeight-(d.middle*dim.tsSVGHeight)) + ((d.cp/2)*dim.tsSVGHeight)) < dim.circleR) {
-                return 1 + dim.circleR;
-            }
-
-            // ... is cut off at the bottom, shift up
-            else if (((d.middle*dim.tsSVGHeight) + ((d.cp/2)*dim.tsSVGHeight)) < dim.circleR) {
-                return dim.tsSVGHeight - 1 - dim.circleR;
-            }
-
-            // ... is not cut off, center vertically
-            return (1 - d.middle)*dim.tsSVGHeight; 
-        });
-
-    d3.selectAll('.label, .sepLabel')
-        .attr('x', function(d) { 
-
-            // index of this time point relative to others
-            var index = vizObj.data.timepoints.indexOf(d.tp); 
-
-            var x_val = (index / (vizObj.data.timepoints.length-1)) * (dim.tsSVGWidth);
-
-            // if the time point is the last
-            if (index == vizObj.data.timepoints.length - 1) {
-                // shift it to the left
-                x_val -= dim.circleR;
-            }
-
-            return x_val; 
-        })
-        .attr('y', function(d) { return (1 - d.middle)*dim.tsSVGHeight; })
-        .attr('dy', function(d) {
-
-            if (d.type == "traditional") {
-                // if the label, when centered vertically...
-                // ... is cut off at the top, shift down
-                if (((dim.tsSVGHeight-(d.middle*dim.tsSVGHeight)) + ((d.cp/2)*dim.tsSVGHeight)) < dim.circleR) {
-                    d3.select(this).attr('y', 1 + dim.circleR);
-                }
-
-                // ... is cut off at the bottom, shift up
-                else if (((d.middle*dim.tsSVGHeight) + ((d.cp/2)*dim.tsSVGHeight)) < dim.circleR) {
-                    d3.select(this).attr('y', dim.tsSVGHeight - 1 - dim.circleR);
-                }
-
-                // ... is not cut off, center vertically
-                return '.35em';
-            }
-            else {
-                // if the label, when centered vertically...
-                // ... is cut off at the top, shift down
-                if (((dim.tsSVGHeight-(d.top*dim.tsSVGHeight)) + ((d.cp/2)*dim.tsSVGHeight)) < dim.circleR) {
-                    d3.select(this).attr('y', '1px');
-                    return '.71em';
-                }
-
-                // ... is cut off at the bottom, shift up
-                else if (((d.bottom*dim.tsSVGHeight) + ((d.cp/2)*dim.tsSVGHeight)) < dim.circleR) {
-                    d3.select(this).attr('y', dim.tsSVGHeight);
-                    return '-1px';
-                }
-
-                // ... is not cut off, center vertically
-                return '.35em';
-            }
-
-        })
-        .attr('fill', 'black')
-        .attr('opacity', 0)
-        .attr('text-anchor', 'middle')
-        .style('pointer-events', 'none');
-
-
-    // PLOT AXES
-
-    // plot x-axis labels
-    d3.selectAll('.xAxisLabels')
-        .attr('x', function(d, i) { 
-            return (i / (vizObj.data.timepoints.length-1)) * (dim.tsSVGWidth) + dim.smallMargin + dim.yAxisWidth; 
-        });
-
-    // plot y-axis title
-    d3.select('.axisTitle.yAxis')
-        .attr('x', 0)
-        .attr('y', 0)
-        .transition()
-        .duration(300)
-        .attr('transform', function() {
-            return "translate(" + (dim.yAxisWidth/2) + ", " + (dim.tsSVGHeight/2) + ") rotate(-90)";
-        });
-
-    // plot x-axis title
-    d3.select('.axisTitle.xAxis')
-        .attr('x', dim.yAxisWidth + dim.smallMargin + dim.xAxisWidth/2);
-   
     return {}
     
   }
