@@ -166,7 +166,7 @@ HTMLWidgets.widget({
     // SET CONTENT
 
     // get colour scheme
-    _getColours(curVizObj);
+    _getPhyloColours(curVizObj);
     var colour_assignment = curVizObj.view.colour_assignment,
         alpha_colour_assignment = curVizObj.view.alpha_colour_assignment;
 

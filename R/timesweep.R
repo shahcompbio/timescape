@@ -53,8 +53,8 @@ timesweep <- function(clonal_prev,
                       genotype_position = "stack", 
                       perturbations = "NA", 
                       sort = TRUE, 
-                      width = NULL, 
-                      height = NULL) {
+                      width = 900, 
+                      height = 300) {
   
   # CHECK REQUIRED INPUTS ARE PRESENT 
   if (missing(clonal_prev)) {
