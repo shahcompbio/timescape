@@ -436,7 +436,7 @@ HTMLWidgets.widget({
         .attr('font-family', 'sans-serif')
         .attr('font-size', '15px')
         .attr('font-weight', 'bold')
-        .text('Tree'); 
+        .text('Phylogeny'); 
 
     // d3 tree layout
     var treePadding = 10,
