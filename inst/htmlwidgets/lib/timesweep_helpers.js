@@ -67,78 +67,16 @@ function _sweepClick(curVizObj) {
     dim.switchView = !dim.switchView;
 }
 
-/* function for genotype mouseover
+/* function to highlight a particular genotype in the timesweep and legend
 * @param {String} gtype -- the current genotype being moused over
-* @param {Boolean} showLabels -- whether or not to show labels
+* @param {Object} curVizObj -- vizObj for the current view
 */
-function _gtypeMouseover(gtype, curVizObj, showLabels) {
-    var brightness,
-        col,
-        dim = curVizObj.generalConfig,
-        colour_assignment = curVizObj.view.colour_assignment,
-        alpha_colour_assignment = curVizObj.view.alpha_colour_assignment,
-        x = curVizObj.userConfig;
+function _gtypeHighlight(gtype, curVizObj) {
+    var alpha_colour_assignment = curVizObj.view.alpha_colour_assignment,
+        colour_assignment = curVizObj.view.colour_assignment;
 
-    // dim other genotypes
-    d3.select("#" + curVizObj.view_id).selectAll('.tsPlot')
-        .attr('fill', function(d) { 
-            if (d.gtype != gtype) {
-                col = alpha_colour_assignment[d.gtype];
-                brightness = Math.round(_get_brightness(col));
-                return _rgb2hex("rgb(" + brightness + "," + brightness + "," + brightness + ")");
-            }
-            else {
-                return alpha_colour_assignment[d.gtype];
-            }
-        })
-        .attr('stroke', function(d) { 
-            if (d.gtype != gtype) {
-                brightness = Math.round(_get_brightness(colour_assignment[d.gtype]));
-                return _rgb2hex("rgb(" + brightness + "," + brightness + "," + brightness + ")");
-            }
-            else {
-                return colour_assignment[d.gtype];
-            }
-        });
-
-    // traditional view
-    if (dim.switchView) { 
-        if (showLabels) {
-            // show labels
-            d3.select("#" + curVizObj.view_id).selectAll(".label.gtype_" + gtype)
-                .attr('opacity', 1);
-
-            // show label backgrounds
-            d3.select("#" + curVizObj.view_id).selectAll(".labelCirc.gtype_" + gtype)
-                .attr('fill-opacity', 0.5);                
-        }
-    }
-
-    // tracks view
-    else { 
-        if (showLabels) {
-            // show labels
-            d3.select("#" + curVizObj.view_id).selectAll(".sepLabel.gtype_" + gtype)
-                .attr('opacity', 1);
-
-            // show label backgrounds
-            d3.select("#" + curVizObj.view_id).selectAll(".sepLabelCirc.gtype_" + gtype)
-                .attr('fill-opacity', 0.5);   
-        }             
-    }
-}
-
-/* function for genotype mouseout
-* @param {String} gtype -- the current genotype being moused out
-*/
-function _gtypeMouseout(gtype, curVizObj) {
-    var dim = curVizObj.generalConfig,
-        colour_assignment = curVizObj.view.colour_assignment,
-        alpha_colour_assignment = curVizObj.view.alpha_colour_assignment,
-        x = curVizObj.userConfig;
-
-    // reset colours
-    d3.select("#" + curVizObj.view_id).selectAll('.tsPlot')
+    // highlight genotype in timesweep
+    d3.select("#" + curVizObj.view_id).select('.tsPlot.gtype_' + gtype)
         .attr('fill', function(d) { 
             return alpha_colour_assignment[d.gtype];
         })
@@ -146,30 +84,62 @@ function _gtypeMouseout(gtype, curVizObj) {
             return colour_assignment[d.gtype];
         });
 
-    // traditional view
-    if (dim.switchView) {
-        // hide labels
-        d3.select("#" + curVizObj.view_id).selectAll(".label.gtype_" + gtype)
-            .attr('opacity', 0);
-
-        // hide label backgrounds
-        d3.select("#" + curVizObj.view_id).selectAll(".labelCirc.gtype_" + gtype)
-            .attr('fill-opacity', 0);
-    }
-
-    // tracks view
-    else {
-        // hide labels
-        d3.select("#" + curVizObj.view_id).selectAll(".sepLabel.gtype_" + gtype)
-            .attr('opacity', 0);
-
-        // hide label backgrounds
-        d3.select("#" + curVizObj.view_id).selectAll(".sepLabelCirc.gtype_" + gtype)
-            .attr('fill-opacity', 0);
-    }
+    // highlight genotype in legend
+    d3.select("#" + curVizObj.view_id).select('.treeNode.gtype_' + gtype)
+        .attr('fill', function(d) { 
+            return alpha_colour_assignment[d.id];
+        })
+        .attr('stroke', function(d) { 
+            return colour_assignment[d.id];
+        });
 }
 
-/* function to reset the main timesweep view
+/* function to shade the timesweep view
+*/
+function _shadeTimeSweep(curVizObj) {
+    var brightness,
+        col,
+        colour_assignment = curVizObj.view.colour_assignment,
+        alpha_colour_assignment = curVizObj.view.alpha_colour_assignment;
+
+    // dim genotypes in the timesweep
+    d3.select("#" + curVizObj.view_id).selectAll('.tsPlot')
+        .attr('fill', function(d) { 
+            col = alpha_colour_assignment[d.gtype];
+            brightness = Math.round(_get_brightness(col));
+            return _rgb2hex("rgb(" + brightness + "," + brightness + "," + brightness + ")");
+        })
+        .attr('stroke', function(d) { 
+            brightness = Math.round(_get_brightness(colour_assignment[d.gtype]));
+            return _rgb2hex("rgb(" + brightness + "," + brightness + "," + brightness + ")");
+        });
+}
+
+/* function to shade the legend
+*/
+function _shadeLegend(curVizObj) {
+    var brightness,
+        col,
+        dim = curVizObj.generalConfig,
+        colour_assignment = curVizObj.view.colour_assignment,
+        alpha_colour_assignment = curVizObj.view.alpha_colour_assignment;
+
+    // dim genotypes in the legend
+    d3.select("#" + curVizObj.view_id).selectAll('.treeNode')
+        .attr('fill', function(d) { 
+            col = alpha_colour_assignment[d.id];
+            brightness = Math.round(_get_brightness(col));
+            return (d.id == dim.phantomRoot) ? 
+                "none" : _rgb2hex("rgb(" + brightness + "," + brightness + "," + brightness + ")");
+        })
+        .attr('stroke', function(d) { 
+            brightness = Math.round(_get_brightness(colour_assignment[d.id]));
+            return (d.id == dim.phantomRoot) ? 
+                "none" : _rgb2hex("rgb(" + brightness + "," + brightness + "," + brightness + ")");
+        });
+}
+
+/* function to reset the main timesweep view and legend
 * @param {Object} curVizObj -- vizObj for the current view
 */
 function _resetView(curVizObj) {
@@ -178,7 +148,7 @@ function _resetView(curVizObj) {
         alpha_colour_assignment = curVizObj.view.alpha_colour_assignment,
         x = curVizObj.userConfig;
 
-    // reset colours
+    // reset colours in timesweep
     d3.select("#" + curVizObj.view_id).selectAll('.tsPlot')
         .attr('fill', function(d) { 
             return alpha_colour_assignment[d.gtype];
@@ -186,6 +156,56 @@ function _resetView(curVizObj) {
         .attr('stroke', function(d) { 
             return colour_assignment[d.gtype];
         });
+
+    // reset colours in legend
+    d3.select("#" + curVizObj.view_id).selectAll('.treeNode')
+        .attr('fill', function(d) { 
+            return (d.id == dim.phantomRoot) ? "none" : alpha_colour_assignment[d.id];
+        })
+        .attr('stroke', function(d) { 
+            return (d.id == dim.phantomRoot) ? "none" : colour_assignment[d.id];
+        });
+
+    // remove labels
+    _removeLabels(curVizObj);
+
+}
+
+/* function to show labels for a particular genotype
+* @param {String} gtype -- the current genotype being moused over
+* @param {Object} curVizObj -- vizObj for the current view
+*/
+function _showLabels(gtype, curVizObj) {
+    var dim = curVizObj.generalConfig;
+
+    // traditional view
+    if (dim.switchView) { 
+        // show labels
+        d3.select("#" + curVizObj.view_id).selectAll(".label.gtype_" + gtype)
+            .attr('opacity', 1);
+
+        // show label backgrounds
+        d3.select("#" + curVizObj.view_id).selectAll(".labelCirc.gtype_" + gtype)
+            .attr('fill-opacity', 0.5);                
+    }
+
+    // tracks view
+    else { 
+        // show labels
+        d3.select("#" + curVizObj.view_id).selectAll(".sepLabel.gtype_" + gtype)
+            .attr('opacity', 1);
+
+        // show label backgrounds
+        d3.select("#" + curVizObj.view_id).selectAll(".sepLabelCirc.gtype_" + gtype)
+            .attr('fill-opacity', 0.5);   
+    }
+}
+
+/* function to remove labels and label circles
+* @param {Object} curVizObj -- vizObj for the current view
+*/
+function _removeLabels(curVizObj) {
+    var dim = curVizObj.generalConfig;
 
     // traditional view
     if (dim.switchView) {

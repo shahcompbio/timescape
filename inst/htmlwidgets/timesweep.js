@@ -232,7 +232,7 @@ HTMLWidgets.widget({
             return d.gtype;
         })
         .enter().append('path')
-        .attr('class', function() { return 'tsPlot'; })
+        .attr('class', function(d) { return 'tsPlot gtype_' + d.gtype; })
         .attr('d', function(d) { return d.path; })
         .attr('fill', function(d) { 
             return alpha_colour_assignment[d.gtype];
@@ -242,12 +242,15 @@ HTMLWidgets.widget({
         })
         .on('mouseover', function(d) {
             if (!dim.selectOn) {
-                return _gtypeMouseover(d.gtype, curVizObj, true);
+                _shadeTimeSweep(curVizObj);
+                _shadeLegend(curVizObj);
+                _gtypeHighlight(d.gtype, curVizObj);
+                _showLabels(d.gtype, curVizObj);
             }
         })
         .on('mouseout', function(d) {
             if (!dim.selectOn) {
-                return _gtypeMouseout(d.gtype, curVizObj);
+                _resetView(curVizObj);
             }
         });
 
@@ -547,7 +550,7 @@ HTMLWidgets.widget({
         .append("circle")     
         .attr("cx", function(d) { return d.x})
         .attr("cy", function(d) { return d.y})              
-        .classed("treeNode", true) 
+        .attr("class", function(d) { return "treeNode gtype_" + d.id; })
         .attr("fill", function(d) {
             return (d.id == dim.phantomRoot) ? "none" : alpha_colour_assignment[d.id];
         })
@@ -557,13 +560,45 @@ HTMLWidgets.widget({
         .attr("id", function(d) { return d.sc_id; })
         .attr("r", 4)
         .on('mouseover', function(d) {
+            // if we're selecting nodes
+            if (dim.nClickedNodes > 0 && d.id != dim.phantomRoot) {
+                // highlight node in the legend
+                d3.select(this)
+                    .attr('fill', function(d) { 
+                        return alpha_colour_assignment[d.id];
+                    })
+                    .attr('stroke', function(d) { 
+                        return colour_assignment[d.id];
+                    });
+            }
+            // we're not selecting nodes - highlight genotype
             if (!dim.selectOn) {
-                return _gtypeMouseover(d.id, curVizObj, true);
+                _shadeTimeSweep(curVizObj);
+                _shadeLegend(curVizObj);
+                _gtypeHighlight(d.id, curVizObj);
+                _showLabels(d.id, curVizObj);
             }
         })
         .on('mouseout', function(d) {
+            // if we're selecting nodes, but we haven't clicked this one yet
+            if ((dim.nClickedNodes > 0) && (_.uniq(dim.curCloneIDs).indexOf(d.id) == -1)) {
+                // unhighlight this node in the legend
+                d3.select(this)
+                    .attr('fill', function(d) { 
+                        col = alpha_colour_assignment[d.id];
+                        brightness = Math.round(_get_brightness(col));
+                        return (d.id == dim.phantomRoot) ? 
+                            "none" : _rgb2hex("rgb(" + brightness + "," + brightness + "," + brightness + ")");
+                    })
+                    .attr('stroke', function(d) { 
+                        brightness = Math.round(_get_brightness(colour_assignment[d.id]));
+                        return (d.id == dim.phantomRoot) ? 
+                            "none" : _rgb2hex("rgb(" + brightness + "," + brightness + "," + brightness + ")");
+                    });
+            }
+            // we're not selecting nodes - mouseout as normal
             if (!dim.selectOn) {
-                return _gtypeMouseout(d.id, curVizObj)
+                return _resetView(curVizObj);
             }
         })
         .on("click", function(d) {
@@ -574,7 +609,7 @@ HTMLWidgets.widget({
                 dim.nClickedNodes++; // increment the number of clicked nodes
 
                 // reset view (get rid of any labels, etc.)
-                _resetView(curVizObj);
+                _removeLabels(curVizObj);
 
                 // get data for this clone
                 var filtered_muts = 
@@ -598,7 +633,9 @@ HTMLWidgets.widget({
                     _makeMutationTable(curVizObj, curVizObj.view.mutationTableDIV, filtered_muts,
                         dim.mutationTableHeight); 
 
-                    // shade view & legend TODO
+                    // shade view & legend 
+                    _shadeTimeSweep(curVizObj);
+                    _shadeLegend(curVizObj);
                 }
                 // otherwise
                 else {
@@ -613,8 +650,8 @@ HTMLWidgets.widget({
                     _addCloneSVGsToTable(curVizObj, dim.curCloneIDs);
                 }
 
-                // highlight this clone TODO
-                _gtypeMouseover(d.id, curVizObj, false);
+                // highlight this clone
+                _gtypeHighlight(d.id, curVizObj);
 
                 d3.event.stopPropagation();
             }
