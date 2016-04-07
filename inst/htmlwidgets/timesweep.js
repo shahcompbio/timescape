@@ -27,6 +27,8 @@ HTMLWidgets.widget({
         threshold: 0.005, // cellular prevalence threshold of visual detection
         legendGtypeHeight: 13, // height for each genotype in the legend
         clonalTrajectoryLabelHeight: 42,
+        curCloneIDs: [], // array of clone ids currently in the mutation table
+        nClickedNodes: 0, // number of clicked nodes
         phantomRoot: "phantomRoot" 
     };
 
@@ -218,7 +220,10 @@ HTMLWidgets.widget({
         .attr("y", 0)
         .attr("height", dim.tsSVGHeight)
         .attr("width", dim.tsSVGWidth)
-        .attr("fill", "#F1F1F1");
+        .attr("fill", "#F1F1F1")
+        .on("click", function() {
+            _backgroundClick(curVizObj);
+        });
 
     // plot timesweep data
     curVizObj.view.tsSVG
@@ -236,10 +241,14 @@ HTMLWidgets.widget({
             return colour_assignment[d.gtype]; 
         })
         .on('mouseover', function(d) {
-            return _gtypeMouseover(d.gtype, curVizObj);
+            if (!dim.selectOn) {
+                return _gtypeMouseover(d.gtype, curVizObj, true);
+            }
         })
         .on('mouseout', function(d) {
-            return _gtypeMouseout(d.gtype, curVizObj)
+            if (!dim.selectOn) {
+                return _gtypeMouseout(d.gtype, curVizObj);
+            }
         });
 
     // plot time point guides
@@ -389,12 +398,16 @@ HTMLWidgets.widget({
         .attr('font-size', '11px')
         .text(function(d) { return d.pert_name; })
         .on('mouseover', function(d) {
-            d3.select("#" + curVizObj.view_id)
-                .selectAll(".pertGuide.pert_" + d.pert_name).attr('stroke-opacity', 1); 
+            if (!dim.selectOn) {
+                d3.select("#" + curVizObj.view_id)
+                    .selectAll(".pertGuide.pert_" + d.pert_name).attr('stroke-opacity', 1); 
+            }
         })
         .on('mouseout', function(d) {
-            d3.select("#" + curVizObj.view_id)
-                .selectAll(".pertGuide.pert_" + d.pert_name).attr('stroke-opacity', 0);
+            if (!dim.selectOn) {
+                d3.select("#" + curVizObj.view_id)
+                    .selectAll(".pertGuide.pert_" + d.pert_name).attr('stroke-opacity', 0);
+            }
         });
 
     // plot guides
@@ -437,10 +450,14 @@ HTMLWidgets.widget({
         .attr('font-size', '11px')
         .text(function(d) { return d; })
         .on('mouseover', function(d) {
-            d3.select("#" + curVizObj.view_id).selectAll(".tpGuide.tp_" + d).attr('stroke-opacity', 1); 
+            if (!dim.selectOn) {
+                d3.select("#" + curVizObj.view_id).selectAll(".tpGuide.tp_" + d).attr('stroke-opacity', 1); 
+            }
         })
         .on('mouseout', function(d) {
-            d3.select("#" + curVizObj.view_id).selectAll(".tpGuide.tp_" + d).attr('stroke-opacity', 0);
+            if (!dim.selectOn) {
+                d3.select("#" + curVizObj.view_id).selectAll(".tpGuide.tp_" + d).attr('stroke-opacity', 0);
+            }
         });
 
     // plot y-axis title
@@ -540,10 +557,67 @@ HTMLWidgets.widget({
         .attr("id", function(d) { return d.sc_id; })
         .attr("r", 4)
         .on('mouseover', function(d) {
-            return _gtypeMouseover(d.id, curVizObj);
+            if (!dim.selectOn) {
+                return _gtypeMouseover(d.id, curVizObj, true);
+            }
         })
         .on('mouseout', function(d) {
-            return _gtypeMouseout(d.id, curVizObj)
+            if (!dim.selectOn) {
+                return _gtypeMouseout(d.id, curVizObj)
+            }
+        })
+        .on("click", function(d) {
+            // if there are mutations
+            if (curVizObj.userConfig.mutations[0] != "NA") {
+
+                dim.selectOn = true;
+                dim.nClickedNodes++; // increment the number of clicked nodes
+
+                // reset view (get rid of any labels, etc.)
+                _resetView(curVizObj);
+
+                // get data for this clone
+                var filtered_muts = 
+                    _.filter(curVizObj.data.mutations, function(mut) { return mut.clone_id == d.id; });
+
+                // if there's no data for this clone, add a row of "None"
+                if (filtered_muts.length == 0) { 
+                    filtered_muts = [{}];
+                    dim.mutationColumns.forEach(function(col) {
+                        filtered_muts[0][col.data] = (col.data == "empty") ? "" : "None";
+                    })
+                }
+                filtered_muts[0]["clone_id"] = d.id;
+
+                // if it's the first clicked node
+                if (dim.nClickedNodes == 1) {
+                    // delete existing data table
+                    d3.select("#" + curVizObj.view_id + "_mutationTable" + "_wrapper").remove();   
+
+                    // plot filtered data table
+                    _makeMutationTable(curVizObj, curVizObj.view.mutationTableDIV, filtered_muts,
+                        dim.mutationTableHeight); 
+
+                    // shade view & legend TODO
+                }
+                // otherwise
+                else {
+                    // add to existing data table
+                    var table = $("#" + curVizObj.view_id + "_mutationTable").DataTable();
+                    table.rows.add(filtered_muts).draw(false);
+
+                    // add this clone id to the list of clone ids in the mutation table
+                    dim.curCloneIDs = dim.curCloneIDs.concat(_.pluck(filtered_muts, "clone_id"));
+
+                    // plot clone svg circles in mutation table
+                    _addCloneSVGsToTable(curVizObj, dim.curCloneIDs);
+                }
+
+                // highlight this clone TODO
+                _gtypeMouseover(d.id, curVizObj, false);
+
+                d3.event.stopPropagation();
+            }
         });
 
     // SWITCH between traditional and tracks views

@@ -69,8 +69,9 @@ function _sweepClick(curVizObj) {
 
 /* function for genotype mouseover
 * @param {String} gtype -- the current genotype being moused over
+* @param {Boolean} showLabels -- whether or not to show labels
 */
-function _gtypeMouseover(gtype, curVizObj) {
+function _gtypeMouseover(gtype, curVizObj, showLabels) {
     var brightness,
         col,
         dim = curVizObj.generalConfig,
@@ -102,20 +103,24 @@ function _gtypeMouseover(gtype, curVizObj) {
 
     // traditional view
     if (dim.switchView) { 
-        // show labels
-        d3.select("#" + curVizObj.view_id).selectAll(".label.gtype_" + gtype)
-            .attr('opacity', 1);
+        if (showLabels) {
+            // show labels
+            d3.select("#" + curVizObj.view_id).selectAll(".label.gtype_" + gtype)
+                .attr('opacity', 1);
 
-        // show label backgrounds
-        d3.select("#" + curVizObj.view_id).selectAll(".labelCirc.gtype_" + gtype)
-            .attr('fill-opacity', 0.5);                
+            // show label backgrounds
+            d3.select("#" + curVizObj.view_id).selectAll(".labelCirc.gtype_" + gtype)
+                .attr('fill-opacity', 0.5);                
+        }
     }
 
     // tracks view
     else { 
-        // show labels
-        d3.select("#" + curVizObj.view_id).selectAll(".sepLabel.gtype_" + gtype)
-            .attr('opacity', 1);
+        if (showLabels) {
+            // show labels
+            d3.select("#" + curVizObj.view_id).selectAll(".sepLabel.gtype_" + gtype)
+                .attr('opacity', 1);
+        }
 
         // show label backgrounds
         d3.select("#" + curVizObj.view_id).selectAll(".sepLabelCirc.gtype_" + gtype)
@@ -162,6 +167,72 @@ function _gtypeMouseout(gtype, curVizObj) {
         d3.select("#" + curVizObj.view_id).selectAll(".sepLabelCirc.gtype_" + gtype)
             .attr('fill-opacity', 0);
     }
+}
+
+/* function to reset the main timesweep view
+* @param {Object} curVizObj -- vizObj for the current view
+*/
+function _resetView(curVizObj) {
+    var dim = curVizObj.generalConfig,
+        colour_assignment = curVizObj.view.colour_assignment,
+        alpha_colour_assignment = curVizObj.view.alpha_colour_assignment,
+        x = curVizObj.userConfig;
+
+    // reset colours
+    d3.select("#" + curVizObj.view_id).selectAll('.tsPlot')
+        .attr('fill', function(d) { 
+            return alpha_colour_assignment[d.gtype];
+        })
+        .attr('stroke', function(d) { 
+            return colour_assignment[d.gtype];
+        });
+
+    // traditional view
+    if (dim.switchView) {
+        // hide labels
+        d3.select("#" + curVizObj.view_id).selectAll(".label").attr('opacity', 0);
+
+        // hide label backgrounds
+        d3.select("#" + curVizObj.view_id).selectAll(".labelCirc").attr('fill-opacity', 0);
+    }
+
+    // tracks view
+    else {
+        // hide labels
+        d3.select("#" + curVizObj.view_id).selectAll(".sepLabel").attr('opacity', 0);
+
+        // hide label backgrounds
+        d3.select("#" + curVizObj.view_id).selectAll(".sepLabelCirc").attr('fill-opacity', 0);
+    }
+}
+
+/* background click function (turns off selections, resets view)
+* @param {Object} curVizObj -- vizObj for the current view
+*/
+function _backgroundClick(curVizObj) {
+    var dim = curVizObj.generalConfig;
+
+    // if there was just a link selection, refresh the mutations table
+    if (dim.selectOn) {
+        // delete existing data table
+        d3.select("#" + curVizObj.view_id + "_mutationTable" + "_wrapper").remove();
+
+        // make new full table
+        _makeMutationTable(curVizObj, curVizObj.view.mutationTableDIV, curVizObj.data.mutations,
+            dim.mutationTableHeight);
+    }
+
+    dim.selectOn = false;
+    dim.mutSelectOn = false;
+    dim.nClickedNodes = 0;
+    dim.curCloneIDs = [];
+
+    // mark all mutations as unselected
+    d3.select("#" + curVizObj.view_id + "_mutationTable").selectAll("tr").classed('selected', false);
+
+    // remove all mutation prevalences information from view TODO
+
+    _resetView(curVizObj);
 }
 
 // TREE FUNCTIONS
