@@ -71,7 +71,7 @@ HTMLWidgets.widget({
     dim.tsSVGWidth = dim.canvasSVGWidth - dim.legendWidth - dim.yAxisWidth - dim.smallMargin - dim.paddingGeneral;
     dim.xAxisWidth = dim.tsSVGWidth;
     dim.yAxisHeight = dim.tsSVGHeight;
-    dim.mutationTableHeight = dim.canvasSVGHeight - dim.tsSVGHeight;
+    dim.mutationTableHeight = dim.canvasSVGHeight - dim.tsSVGHeight - dim.smallMargin - 25;
     dim.mutationTableWidth = dim.tsSVGWidth;
 
     // adjust canvas SVG height if mutation table is present

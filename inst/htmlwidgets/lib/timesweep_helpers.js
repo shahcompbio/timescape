@@ -120,11 +120,11 @@ function _gtypeMouseover(gtype, curVizObj, showLabels) {
             // show labels
             d3.select("#" + curVizObj.view_id).selectAll(".sepLabel.gtype_" + gtype)
                 .attr('opacity', 1);
-        }
 
-        // show label backgrounds
-        d3.select("#" + curVizObj.view_id).selectAll(".sepLabelCirc.gtype_" + gtype)
-            .attr('fill-opacity', 0.5);                
+            // show label backgrounds
+            d3.select("#" + curVizObj.view_id).selectAll(".sepLabelCirc.gtype_" + gtype)
+                .attr('fill-opacity', 0.5);   
+        }             
     }
 }
 
