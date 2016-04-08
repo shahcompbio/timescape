@@ -180,7 +180,6 @@ timesweep <- function(clonal_prev,
   # MUTATIONS DATA
 
   if (is.data.frame(mutations)) {
-    print("[Progress] Processing mutations data...")
 
     # ensure column names are correct
     if (!("chrom" %in% colnames(mutations)) ||
@@ -244,8 +243,6 @@ timesweep <- function(clonal_prev,
     # MUTATION PREVALENCES DATA
 
     mutation_prevalences <- mutations
-
-    print("[Progress] Processing mutation prevalences data...")
 
     # keep only those mutations whose clone ids are present in the phylogeny
     mutation_prevalences <- mutation_prevalences[which(mutation_prevalences$clone_id %in% clones_in_phylo),]
