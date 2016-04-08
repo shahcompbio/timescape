@@ -37,122 +37,106 @@ function _makeMutationTable(curVizObj, mutationTableDIV, data, table_height) {
 	// when mutation table is set up
 	curVizObj.mutTableDef.done(function() {
 
-	// 	// d3 effects
-	// 	$("#" + view_id + "_mutationTable")
-	//         .on('click', 'tr', function () { 
+		// d3 effects
+		$("#" + view_id + "_mutationTable")
+	        .on('click', 'tr', function () { 
 	        	
 
-	//         	// if mutation is already selected, 
-	//         	if ($(this).hasClass("selected")) {
-	//         		// switch mutation selection to false
-	//         		dim.mutSelectOn = false;
-	//         	}
-	//         	// otherwise, 
-	//         	else {
-	//         		// switch on mutation selection
-	//         		dim.mutSelectOn = true;
-	//         	}
+	        	// if mutation is already selected, 
+	        	if ($(this).hasClass("selected")) {
+	        		// switch mutation selection to false
+	        		dim.mutSelectOn = false;
+	        	}
+	        	// otherwise, 
+	        	else {
+	        		// switch on mutation selection
+	        		dim.mutSelectOn = true;
+	        	}
 
-	//         	// MUTATION SELECTED
+	        	// MUTATION SELECTED
 
-	//         	if (dim.mutSelectOn) {
+	        	if (dim.mutSelectOn) {
 
-	// 	        	// data for the row on mouseover
-	// 	        	var cur_data = table.rows(this).data()[0];
-	// 	        	if (!dim.selectOn && !dim.dragOn) {
+		        	// data for the row on mouseover
+		        	var cur_data = table.rows(this).data()[0];
+		        	if (!dim.selectOn && !dim.dragOn) {
 
-	// 	        		// if a different row was previously selected
-	// 	        		if (d3.select("#" + curVizObj.view_id).selectAll(".selected")[0].length == 1) {
+		        		// if a different row was previously selected
+		        		if (d3.select("#" + curVizObj.view_id).selectAll(".selected")[0].length == 1) {
 
-	// 	        			// deselect that row
-	// 		        		d3.select("#" + curVizObj.view_id).select(".selected").classed("selected", false);
+		        			// deselect that row
+			        		d3.select("#" + curVizObj.view_id).select(".selected").classed("selected", false);
 
-	// 		        		// remove all mutation prevalences information from view
- //    						d3.select("#" + curVizObj.view_id).selectAll(".mutationPrev").remove();
+			        		// remove all mutation prevalences information from view
+    						d3.select("#" + curVizObj.view_id).selectAll(".mutationPrev").remove();
 
- //    						// unhighlight (red) the previous link
- //    						d3.select("#" + view_id).selectAll(".legendTreeLink").attr("stroke", dim.neutralGrey);
-	// 		        	}
+    						// unhighlight (red) the previous link
+    						d3.select("#" + view_id).selectAll(".legendTreeLink").attr("stroke", dim.treeLinkColour);
+			        	}
 
-	// 	        		// shade main view & legend tree nodes & links
-	//                     _shadeMainView(curVizObj);
- //                    	_shadeLegend(curVizObj);
+		        		// shade main view & legend 
+	                    _shadeTimeSweep(curVizObj);
+                    	_shadeLegend(curVizObj);
 
- //                    	// highlight this link
-	//                     d3.select("#" + curVizObj.view_id)
-	//                         .select(".legendTreeLink." + cur_data.link_id)
-	//                         .attr("stroke", "red");
+                    	//highlight this link TODO
+	                    d3.select("#" + view_id)
+	                        .select(".legendTreeLink." + cur_data.link_id)
+	                        .attr("stroke", "red");
 
-	//                     // highlight all elements downstream of link
-	//                     _propagatedEffects(curVizObj, cur_data.link_id, curVizObj.link_ids, "downstream");
+	                    // highlight all elements downstream of link TODO
+	                    // _propagatedEffects(curVizObj, cur_data.link_id, curVizObj.link_ids, "downstream");
 
-	// 	        		// mark as selected
-	//         			$(this).addClass('selected');
+		        		// mark as selected
+	        			$(this).addClass('selected');
 
- //                        // if mutation prevalences exist, show them for this mutation
- //                        if (curVizObj.userConfig.mutation_prevalences) {
- //                        	// genomic location of mutation
- //                            var location = cur_data.chrom + ":" + cur_data.coord; 
+                        // if mutation prevalences exist, show them for this mutation
+                        if (curVizObj.userConfig.mutation_prevalences) {
+                        	// genomic location of mutation
+                            var location = cur_data.chrom + ":" + cur_data.coord; 
 
- //                            // prevalences of this mutation at each sample
- //                            var cur_prevs = curVizObj.userConfig.mutation_prevalences[location]; 
+                            // prevalences of this mutation at each sample
+                            var cur_prevs = curVizObj.userConfig.mutation_prevalences[location]; 
 
- //                            // threshold for mutation prevalence
- //                            var threshold = 0.01;
+                            // threshold for mutation prevalence
+                            var threshold = 0.01;
 
- //                            // filter mutations (get rid of those < threshold)
- //                            var cur_prevs_filtered = _.filter(cur_prevs, function(VAF) { 
- //                            	return VAF.VAF >= threshold; 
- //                            });
+                            // filter mutations (get rid of those < threshold)
+                            var cur_prevs_filtered = _.filter(cur_prevs, function(VAF) { 
+                            	return VAF.VAF >= threshold; 
+                            });
 
- //                            d3.select("#" + view_id).select(".viewSVG")
- //                            	.append("g")
- //                            	.attr("class", "mutationPrevalences")
- //                            	.selectAll(".mutationPrev")
- //                            	.data(cur_prevs_filtered)
- //                            	.enter().append("text")
- //                            	.attr("class", "mutationPrev")
- //                            	.attr("x", function(d) {
-
- //                            		// anatomic line object
- //                            		var line = d3.select("#" + view_id).select(".anatomicPointer.sample_"+d.sample_id);
-
- //                            		// coordinates of point a certain distance after anatomic line
- //                            		var coords = _fromLineGetPoint(line, dim.oncoMixWidth/2 - 2, "1");
-
- //                            		// anatomic pointer coordinates
- //                            		return coords.x;
- //                            	})
- //                            	.attr("y", function(d) {
-
- //                            		// anatomic line object
- //                            		var line = d3.select("#" + view_id).select(".anatomicPointer.sample_"+d.sample_id);
-
- //                            		// coordinates of point a certain distance after anatomic line
- //                            		var coords = _fromLineGetPoint(line, dim.oncoMixWidth/2 - 2, "1");
-
- //                            		// anatomic pointer coordinates
- //                            		return coords.y;
- //                            	})
- //                            	.attr("text-anchor", "middle")
- //                            	.attr("dy", "+0.35em")
- //                            	.attr("font-family", "sans-serif")
- //                            	.attr("font-size", 10) 
- //                            	.text(function(d) { 
- //                            		return (Math.round(d.VAF*100)/100).toFixed(2); 
- //                            	});
+                            d3.select("#" + view_id).select(".viewSVG")
+                            	.append("g")
+                            	.attr("class", "mutationPrevalences")
+                            	.selectAll(".mutationPrev")
+                            	.data(cur_prevs_filtered)
+                            	.enter().append("text")
+                            	.attr("class", "mutationPrev")
+                            	.attr("x", function(d) {
+                            		// TODO
+                            	})
+                            	.attr("y", function(d) {
+                            		// TODO
+                            	})
+                            	.attr("text-anchor", "middle")
+                            	.attr("dy", "+0.35em")
+                            	.attr("font-family", "sans-serif")
+                            	.attr("font-size", 10) 
+                            	.text(function(d) { 
+                            		return (Math.round(d.VAF*100)/100).toFixed(2); 
+                            	});
                             
- //                        }
-	// 	            }        		
-	//         	}
+                        }
+		            }        		
+	        	}
 
-	//         	// MUTATION DE-SELECTED (click anywhere in table)
+	        	// MUTATION DE-SELECTED (click anywhere in table)
 
-	//         	else {
-	//         		_backgroundClick(curVizObj);
-	//         	}
+	        	else {
+	        		_backgroundClick(curVizObj);
+	        	}
 
-	//         });
+	        });
 
 
 		// add clone SVGs

@@ -250,6 +250,9 @@ function _backgroundClick(curVizObj) {
     // mark all mutations as unselected
     d3.select("#" + curVizObj.view_id + "_mutationTable").selectAll("tr").classed('selected', false);
 
+    // unhighlight phylogeny links (highlighting occurs when mutation selected)
+    d3.select("#" + curVizObj.view_id).selectAll(".legendTreeLink").attr("stroke", dim.treeLinkColour);
+
     // remove all mutation prevalences information from view TODO
 
     _resetView(curVizObj);
@@ -1880,11 +1883,15 @@ function _reformatMutations(curVizObj) {
     // convert object into array
     original_muts.forEach(function(mut) {
 
+        // link id where mutation occurred
+        var link_id = "treeLink_" + curVizObj.data.direct_ancestors[mut.clone_id] + "_" +  mut.clone_id;
+
         // add this gene to the array
         var cur_mut = {
             "chrom": mut.chrom,
             "coord": mut.coord,
             "empty": "", // add an empty string for an empty column (clone column) that will contain an SVG
+            "link_id": link_id,
             "clone_id": mut.clone_id
         }
         if (mut.hasOwnProperty("gene_name")) {

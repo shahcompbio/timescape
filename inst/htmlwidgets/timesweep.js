@@ -29,7 +29,8 @@ HTMLWidgets.widget({
         clonalTrajectoryLabelHeight: 42,
         curCloneIDs: [], // array of clone ids currently in the mutation table
         nClickedNodes: 0, // number of clicked nodes
-        phantomRoot: "phantomRoot" 
+        phantomRoot: "phantomRoot",
+        treeLinkColour: "black"
     };
 
     // global variable vizObj
@@ -147,6 +148,9 @@ HTMLWidgets.widget({
 
     // GET CONTENT
 
+    // extract all info from tree about nodes, edges, ancestors, descendants
+    _getTreeInfo(curVizObj);
+
     // get mutation data in better format
     if (curVizObj.userConfig.mutations[0] != "NA") {
         _reformatMutations(curVizObj);
@@ -167,9 +171,6 @@ HTMLWidgets.widget({
             dim.mutationColumns.push({ "data": "impact", "title": "Impact" });
         } 
     }
-
-    // extract all info from tree about nodes, edges, ancestors, descendants
-    _getTreeInfo(curVizObj);
 
     // move the tree SVG down by the height of the legend
     // 25 for legend title and space
@@ -241,7 +242,7 @@ HTMLWidgets.widget({
             return colour_assignment[d.gtype]; 
         })
         .on('mouseover', function(d) {
-            if (!dim.selectOn) {
+            if (!dim.selectOn && !dim.mutSelectOn) {
                 _shadeTimeSweep(curVizObj);
                 _shadeLegend(curVizObj);
                 _gtypeHighlight(d.gtype, curVizObj);
@@ -249,7 +250,7 @@ HTMLWidgets.widget({
             }
         })
         .on('mouseout', function(d) {
-            if (!dim.selectOn) {
+            if (!dim.selectOn && !dim.mutSelectOn) {
                 _resetView(curVizObj);
             }
         });
@@ -533,13 +534,18 @@ HTMLWidgets.widget({
     });
 
     // create links
+    curVizObj.link_ids = [];
     var link = curVizObj.view.tsTree.append("g")
         .classed("treeLinks", true)
-        .selectAll(".treeLink")                  
+        .selectAll(".legendTreeLink")                  
         .data(links)                   
         .enter().append("path")                   
-        .attr("class","treeLink")
-        .attr('stroke', 'black')
+        .attr("class", function(d) { 
+            d.link_id = "treeLink_" + d.source.id + "_" + d.target.id;
+            curVizObj.link_ids.push(d.link_id);
+            return "legendTreeLink " + d.link_id;
+        })
+        .attr('stroke', dim.treeLinkColour)
         .attr('fill', 'none')                
         .attr("d", _elbow); 
 
@@ -571,8 +577,8 @@ HTMLWidgets.widget({
                         return colour_assignment[d.id];
                     });
             }
-            // we're not selecting nodes - highlight genotype
-            if (!dim.selectOn) {
+            // we're not selecting nodes or mutations - highlight genotype
+            if (!dim.selectOn && !dim.mutSelectOn) {
                 _shadeTimeSweep(curVizObj);
                 _shadeLegend(curVizObj);
                 _gtypeHighlight(d.id, curVizObj);
@@ -596,14 +602,14 @@ HTMLWidgets.widget({
                             "none" : _rgb2hex("rgb(" + brightness + "," + brightness + "," + brightness + ")");
                     });
             }
-            // we're not selecting nodes - mouseout as normal
-            if (!dim.selectOn) {
+            // we're not selecting nodes or mutations - mouseout as normal
+            if (!dim.selectOn && !dim.mutSelectOn) {
                 return _resetView(curVizObj);
             }
         })
         .on("click", function(d) {
-            // if there are mutations
-            if (curVizObj.userConfig.mutations[0] != "NA") {
+            // if there are mutations and we're not selecting any of them
+            if (curVizObj.userConfig.mutations[0] != "NA" && !dim.mutSelectOn) {
 
                 dim.selectOn = true;
                 dim.nClickedNodes++; // increment the number of clicked nodes
