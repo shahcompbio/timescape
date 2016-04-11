@@ -61,67 +61,69 @@ function _makeMutationTable(curVizObj, mutationTableDIV, data, table_height) {
 
 		        	// data for the row on mouseover
 		        	var cur_data = table.rows(this).data()[0];
+		        	if (!dim.selectOn) {
 
-		        	// if a different row was previously selected
-	        		if (d3.select("#" + curVizObj.view_id).selectAll(".selected")[0].length == 1) {
+		        		// if a different row was previously selected
+		        		if (d3.select("#" + curVizObj.view_id).selectAll(".selected")[0].length == 1) {
 
-	        			// deselect that row
-		        		d3.select("#" + curVizObj.view_id).select(".selected").classed("selected", false);
+		        			// deselect that row
+			        		d3.select("#" + curVizObj.view_id).select(".selected").classed("selected", false);
 
-		        		// remove all mutation prevalences information from view
-						d3.select("#" + curVizObj.view_id).selectAll(".mutationPrev").remove();
+			        		// remove all mutation prevalences information from view
+    						d3.select("#" + curVizObj.view_id).selectAll(".mutationPrev").remove();
 
-						// unhighlight (red) the previous link
-						d3.select("#" + view_id).selectAll(".legendTreeLink").attr("stroke", dim.treeLinkColour);
-		        	}
+    						// unhighlight (red) the previous link
+    						d3.select("#" + view_id).selectAll(".legendTreeLink").attr("stroke", dim.treeLinkColour);
+			        	}
 
-	        		// shade main view & legend 
-                    _shadeTimeSweep(curVizObj);
-                	_shadeLegend(curVizObj);
+		        		// shade main view & legend 
+	                    _shadeTimeSweep(curVizObj);
+                    	_shadeLegend(curVizObj);
 
-                	//highlight this link TODO
-                    d3.select("#" + view_id)
-                        .select(".legendTreeLink." + cur_data.link_id)
-                        .attr("stroke", "red");
+                    	//highlight this link TODO
+	                    d3.select("#" + view_id)
+	                        .select(".legendTreeLink." + cur_data.link_id)
+	                        .attr("stroke", "red");
 
-                    // highlight all elements downstream of link TODO
-                    _propagatedEffects(curVizObj, cur_data.link_id, curVizObj.link_ids, "downstream");
+	                    // highlight all elements downstream of link TODO
+	                    _propagatedEffects(curVizObj, cur_data.link_id, curVizObj.link_ids, "downstream");
 
-	        		// mark as selected
-        			$(this).addClass('selected');
+		        		// mark as selected
+	        			$(this).addClass('selected');
 
-                    // if mutation prevalences exist, show them for this mutation
-                    if (curVizObj.userConfig.mutation_prevalences) {
-                    	// genomic location of mutation
-                        var location = cur_data.chrom + ":" + cur_data.coord; 
+                        // if mutation prevalences exist, show them for this mutation
+                        if (curVizObj.userConfig.mutation_prevalences) {
+                        	// genomic location of mutation
+                            var location = cur_data.chrom + ":" + cur_data.coord; 
 
-                        // prevalences of this mutation at each sample
-                        var cur_prevs = curVizObj.userConfig.mutation_prevalences[location]; 
+                            // prevalences of this mutation at each sample
+                            var cur_prevs = curVizObj.userConfig.mutation_prevalences[location]; 
 
-                        // threshold for mutation prevalence
-                        var threshold = 0.01;
+                            // threshold for mutation prevalence
+                            var threshold = 0.01;
 
-                        // filter mutations (get rid of those < threshold)
-                        var cur_prevs_filtered = _.filter(cur_prevs, function(VAF) { 
-                        	return VAF.VAF >= threshold; 
-                        });
+                            // filter mutations (get rid of those < threshold)
+                            var cur_prevs_filtered = _.filter(cur_prevs, function(VAF) { 
+                            	return VAF.VAF >= threshold; 
+                            });
 
-	        			// for each prevalence
-	        			cur_prevs_filtered.forEach(function(prev) {
+		        			// for each prevalence
+		        			cur_prevs_filtered.forEach(function(prev) {
 
-	        				// tooltip for mutation VAFs
-	        				curVizObj.tip.html(function(d) {
-						    		return "<span>" + d + "</span>";
-						  		})	
+		        				// tooltip for mutation VAFs
+		        				curVizObj.tip.html(function(d) {
+							    		return "<span>" + d + "</span>";
+							  		})	
 
-						  	// invoke the tip in the context of this visualization
-						  	d3.select("#" + view_id).select(".canvasSVG").call(curVizObj.tip);
+							  	// invoke the tip in the context of this visualization
+							  	d3.select("#" + view_id).select(".canvasSVG").call(curVizObj.tip);
 
-						  	// show tooltip
-						  	var rounded_VAF = (Math.round(prev.VAF*100)/100).toFixed(2);
-						  	curVizObj.tip.show(rounded_VAF, d3.select("#" + view_id).select(".xAxisLabels.tp_" + prev.timepoint)[0][0]);
-	        			})
-                    }
+							  	// show tooltip
+							  	var rounded_VAF = (Math.round(prev.VAF*100)/100).toFixed(2);
+							  	curVizObj.tip.show(rounded_VAF, d3.select("#" + view_id).select(".xAxisLabels.tp_" + prev.timepoint)[0][0]);
+		        			})
+                        }
+		            }        		
 	        	}
 
 	        	// MUTATION DE-SELECTED (click anywhere in table)
