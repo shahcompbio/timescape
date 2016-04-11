@@ -38,7 +38,7 @@
 #'                                             time of perturbation, range [0, 1].
 #' @param sort {Boolean} (Optional) Whether (TRUE) or not (FALSE) to vertically sort the genotypes by their emergence values (descending).
 #' @param width {Number} (Optional) Width of the plot. Minimum width is 450.
-#' @param height {Number} (Optional) Height of the plot. Minimum height with and without mutations is 500 and 250, respectively. 
+#' @param height {Number} (Optional) Height of the plot. Minimum height with and without mutations is 500 and 260, respectively. 
 #' @export
 #' @examples
 #' library("timesweep")
@@ -59,7 +59,7 @@ timesweep <- function(clonal_prev,
                       mutations = "NA",
                       clone_colours = "NA", 
                       xaxis_title = "Time Point", 
-                      yaxis_title = "Relative Cellular Prevalence", 
+                      yaxis_title = "Relative Clonal Prevalence", 
                       alpha = 50, 
                       genotype_position = "stack", 
                       perturbations = "NA", 
@@ -71,8 +71,8 @@ timesweep <- function(clonal_prev,
 
   # set height if not set by user
   if (is.null(height)) {
-    if (mutations == "NA") { # no mutations
-      height = 250
+    if (!is.data.frame(mutations)) { # no mutations
+      height = 260
     }
     else { # mutations
       height = 500
@@ -81,8 +81,8 @@ timesweep <- function(clonal_prev,
 
   # check height is big enough 
   min_width = 450
-  if (mutations == "NA") { # no mutations
-    min_height = 250
+  if (!is.data.frame(mutations)) { # no mutations
+    min_height = 260
   }
   else { # mutations
     min_height = 500
@@ -156,8 +156,7 @@ timesweep <- function(clonal_prev,
     }
   }
 
-  print("remaining sources")
-  print(sources)
+  # if multiple roots are detected, throw error
   if (length(sources) > 1) {
     stop(paste("Multiple roots detected in tree (",paste(sources,collapse=", "),
       ") - tree must have only one root.",sep=""))
@@ -242,6 +241,16 @@ timesweep <- function(clonal_prev,
       stop(paste("The following clone ID(s) are present in the mutations data but ",
         "are missing from the clonal prevalence data: ",
         paste(clone_ids_missing_from_clonal_prev_data, collapse=", "), ".", sep=""))
+    }
+
+    # check that all TIMEPOINTS in the mutations data are present in the clonal prev data
+    mutations_tps <- unique(mutations$timepoint)
+    clonal_prev_tps <- unique(clonal_prev$timepoint)
+    tps_missing_from_clonal_prev_data <- setdiff(mutations_tps, clonal_prev_tps)
+    if (length(tps_missing_from_clonal_prev_data) > 0) {
+      stop(paste("The following timepoint(s) are present in the mutations data but ",
+        "are missing from the clonal prevalence data: ",
+        paste(tps_missing_from_clonal_prev_data, collapse=", "), ".", sep=""))
     }
 
     # create a location column, combining the chromosome and the coordinate
