@@ -93,10 +93,7 @@ HTMLWidgets.widget({
         .style("width", dim.mutationTableWidth + "px")
         .style("height", dim.mutationTableHeight + "px")
         .style("left", (dim.yAxisWidth + dim.smallMargin + dim.paddingGeneral) + "px")
-        .style("float", "left")
-        .on("click", function() {
-            _backgroundClick(curVizObj);
-        });
+        .style("float", "left");
 
     var canvasSVG = canvasDIV
         .append("svg:svg")  
