@@ -24,7 +24,7 @@ function _makeMutationTable(curVizObj, mutationTableDIV, data, table_height) {
 	    table = $("#" + view_id + "_mutationTable").DataTable({
 	      	"data": data,
 	      	"columns": dim.mutationColumns,
-		    "scrollY":        table_height - 90, // - 90 for search bar, etc.
+		    "scrollY":        table_height - 50, // - 50 for search bar, etc.
 	        "scrollCollapse": true,
 	        "paging":         false,
 	        "info": 		  false,
