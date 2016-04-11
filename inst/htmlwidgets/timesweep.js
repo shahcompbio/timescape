@@ -93,7 +93,10 @@ HTMLWidgets.widget({
         .style("width", dim.mutationTableWidth + "px")
         .style("height", dim.mutationTableHeight + "px")
         .style("left", (dim.yAxisWidth + dim.smallMargin + dim.paddingGeneral) + "px")
-        .style("float", "left");
+        .style("float", "left")
+        .on("click", function() {
+            _backgroundClick(curVizObj);
+        });
 
     var canvasSVG = canvasDIV
         .append("svg:svg")  
@@ -106,7 +109,10 @@ HTMLWidgets.widget({
         .style("margin-right",  dim.paddingGeneral)
         .style("margin-left",  dim.paddingGeneral)
         .style("margin-top",  dim.paddingGeneral)
-        .style("margin-bottom",  dim.paddingGeneral);
+        .style("margin-bottom",  dim.paddingGeneral)
+        .on("click", function() {
+            _backgroundClick(curVizObj);
+        });
 
     var tsSVG = canvasSVG
         .append("g")  
