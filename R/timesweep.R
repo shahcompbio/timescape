@@ -37,8 +37,8 @@
 #'                       (3) {Number} "frac" - the fraction of total tumour content remaining at the 
 #'                                             time of perturbation, range [0, 1].
 #' @param sort {Boolean} (Optional) Whether (TRUE) or not (FALSE) to vertically sort the genotypes by their emergence values (descending).
-#' @param width {Number} (Optional) Width of the plot. 
-#' @param height {Number} (Optional) Height of the plot.
+#' @param width {Number} (Optional) Width of the plot. Minimum width is 450.
+#' @param height {Number} (Optional) Height of the plot. Minimum height with and without mutations is 500 and 250, respectively. 
 #' @export
 #' @examples
 #' library("timesweep")
@@ -70,15 +70,17 @@ timesweep <- function(clonal_prev,
   # ENSURE MINIMUM DIMENSIONS SATISFIED
 
   # set height if not set by user
-  if (mutations == "NA") { # no mutations
-    height = 250
-  }
-  else { # mutations
-    height = 500
+  if (is.null(height)) {
+    if (mutations == "NA") { # no mutations
+      height = 250
+    }
+    else { # mutations
+      height = 500
+    }
   }
 
   # check height is big enough 
-  min_width = 600
+  min_width = 450
   if (mutations == "NA") { # no mutations
     min_height = 250
   }

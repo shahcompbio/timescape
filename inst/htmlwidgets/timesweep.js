@@ -66,7 +66,7 @@ HTMLWidgets.widget({
     // configuration based on available data
     dim.canvasSVGWidth = dim.width - dim.paddingGeneral - dim.paddingGeneral;
     dim.canvasSVGHeight = dim.height - dim.paddingGeneral - dim.paddingGeneral;
-    dim.tsSVGHeight = (curVizObj.userConfig.mutations == ["NA"]) ? 
+    dim.tsSVGHeight = (curVizObj.userConfig.mutations[0] == "NA") ? 
                         dim.canvasSVGHeight - dim.xAxisHeight - dim.smallMargin :
                         250;
     dim.tsSVGWidth = dim.canvasSVGWidth - dim.legendWidth - dim.yAxisWidth - dim.smallMargin - dim.paddingGeneral;
@@ -76,7 +76,7 @@ HTMLWidgets.widget({
     dim.mutationTableWidth = dim.tsSVGWidth;
 
     // adjust canvas SVG height if mutation table is present
-    dim.canvasSVGHeight -= (curVizObj.userConfig.mutations == ["NA"]) ? 
+    dim.canvasSVGHeight -= (curVizObj.userConfig.mutations[0] == "NA") ? 
                             0 : 
                             dim.mutationTableHeight;
 
