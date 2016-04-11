@@ -144,6 +144,25 @@ timesweep <- function(clonal_prev,
   # get list of clones in the phylogeny
   clones_in_phylo <- unique(c(tree_edges$source, tree_edges$target))
 
+  # check for tree rootedness
+  sources <- unique(tree_edges$source)
+  targets <- unique(tree_edges$target)
+  for (i in 1:length(sources)) {
+    cur_source <- sources[i]
+
+    # if the source is a target, remove it from the sources list
+    if (cur_source %in% targets) {
+      sources <- sources[sources != cur_source]
+    }
+  }
+
+  print("remaining sources")
+  print(sources)
+  if (length(sources) > 1) {
+    stop(paste("Multiple roots detected in tree (",paste(sources,collapse=", "),
+      ") - tree must have only one root.",sep=""))
+  }
+
   # GENOTYPE POSITIONING
 
   if (!(genotype_position %in% c("stack", "centre", "space"))) {
