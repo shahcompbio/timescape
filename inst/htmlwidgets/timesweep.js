@@ -209,6 +209,14 @@ HTMLWidgets.widget({
 
     // SET CONTENT
 
+    // tooltip for mutation VAFs
+    curVizObj.tip = d3.tip()
+        .attr('class', 'd3-tip')
+        .offset([-10,0])
+        .html(function(d) {
+            return "<strong>VAF:</strong> <span>" + d.VAF + "</span>";
+        }); 
+
     // get colour scheme
     _getPhyloColours(curVizObj);
     var colour_assignment = curVizObj.view.colour_assignment,
@@ -272,6 +280,8 @@ HTMLWidgets.widget({
 
     // plot cellular prevalence labels at each time point - traditional timesweep view 
     var labels = curVizObj.data.ts_trad_labels.concat(curVizObj.data.ts_sep_labels);
+    console.log("labels");
+    console.log(labels);
 
     var labelG = curVizObj.view.tsSVG
         .selectAll('.gLabel')
@@ -443,7 +453,7 @@ HTMLWidgets.widget({
         .selectAll('.xAxisLabels')
         .data(curVizObj.data.timepoints)
         .enter().append('text')
-        .attr('class', 'xAxisLabels')
+        .attr('class', function(d) { return 'xAxisLabels tp_' + d; })
         .attr('x', function(d, i) { 
             return (i / (curVizObj.data.timepoints.length-1)) * (dim.tsSVGWidth) + dim.smallMargin + dim.yAxisWidth; 
         })
@@ -550,13 +560,13 @@ HTMLWidgets.widget({
         .attr("d", _elbow); 
 
     // create nodes
-    var node = curVizObj.view.tsTree.selectAll(".treeNode")                  
+    var node = curVizObj.view.tsTree.selectAll(".legendTreeNode")                  
         .data(nodes)                   
         .enter()
         .append("circle")     
         .attr("cx", function(d) { return d.x})
         .attr("cy", function(d) { return d.y})              
-        .attr("class", function(d) { return "treeNode gtype_" + d.id; })
+        .attr("class", function(d) { return "legendTreeNode gtype_" + d.id; })
         .attr("fill", function(d) {
             return (d.id == dim.phantomRoot) ? "none" : alpha_colour_assignment[d.id];
         })

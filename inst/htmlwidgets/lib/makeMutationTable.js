@@ -41,6 +41,8 @@ function _makeMutationTable(curVizObj, mutationTableDIV, data, table_height) {
 		$("#" + view_id + "_mutationTable")
 	        .on('click', 'tr', function () { 
 	        	
+	        	// hide VAF tooltips
+	        	curVizObj.tip.hide();
 
 	        	// if mutation is already selected, 
 	        	if ($(this).hasClass("selected")) {
@@ -84,7 +86,7 @@ function _makeMutationTable(curVizObj, mutationTableDIV, data, table_height) {
 	                        .attr("stroke", "red");
 
 	                    // highlight all elements downstream of link TODO
-	                    // _propagatedEffects(curVizObj, cur_data.link_id, curVizObj.link_ids, "downstream");
+	                    _propagatedEffects(curVizObj, cur_data.link_id, curVizObj.link_ids, "downstream");
 
 		        		// mark as selected
 	        			$(this).addClass('selected');
@@ -105,27 +107,21 @@ function _makeMutationTable(curVizObj, mutationTableDIV, data, table_height) {
                             	return VAF.VAF >= threshold; 
                             });
 
-                            d3.select("#" + view_id).select(".viewSVG")
-                            	.append("g")
-                            	.attr("class", "mutationPrevalences")
-                            	.selectAll(".mutationPrev")
-                            	.data(cur_prevs_filtered)
-                            	.enter().append("text")
-                            	.attr("class", "mutationPrev")
-                            	.attr("x", function(d) {
-                            		// TODO
-                            	})
-                            	.attr("y", function(d) {
-                            		// TODO
-                            	})
-                            	.attr("text-anchor", "middle")
-                            	.attr("dy", "+0.35em")
-                            	.attr("font-family", "sans-serif")
-                            	.attr("font-size", 10) 
-                            	.text(function(d) { 
-                            		return (Math.round(d.VAF*100)/100).toFixed(2); 
-                            	});
-                            
+		        			// for each prevalence
+		        			cur_prevs_filtered.forEach(function(prev) {
+
+		        				// tooltip for mutation VAFs
+		        				curVizObj.tip.html(function(d) {
+							    		return "<span>" + d + "</span>";
+							  		})	
+
+							  	// invoke the tip in the context of this visualization
+							  	d3.select("#" + view_id).select(".canvasSVG").call(curVizObj.tip);
+
+							  	// show tooltip
+							  	var rounded_VAF = (Math.round(prev.VAF*100)/100).toFixed(2);
+							  	curVizObj.tip.show(rounded_VAF, d3.select("#" + view_id).select(".xAxisLabels.tp_" + prev.timepoint)[0][0]);
+		        			})
                         }
 		            }        		
 	        	}

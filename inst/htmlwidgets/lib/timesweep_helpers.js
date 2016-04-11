@@ -2,6 +2,97 @@
 
 // d3 EFFECTS FUNCTIONS
 
+/* recursive function to perform downstream or upstream effects on legend tree link
+* @param {Object} curVizObj -- vizObj for the current view
+* @param {String} link_id -- id for the link that's currently highlighted
+* @param {Array} link_ids -- ids for all links in tree
+* @param {String} stream_direction -- "downstream" or "upstream"
+*/
+function _propagatedEffects(curVizObj, link_id, link_ids, stream_direction) {
+    var view_id = curVizObj.view_id,
+        dim = curVizObj.generalConfig,
+        colour_assignment = curVizObj.view.colour_assignment,
+        alpha_colour_assignment = curVizObj.view.alpha_colour_assignment;
+
+    // clear propagation info in vizObj
+    curVizObj.view.propagation = {};
+
+    // get propagation info
+    _getPropatagedItems(curVizObj, link_id, link_ids, stream_direction);
+
+    // highlight links in the legend
+    curVizObj.view.propagation.link_ids.forEach(function(link) {
+        d3.select("#" + view_id)
+            .select(".legendTreeLink." + link)
+            .attr("stroke", "red");
+    });
+
+    // highlight nodes in the legend
+    curVizObj.view.propagation.node_ids.forEach(function(node) {
+        d3.select("#" + view_id)
+            .select(".legendTreeNode.gtype_" + node)
+            .attr("fill", function(d) {
+            return (d.id == dim.phantomRoot) ? "none" : alpha_colour_assignment[d.id];
+            })
+            .attr('stroke', function(d) {
+                return (d.id == dim.phantomRoot) ? "none" : colour_assignment[d.id];
+            });
+    });
+
+    // highlight genotypes in timesweep
+    curVizObj.view.propagation.node_ids.forEach(function(node) {
+        d3.select("#" + view_id)
+            .select(".tsPlot.gtype_" + node)
+            .attr('fill', function(d) { 
+            return alpha_colour_assignment[d.gtype];
+            }) 
+            .attr('stroke', function(d) { 
+                return colour_assignment[d.gtype]; 
+            });
+    });
+};
+
+
+/* function to get the links, nodes, samples and sample locations participating in the current propagation
+* @param {Object} curVizObj -- vizObj for the current view
+* @param {String} link_id -- id for the link that's currently highlighted
+* @param {Array} link_ids -- ids for all links in tree
+* @param {String} stream_direction -- "downstream" or "upstream"
+*/
+function _getPropatagedItems(curVizObj, link_id, link_ids, stream_direction) {
+    var view_id = curVizObj.view_id,
+        generalTargetRX = new RegExp("treeLink_.+_(.+)"), // regex to get target
+        generalSourceRX = new RegExp("treeLink_(.+)_.+"); // regex to get source
+
+    // get target & source id of this link
+    var target_id = generalTargetRX.exec(link_id)[1];
+    var source_id = generalSourceRX.exec(link_id)[1];
+
+    // get the targets of this target, or sources of source
+    var nextNodeRX = (stream_direction == "downstream") ? 
+        new RegExp("treeLink_" + target_id + "_(.+)") :
+        new RegExp("treeLink_(.+)_" + source_id);
+    var targetLinks_of_targetNode = [];
+    link_ids.map(function(id) {
+        if (id.match(nextNodeRX)) {
+            targetLinks_of_targetNode.push(id);
+        }
+    });
+
+    // add information to curVizObj
+    curVizObj.view.propagation = curVizObj.view.propagation || {};
+    curVizObj.view.propagation.node_ids = curVizObj.view.propagation.node_ids || [];
+    curVizObj.view.propagation.node_ids.push(target_id);
+    curVizObj.view.propagation.link_ids = curVizObj.view.propagation.link_ids || [];
+    curVizObj.view.propagation.link_ids.push(link_id);
+
+    // for each of the target's targets, highlight their downstream links
+    targetLinks_of_targetNode.map(function(target_link_id) {
+        _getPropatagedItems(curVizObj, target_link_id, link_ids, stream_direction);
+    });
+};
+
+
 function _sweepClick(curVizObj) {
     var dim = curVizObj.generalConfig,
         colour_assignment = curVizObj.view.colour_assignment,
@@ -85,7 +176,7 @@ function _gtypeHighlight(gtype, curVizObj) {
         });
 
     // highlight genotype in legend
-    d3.select("#" + curVizObj.view_id).select('.treeNode.gtype_' + gtype)
+    d3.select("#" + curVizObj.view_id).select('.legendTreeNode.gtype_' + gtype)
         .attr('fill', function(d) { 
             return alpha_colour_assignment[d.id];
         })
@@ -125,7 +216,7 @@ function _shadeLegend(curVizObj) {
         alpha_colour_assignment = curVizObj.view.alpha_colour_assignment;
 
     // dim genotypes in the legend
-    d3.select("#" + curVizObj.view_id).selectAll('.treeNode')
+    d3.select("#" + curVizObj.view_id).selectAll('.legendTreeNode')
         .attr('fill', function(d) { 
             col = alpha_colour_assignment[d.id];
             brightness = Math.round(_get_brightness(col));
@@ -158,7 +249,7 @@ function _resetView(curVizObj) {
         });
 
     // reset colours in legend
-    d3.select("#" + curVizObj.view_id).selectAll('.treeNode')
+    d3.select("#" + curVizObj.view_id).selectAll('.legendTreeNode')
         .attr('fill', function(d) { 
             return (d.id == dim.phantomRoot) ? "none" : alpha_colour_assignment[d.id];
         })
@@ -253,7 +344,8 @@ function _backgroundClick(curVizObj) {
     // unhighlight phylogeny links (highlighting occurs when mutation selected)
     d3.select("#" + curVizObj.view_id).selectAll(".legendTreeLink").attr("stroke", dim.treeLinkColour);
 
-    // remove all mutation prevalences information from view TODO
+    // hide mutation tooltips
+    curVizObj.tip.hide();
 
     _resetView(curVizObj);
 }
