@@ -1834,7 +1834,7 @@ function _getPhyloColours(curVizObj) {
         // colour each tree chain root a sequential colour from the spectrum
         for (var i = 0; i < n_nodes; i++) {
             var cur_node = curVizObj.data.treeChainRoots[i];
-            var h = i/n_nodes;
+            var h = (i/n_nodes + 0.96) % 1;
             var rgb = _hslToRgb(h, s, l); // hsl to rgb
             var col = _rgb2hex("rgb(" + rgb[0] + "," + rgb[1] + "," + rgb[2] + ")"); // rgb to hex
 
@@ -1842,9 +1842,15 @@ function _getPhyloColours(curVizObj) {
 
             // for each of the chain's descendants
             var prev_colour = col;
-            curVizObj.data.treeChains[cur_node].forEach(function(desc) {
-                // do not colour the phantomRoot
-                if (desc != curVizObj.generalConfig.phantomRoot) {
+            curVizObj.data.treeChains[cur_node].forEach(function(desc, desc_i) {
+                // if we're on the phantom root's branch and it's the first descendant
+                if (cur_node == curVizObj.generalConfig.phantomRoot && desc_i == 0) {
+
+                    // do not decrease the brightness
+                    colour_assignment[desc] = prev_colour;
+                }
+                // we're not on the phantom root branch's first descendant
+                else {
                     // colour the descendant a lighter version of the previous colour in the chain
                     colour_assignment[desc] = 
                         _decrease_brightness(prev_colour, 20);

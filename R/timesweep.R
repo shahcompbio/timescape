@@ -147,8 +147,9 @@ timesweep <- function(clonal_prev,
   # check for tree rootedness
   sources <- unique(tree_edges$source)
   targets <- unique(tree_edges$target)
-  for (i in 1:length(sources)) {
-    cur_source <- sources[i]
+  sources_for_iteration <- sources # because we will be changing the sources array over time
+  for (i in 1:length(sources_for_iteration)) {
+    cur_source <- sources_for_iteration[i]
 
     # if the source is a target, remove it from the sources list
     if (cur_source %in% targets) {
