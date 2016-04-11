@@ -160,17 +160,25 @@ function _addCloneSVGsToTable(curVizObj, clone_ids) {
 		.attr("id", "svgCloneCircleDIV")
 		.style("height","100%")
         .style("width","100%"); 
-    var i = 0;
+    var index = 0; // index of clone id in clone_ids array
     var svgCircle = svgColumn
-                .append("svg")
-                .attr("width", 10)
-                .attr("height", 10)
-                .attr("class","svgCloneCircle")
-                .append("circle")
-                .attr("cx", 5)
-                .attr("cy", 5)
-                .attr("r", 4)
-                .attr("fill", function(d) {
-                	return curVizObj.view.colour_assignment[clone_ids[i++]];
-                });
+        .append("svg")
+        .attr("width", 10)
+        .attr("height", 10)
+        .attr("class","svgCloneCircle")
+        .append("circle")
+        .attr("cx", 5)
+        .attr("cy", 5)
+        .attr("r", 4)
+        .attr("fill", function() {
+        	return curVizObj.view.alpha_colour_assignment[clone_ids[index++]];
+        })
+        .attr("stroke", function() {
+        	// fill happens first for all rows, so we have to reset the index to zero
+        	// before setting the stroke for all rows
+        	if (index == clone_ids.length) {
+        		index = 0;
+        	}
+        	return curVizObj.view.colour_assignment[clone_ids[index++]];
+        });
 }
