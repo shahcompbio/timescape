@@ -353,9 +353,10 @@ HTMLWidgets.widget({
         .text(function(d) {
             var cp = (Math.round(d.cp * 100) / 1);
             if (cp == 0) {
-                return "< 1";
+                return "< 0.01";
             }
-            return cp.toString();
+            cp_frac = (cp/100).toFixed(2);
+            return cp_frac.toString();
         })
         .attr('x', function(d) { 
 
