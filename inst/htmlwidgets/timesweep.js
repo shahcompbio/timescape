@@ -232,7 +232,7 @@ HTMLWidgets.widget({
         .attr("y", 0)
         .attr("height", dim.tsSVGHeight)
         .attr("width", dim.tsSVGWidth)
-        .attr("fill", "#F1F1F1")
+        .attr("fill", "#F7F7F7")
         .on("click", function() {
             _backgroundClick(curVizObj);
         });
