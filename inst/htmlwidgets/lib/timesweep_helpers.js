@@ -621,7 +621,10 @@ function _getCPData(curVizObj) {
     var cp_data = {};
     $.each(x.clonal_prev, function(idx, hit) { // for each hit (genotype/timepoint combination)
         cp_data[hit["timepoint"]] = cp_data[hit["timepoint"]] || {};
-        cp_data[hit["timepoint"]][hit["clone_id"]] = parseFloat(hit["clonal_prev"]); 
+        // only note cellular prevalences not marked as zero
+        if (parseFloat(hit["clonal_prev"]) != 0) {
+            cp_data[hit["timepoint"]][hit["clone_id"]] = parseFloat(hit["clonal_prev"]); 
+        }
     });
 
     // create timepoint zero with 100% cellular prevalence for the root of the tree
