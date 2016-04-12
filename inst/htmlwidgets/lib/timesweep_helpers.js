@@ -1252,6 +1252,11 @@ function _shiftEmergence(curVizObj) {
 
         // for each genotype (backwards in stacking order -- descendant before ancestral)
         $.each(layoutOrder_rev, function(gtype_idx, gtype) {
+
+            // set the number of partitions
+            if (layout[tp][gtype]) {
+                layout[tp][gtype]["nPartitions"] = nPartitions;
+            }
             
             // if this genotype has not already been x-shifted and emerges at this time point
             if ((genotypes_xshifted.indexOf(gtype) == -1) && layout[tp][gtype] && 
@@ -1262,8 +1267,7 @@ function _shiftEmergence(curVizObj) {
 
                 // x-shift and x-partition for the current genotype (depends on how many of its ancestors emerge)
                 layout[tp][gtype]["xShift"] = (ancestors.length+1) / nPartitions;
-                layout[tp][gtype]["nPartitions"] = nPartitions;
-
+                
                 genotypes_xshifted.push(gtype);
 
                 // for each ancestor that also emerged at this time point
@@ -1274,7 +1278,6 @@ function _shiftEmergence(curVizObj) {
                     
                     // x-shift and x-partition for the current ancestor (depends on how many of its ancestors emerge)
                     layout[tp][ancestors[i]]["xShift"] = (ancestors_of_ancestor.length+1) / nPartitions;
-                    layout[tp][ancestors[i]]["nPartitions"] = nPartitions;
 
                     genotypes_xshifted.push(ancestors[i]);
                 }
@@ -1438,7 +1441,10 @@ function _getTraditionalPaths(curVizObj) {
         paths = [],
         cur_path,
         emerges, // whether or not a genotype emerges at a time point
-        xShift, // the amount of shift in the x-direction for a genotype (when it's emerging)
+        xShift_in_layout, // the amount of shift in the x-direction for a genotype (when it's emerging), 
+                          // as is present in the layout data
+        xShift, // the amount of shift in the x-direction for a genotype (when it's emerging), 
+                // taking into account events that occur
         nPartitions, // number of partitions between two time points 
         next_tp, 
         xBottom, // x-value at the bottom of the genotype sweep at a time point
@@ -1470,10 +1476,11 @@ function _getTraditionalPaths(curVizObj) {
                     layout[tp][gtype]["nPartitions"]*2 :
                     layout[tp][gtype]["nPartitions"];
                 next_tp = timepoints[idx+1];
+                xShift_in_layout = (layout[tp][gtype]["xShift"]) ? layout[tp][gtype]["xShift"] : 0;
                 xShift = 
                     (event_occurs) ? 
-                    0.5 + (layout[tp][gtype]["xShift"]/2) : 
-                    layout[tp][gtype]["xShift"];
+                    0.5 + (xShift_in_layout/2) : 
+                    xShift_in_layout;
 
                 // get the x-coordinate for the bottom of this genotype's interval 
                 xBottom = (emerges) ? 
@@ -1502,6 +1509,7 @@ function _getTraditionalPaths(curVizObj) {
                     cur_path["path"].push({ "x": xBottom, 
                                             "y": layout[tp][gtype]["bottom"],
                                             "tp": tp });
+
                     // if event occurs after this timepoint
                     if (event_occurs) {
 
@@ -1514,10 +1522,16 @@ function _getTraditionalPaths(curVizObj) {
                         cur_path["path"].push({ "x": xBottom + mid_tp, // halfway between this and next tp
                                                 "y": (y_mid*frac) + ((1-frac)/2),
                                                 "tp": "event" });
-                    }    
-                }
+                    }
 
-                            
+                    // if there are partitions after this timepoint, add a pathpoint at the first partition
+                    if (next_tp && layout[next_tp][gtype] && layout[tp][gtype]["nPartitions"] > 1) {
+                        var next_xBottom = (idx + xShift + (1/nPartitions))/(timepoints.length-1);
+                        cur_path["path"].push({ "x": next_xBottom, 
+                                            "y": layout[next_tp][gtype]["bottom"],
+                                            "tp": tp });
+                    }
+                }                            
             }
         })
 
@@ -1535,10 +1549,11 @@ function _getTraditionalPaths(curVizObj) {
                     layout[tp][gtype]["nPartitions"]*2 :
                     layout[tp][gtype]["nPartitions"];
                 next_tp = timepoints_rev[idx-1];
+                xShift_in_layout = (layout[tp][gtype]["xShift"]) ? layout[tp][gtype]["xShift"] : 0;
                 xShift = 
                     (event_occurs) ? 
-                    0.5 + layout[tp][gtype]["xShift"]/2 : 
-                    layout[tp][gtype]["xShift"];
+                    0.5 + (xShift_in_layout/2) : 
+                    xShift_in_layout;
 
                 // get the x-coordinate for the top of this genotype's interval 
                 xTop = (emerges) ? 
@@ -1562,6 +1577,16 @@ function _getTraditionalPaths(curVizObj) {
 
                 // ... DOESN'T EMERGE at the current time point
                 else {
+
+
+                    // if there are partitions after this timepoint, add a pathpoint at the first partition
+                    if (next_tp && layout[next_tp][gtype] && layout[tp][gtype]["nPartitions"] > 1) {
+                        var next_xTop = ((timepoints.length-1) - idx + xShift + (1/nPartitions))/(timepoints.length-1);
+                        cur_path["path"].push({ "x": next_xTop, 
+                                            "y": layout[next_tp][gtype]["top"],
+                                            "tp": tp });
+                    }
+
                     // if event occurs after this timepoint
                     if (event_occurs) {
 
