@@ -727,6 +727,9 @@ HTMLWidgets.widget({
         _makeMutationTable(curVizObj, curVizObj.view.mutationTableDIV, curVizObj.data.mutations,
             dim.mutationTableHeight);
     }
+
+    // download svg
+    _crowbar();
   },
 
   resize: function(el, width, height, instance) {
