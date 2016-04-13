@@ -116,7 +116,7 @@ function _makeMutationTable(curVizObj, mutationTableDIV, data, table_height) {
 							  		})	
 
 							  	// invoke the tip in the context of this visualization
-							  	d3.select("#" + view_id).select(".canvasSVG").call(curVizObj.tip);
+							  	d3.select("#" + view_id).select(".timesweep_" + view_id).call(curVizObj.tip);
 
 							  	// show tooltip
 							  	var rounded_VAF = (Math.round(prev.VAF*100)/100).toFixed(2);
