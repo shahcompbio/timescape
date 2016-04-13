@@ -276,136 +276,6 @@ HTMLWidgets.widget({
             }
         });
 
-    // plot time point guides
-    curVizObj.view.tsSVG
-        .selectAll('.tpGuide')
-        .data(curVizObj.data.timepoints)
-        .enter().append('line')
-        .attr('class', function(d) { return 'tpGuide tp_' + d; })
-        .attr('x1', function(d, i) { return (i / (curVizObj.data.timepoints.length - 1)) * dim.tsSVGWidth; })
-        .attr('x2', function(d, i) { return (i / (curVizObj.data.timepoints.length - 1)) * dim.tsSVGWidth; })
-        .attr('y1', 0)
-        .attr('y2', dim.tsSVGHeight)
-        .attr('stroke', 'grey')
-        .attr('stroke-opacity', '0')
-        .attr('stroke-width', '1.5px')
-        .style('pointer-events', 'none');
-
-    // plot cellular prevalence labels at each time point - traditional timesweep view 
-    var labels = curVizObj.data.ts_trad_labels.concat(curVizObj.data.ts_sep_labels);
-    console.log("labels");
-    console.log(labels);
-
-    var labelG = curVizObj.view.tsSVG
-        .selectAll('.gLabel')
-        .data(labels)
-        .enter().append('g')
-        .attr('class', 'gLabel');
-
-    labelG
-        .append('circle')
-        .attr('class', function(d) { 
-            if (d.type == "traditional") {
-                return 'labelCirc tp_' + d.tp + ' gtype_' + d.gtype; 
-            }
-            return 'sepLabelCirc tp_' + d.tp + ' gtype_' + d.gtype; 
-        }) 
-        .attr('cx', function(d) { 
-
-            // index of this time point relative to others
-            var index = curVizObj.data.timepoints.indexOf(d.tp); 
-
-            var x_val = (index / (curVizObj.data.timepoints.length-1)) * (dim.tsSVGWidth);
-
-            // if the time point is the last
-            if (index == curVizObj.data.timepoints.length - 1) {
-                // shift it to the left
-                x_val -= dim.circleR;
-            }
-
-            return x_val; 
-        })
-        .attr('cy', function(d) { 
-            var y;
-            // if the label, when centered vertically...
-            // ... is cut off at the top, shift down
-            if ((dim.tsSVGHeight-(d.middle*dim.tsSVGHeight)) < dim.circleR) {
-                y = 1 + dim.circleR;
-            }
-
-            // ... is cut off at the bottom, shift up
-            else if ((d.middle*dim.tsSVGHeight) < dim.circleR) {
-                y = dim.tsSVGHeight - 1 - dim.circleR;
-            }
-
-            // ... is not cut off, center vertically
-            else {
-                y = (1 - d.middle)*dim.tsSVGHeight; 
-            }
-
-            return dim.tsSVGHeight - y;
-        })
-        .attr('r', dim.circleR)
-        .attr('fill', 'white')
-        .attr('fill-opacity', 0)
-        .style('pointer-events', 'none');
-
-    labelG
-        .append('text')
-        .attr('font-family', 'Arial')
-        .attr('font-size', dim.fontSize)
-        .attr('class', function(d) { 
-            if (d.type == "traditional") {
-                return 'label tp_' + d.tp + ' gtype_' + d.gtype; 
-            }
-            return 'sepLabel tp_' + d.tp + ' gtype_' + d.gtype; 
-        }) 
-        .text(function(d) {
-            var cp = (Math.round(d.cp * 100) / 1);
-            if (cp == 0) {
-                return "< 0.01";
-            }
-            cp_frac = (cp/100).toFixed(2);
-            return cp_frac.toString();
-        })
-        .attr('x', function(d) { 
-
-            // index of this time point relative to others
-            var index = curVizObj.data.timepoints.indexOf(d.tp); 
-
-            var x_val = (index / (curVizObj.data.timepoints.length-1)) * (dim.tsSVGWidth);
-
-            // if the time point is the last
-            if (index == curVizObj.data.timepoints.length - 1) {
-                // shift it to the left
-                x_val -= dim.circleR;
-            }
-
-            return x_val; 
-        })
-        .attr('y', function(d) { return dim.tsSVGHeight - (1 - d.middle)*dim.tsSVGHeight; })
-        .attr('dy', function(d) {
-
-            // if the label, when centered vertically...
-            // ... is cut off at the top, shift down
-            if ((dim.tsSVGHeight-(d.middle*dim.tsSVGHeight)) < dim.circleR) {
-                d3.select(this).attr('y', dim.tsSVGHeight - 1 - dim.circleR);
-            }
-
-            // ... is cut off at the bottom, shift up
-            else if ((d.middle*dim.tsSVGHeight) < dim.circleR) {
-                d3.select(this).attr('y', 1 + dim.circleR);
-            }
-
-            // ... is not cut off, center vertically
-            return '.35em';
-        })
-        .attr('fill', 'black')
-        .attr('opacity', 0)
-        .attr('text-anchor', 'middle')
-        .style('pointer-events', 'none');
-
-
     // PLOT PERTURBATIONS INFO
 
     // plot labels
@@ -427,38 +297,31 @@ HTMLWidgets.widget({
         .text(function(d) { return d.pert_name; })
         .on('mouseover', function(d) {
             if (!dim.selectOn) {
-                d3.select("#" + curVizObj.view_id)
-                    .selectAll(".pertGuide.pert_" + d.pert_name).attr('stroke-opacity', 1); 
+                // plot guide
+                curVizObj.view.tsSVG
+                    .append('line')
+                    .attr('class', function() { return 'pertGuide pert_' + d.pert_name; })
+                    .attr('x1', function() { 
+                        var prevTP_idx = curVizObj.data.timepoints.indexOf(d.prev_tp);
+                        return ((prevTP_idx + 0.5) / (curVizObj.data.timepoints.length-1)) * (dim.tsSVGWidth); 
+                    })
+                    .attr('x2', function() { 
+                        var prevTP_idx = curVizObj.data.timepoints.indexOf(d.prev_tp);
+                        return ((prevTP_idx + 0.5) / (curVizObj.data.timepoints.length-1)) * (dim.tsSVGWidth); 
+                    })
+                    .attr('y1', 0)
+                    .attr('y2', dim.tsSVGHeight)
+                    .attr('stroke', 'grey')
+                    .attr('stroke-width', '1.5px')
+                    .style('pointer-events', 'none');
             }
         })
         .on('mouseout', function(d) {
             if (!dim.selectOn) {
                 d3.select("#" + curVizObj.view_id)
-                    .selectAll(".pertGuide.pert_" + d.pert_name).attr('stroke-opacity', 0);
+                    .selectAll(".pertGuide.pert_" + d.pert_name).remove();
             }
         });
-
-    // plot guides
-    curVizObj.view.tsSVG
-        .selectAll('.pertGuide')
-        .data(curVizObj.data.perturbations)
-        .enter().append('line')
-        .attr('class', function(d) { return 'pertGuide pert_' + d.pert_name; })
-        .attr('x1', function(d) { 
-            var prevTP_idx = curVizObj.data.timepoints.indexOf(d.prev_tp);
-            return ((prevTP_idx + 0.5) / (curVizObj.data.timepoints.length-1)) * (dim.tsSVGWidth); 
-        })
-        .attr('x2', function(d) { 
-            var prevTP_idx = curVizObj.data.timepoints.indexOf(d.prev_tp);
-            return ((prevTP_idx + 0.5) / (curVizObj.data.timepoints.length-1)) * (dim.tsSVGWidth); 
-        })
-        .attr('y1', 0)
-        .attr('y2', dim.tsSVGHeight)
-        .attr('stroke', 'grey')
-        .attr('stroke-opacity', '0')
-        .attr('stroke-width', '1.5px')
-        .style('pointer-events', 'none');
-
 
     // PLOT AXES
 
@@ -477,14 +340,25 @@ HTMLWidgets.widget({
         .attr('font-family', 'Arial')
         .attr('font-size', '11px')
         .text(function(d) { return d; })
-        .on('mouseover', function(d) {
+        .on('mouseover', function(d, i) {
             if (!dim.selectOn) {
-                d3.select("#" + curVizObj.view_id).selectAll(".tpGuide.tp_" + d).attr('stroke-opacity', 1); 
+
+                // plot time point guides
+                curVizObj.view.tsSVG
+                    .append('line')
+                    .attr('class', function() { return 'tpGuide tp_' + d; })
+                    .attr('x1', function() { return (i / (curVizObj.data.timepoints.length - 1)) * dim.tsSVGWidth; })
+                    .attr('x2', function() { return (i / (curVizObj.data.timepoints.length - 1)) * dim.tsSVGWidth; })
+                    .attr('y1', 0)
+                    .attr('y2', dim.tsSVGHeight)
+                    .attr('stroke', 'grey')
+                    .attr('stroke-width', '1.5px')
+                    .style('pointer-events', 'none');
             }
         })
         .on('mouseout', function(d) {
             if (!dim.selectOn) {
-                d3.select("#" + curVizObj.view_id).selectAll(".tpGuide.tp_" + d).attr('stroke-opacity', 0);
+                d3.select("#" + curVizObj.view_id).selectAll(".tpGuide.tp_" + d).remove();
             }
         });
 

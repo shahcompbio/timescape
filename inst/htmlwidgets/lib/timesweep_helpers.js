@@ -262,6 +262,118 @@ function _resetView(curVizObj) {
 
 }
 
+/* Create clonal prevalence labels
+* @param {Object} curVizObj -- vizObj for the current view
+* @param {Array} label_data -- array of objects containing label data, one label per object
+*/
+function _createLabels(curVizObj, label_data) {
+    var dim = curVizObj.generalConfig;
+
+    // for each cellular prevalence label for this genotype
+    label_data.forEach(function(data) {
+        curVizObj.view.tsSVG
+            .append('circle')
+            .attr('class', function() { 
+                if (data.type == "traditional") {
+                    return 'labelCirc tp_' + data.tp + ' gtype_' + data.gtype; 
+                }
+                return 'sepLabelCirc tp_' + data.tp + ' gtype_' + data.gtype; 
+            }) 
+            .attr('cx', function() { 
+
+                // index of this time point relative to others
+                var index = curVizObj.data.timepoints.indexOf(data.tp); 
+
+                var x_val = (index / (curVizObj.data.timepoints.length-1)) * (dim.tsSVGWidth);
+
+                // if the time point is the last
+                if (index == curVizObj.data.timepoints.length - 1) {
+                    // shift it to the left
+                    x_val -= dim.circleR;
+                }
+
+                return x_val; 
+            })
+            .attr('cy', function() { 
+                var y;
+                // if the label, when centered vertically...
+                // ... is cut off at the top, shift down
+                if ((dim.tsSVGHeight-(data.middle*dim.tsSVGHeight)) < dim.circleR) {
+                    y = 1 + dim.circleR;
+                }
+
+                // ... is cut off at the bottom, shift up
+                else if ((data.middle*dim.tsSVGHeight) < dim.circleR) {
+                    y = dim.tsSVGHeight - 1 - dim.circleR;
+                }
+
+                // ... is not cut off, center vertically
+                else {
+                    y = (1 - data.middle)*dim.tsSVGHeight; 
+                }
+
+                return dim.tsSVGHeight - y;
+            })
+            .attr('r', dim.circleR)
+            .attr('fill', 'white')
+            .style('pointer-events', 'none');
+
+        curVizObj.view.tsSVG
+            .append('text')
+            .attr('font-family', 'Arial')
+            .attr('font-size', dim.fontSize)
+            .attr('class', function() { 
+                if (data.type == "traditional") {
+                    return 'label tp_' + data.tp + ' gtype_' + data.gtype; 
+                }
+                return 'sepLabel tp_' + data.tp + ' gtype_' + data.gtype; 
+            }) 
+            .text(function() {
+                var cp = (Math.round(data.cp * 100) / 1);
+                if (cp == 0) {
+                    return "< 0.01";
+                }
+                cp_frac = (cp/100).toFixed(2);
+                return cp_frac.toString();
+            })
+            .attr('x', function() { 
+
+                // index of this time point relative to others
+                var index = curVizObj.data.timepoints.indexOf(data.tp); 
+
+                var x_val = (index / (curVizObj.data.timepoints.length-1)) * (dim.tsSVGWidth);
+
+                // if the time point is the last
+                if (index == curVizObj.data.timepoints.length - 1) {
+                    // shift it to the left
+                    x_val -= dim.circleR;
+                }
+
+                return x_val; 
+            })
+            .attr('y', function() { return dim.tsSVGHeight - (1 - data.middle)*dim.tsSVGHeight; })
+            .attr('dy', function() {
+
+                // if the label, when centered vertically...
+                // ... is cut off at the top, shift down
+                if ((dim.tsSVGHeight-(data.middle*dim.tsSVGHeight)) < dim.circleR) {
+                    d3.select(this).attr('y', dim.tsSVGHeight - 1 - dim.circleR);
+                }
+
+                // ... is cut off at the bottom, shift up
+                else if ((data.middle*dim.tsSVGHeight) < dim.circleR) {
+                    d3.select(this).attr('y', 1 + dim.circleR);
+                }
+
+                // ... is not cut off, center vertically
+                return '.35em';
+            })
+            .attr('fill', 'black')
+            .attr('text-anchor', 'middle')
+            .style('pointer-events', 'none');
+    });
+}
+
 /* function to show labels for a particular genotype
 * @param {String} gtype -- the current genotype being moused over
 * @param {Object} curVizObj -- vizObj for the current view
@@ -271,24 +383,22 @@ function _showLabels(gtype, curVizObj) {
 
     // traditional view
     if (dim.switchView) { 
-        // show labels
-        d3.select("#" + curVizObj.view_id).selectAll(".label.gtype_" + gtype)
-            .attr('opacity', 1);
+        // get clonal prevalence labels for this genotype
+        var labels = curVizObj.data.ts_trad_labels;
+        var gtype_labels = _.filter(labels, function(lab) { return (lab.gtype == gtype); });
 
-        // show label backgrounds
-        d3.select("#" + curVizObj.view_id).selectAll(".labelCirc.gtype_" + gtype)
-            .attr('fill-opacity', 0.5);                
+        // create the labels for this genotype
+        _createLabels(curVizObj, gtype_labels);
     }
 
     // tracks view
     else { 
-        // show labels
-        d3.select("#" + curVizObj.view_id).selectAll(".sepLabel.gtype_" + gtype)
-            .attr('opacity', 1);
+        // get clonal prevalence labels for this genotype
+        var labels = curVizObj.data.ts_sep_labels;
+        var gtype_labels = _.filter(labels, function(lab) { return (lab.gtype == gtype); });
 
-        // show label backgrounds
-        d3.select("#" + curVizObj.view_id).selectAll(".sepLabelCirc.gtype_" + gtype)
-            .attr('fill-opacity', 0.5);   
+        // create the labels for this genotype
+        _createLabels(curVizObj, gtype_labels);
     }
 }
 
@@ -301,19 +411,19 @@ function _removeLabels(curVizObj) {
     // traditional view
     if (dim.switchView) {
         // hide labels
-        d3.select("#" + curVizObj.view_id).selectAll(".label").attr('opacity', 0);
+        d3.select("#" + curVizObj.view_id).selectAll(".label").remove();
 
         // hide label backgrounds
-        d3.select("#" + curVizObj.view_id).selectAll(".labelCirc").attr('fill-opacity', 0);
+        d3.select("#" + curVizObj.view_id).selectAll(".labelCirc").remove();
     }
 
     // tracks view
     else {
         // hide labels
-        d3.select("#" + curVizObj.view_id).selectAll(".sepLabel").attr('opacity', 0);
+        d3.select("#" + curVizObj.view_id).selectAll(".sepLabel").remove();
 
         // hide label backgrounds
-        d3.select("#" + curVizObj.view_id).selectAll(".sepLabelCirc").attr('fill-opacity', 0);
+        d3.select("#" + curVizObj.view_id).selectAll(".sepLabelCirc").remove();
     }
 }
 
