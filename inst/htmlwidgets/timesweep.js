@@ -82,6 +82,15 @@ HTMLWidgets.widget({
 
     // SET UP PAGE LAYOUT
 
+    var buttonDIV = d3.select(el).append("div").append("button")
+        .attr("type","button")
+        .attr("class", "downloadButton")
+        .text("Download SVG")
+        .on("click", function() {
+            // download the svg
+            downloadSVG();
+        });
+
     var canvasDIV = d3.select(el).append("div")
         .attr("class", "div")
         .attr("id", view_id);
@@ -342,7 +351,7 @@ HTMLWidgets.widget({
 
     labelG
         .append('text')
-        .attr('font-family', 'sans-serif')
+        .attr('font-family', 'Arial')
         .attr('font-size', dim.fontSize)
         .attr('class', function(d) { 
             if (d.type == "traditional") {
@@ -412,7 +421,7 @@ HTMLWidgets.widget({
         .attr('y', 0)
         .attr('dy', '.71em')
         .attr('text-anchor', 'middle')
-        .attr('font-family', 'sans-serif')
+        .attr('font-family', 'Arial')
         .attr('font-size', '11px')
         .text(function(d) { return d.pert_name; })
         .on('mouseover', function(d) {
@@ -464,7 +473,7 @@ HTMLWidgets.widget({
         .attr('y', 0)
         .attr('dy', '.71em')
         .attr('text-anchor', 'middle')
-        .attr('font-family', 'sans-serif')
+        .attr('font-family', 'Arial')
         .attr('font-size', '11px')
         .text(function(d) { return d; })
         .on('mouseover', function(d) {
@@ -486,7 +495,7 @@ HTMLWidgets.widget({
         .attr('y', 0)
         .attr('dy', '.35em')
         .attr('text-anchor', 'middle')
-        .attr('font-family', 'sans-serif')
+        .attr('font-family', 'Arial')
         .attr('font-size', '15px')
         .attr('font-weight', 'bold')
         .attr('transform', "translate(" + (dim.yAxisWidth/2) + ", " + (dim.tsSVGHeight/2) + ") rotate(-90)")
@@ -501,7 +510,7 @@ HTMLWidgets.widget({
         .attr('x', dim.yAxisWidth + dim.smallMargin + dim.xAxisWidth/2)
         .attr('y', 25)
         .attr('text-anchor', 'middle')
-        .attr('font-family', 'sans-serif')
+        .attr('font-family', 'Arial')
         .attr('font-size', '15px')
         .attr('font-weight', 'bold')
         .text(function() { 
@@ -522,7 +531,7 @@ HTMLWidgets.widget({
         .attr('y', 0)
         .attr('dy', '.71em')
         .attr('text-anchor', 'left')
-        .attr('font-family', 'sans-serif')
+        .attr('font-family', 'Arial')
         .attr('font-size', '15px')
         .attr('font-weight', 'bold')
         .text('Phylogeny'); 
@@ -699,7 +708,7 @@ HTMLWidgets.widget({
         .attr('y', dim.clonalTrajectoryLabelHeight - bottomPadding - 
             betweenTextPadding - clonalTrajectoryFontSize)
         .attr('text-anchor', 'left')
-        .attr('font-family', 'sans-serif')
+        .attr('font-family', 'Arial')
         .attr('font-size', clonalTrajectoryFontSize + 'px')
         .attr('font-weight', 'bold')
         .text("Clonal")
@@ -708,7 +717,7 @@ HTMLWidgets.widget({
         .attr('x', 17)
         .attr('y', dim.clonalTrajectoryLabelHeight - bottomPadding)
         .attr('text-anchor', 'left')
-        .attr('font-family', 'sans-serif')
+        .attr('font-family', 'Arial')
         .attr('font-size', clonalTrajectoryFontSize + 'px')
         .attr('font-weight', 'bold')
         .text("Trajectory")
@@ -727,9 +736,6 @@ HTMLWidgets.widget({
         _makeMutationTable(curVizObj, curVizObj.view.mutationTableDIV, curVizObj.data.mutations,
             dim.mutationTableHeight);
     }
-
-    // download svg
-    _crowbar();
   },
 
   resize: function(el, width, height, instance) {

@@ -4,15 +4,15 @@
 }
 
 td, tr, th {
-    font-family: sans-serif;
+    font-family: Arial;
 }
 
 .dataTables_info {
-    font-family: sans-serif;    
+    font-family: Arial;    
     color: '#9E9A9A';
 }
 label {
-    font-family: sans-serif;
+    font-family: Arial;
 }
 
 .mutationTableDIV .dataTable thead th {
@@ -31,7 +31,7 @@ td {
 /* base */
 .d3-tip {
   line-height: 1;
-  font-family: sans-serif;
+  font-family: Arial;
   padding: 12px;
   background: #7C7C7C;
   color: #fff;
