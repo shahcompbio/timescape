@@ -1,5 +1,5 @@
 // Downloads the SVGs on the webpage
-function downloadSVG() {
+function downloadSVG(svgClassName) {
 var doctype = '<?xml version="1.0" standalone="no"?><!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">';
 
   window.URL = (window.URL || window.webkitURL);
@@ -139,49 +139,48 @@ var doctype = '<?xml version="1.0" standalone="no"?><!DOCTYPE svg PUBLIC "-//W3C
 
   function getSources(doc, styles) {
     var svgInfo = [],
-        svgs = doc.querySelectorAll("svg");
+        svg = doc.querySelector("." + svgClassName);
 
     styles = (styles === undefined) ? "" : styles;
 
-    [].forEach.call(svgs, function (svg) {
 
-      svg.setAttribute("version", "1.1");
+    svg.setAttribute("version", "1.1");
 
-      var defsEl = document.createElement("defs");
-      svg.insertBefore(defsEl, svg.firstChild); //TODO   .insert("defs", ":first-child")
-      // defsEl.setAttribute("class", "svg-crowbar");
+    var defsEl = document.createElement("defs");
+    svg.insertBefore(defsEl, svg.firstChild); //TODO   .insert("defs", ":first-child")
+    // defsEl.setAttribute("class", "svg-crowbar");
 
-      var styleEl = document.createElement("style")
-      defsEl.appendChild(styleEl);
-      styleEl.setAttribute("type", "text/css");
+    var styleEl = document.createElement("style")
+    defsEl.appendChild(styleEl);
+    styleEl.setAttribute("type", "text/css");
 
 
-      // removing attributes so they aren't doubled up
-      svg.removeAttribute("xmlns");
-      svg.removeAttribute("xlink");
+    // removing attributes so they aren't doubled up
+    svg.removeAttribute("xmlns");
+    svg.removeAttribute("xlink");
 
-      // These are needed for the svg
-      if (!svg.hasAttributeNS(prefix.xmlns, "xmlns")) {
-        svg.setAttributeNS(prefix.xmlns, "xmlns", prefix.svg);
-      }
+    // These are needed for the svg
+    if (!svg.hasAttributeNS(prefix.xmlns, "xmlns")) {
+      svg.setAttributeNS(prefix.xmlns, "xmlns", prefix.svg);
+    }
 
-      if (!svg.hasAttributeNS(prefix.xmlns, "xmlns:xlink")) {
-        svg.setAttributeNS(prefix.xmlns, "xmlns:xlink", prefix.xlink);
-      }
+    if (!svg.hasAttributeNS(prefix.xmlns, "xmlns:xlink")) {
+      svg.setAttributeNS(prefix.xmlns, "xmlns:xlink", prefix.xlink);
+    }
 
-      var source = (new XMLSerializer()).serializeToString(svg).replace('</style>', '<![CDATA[' + styles + ']]></style>');
-      var rect = svg.getBoundingClientRect();
-      svgInfo.push({
-        top: rect.top,
-        left: rect.left,
-        width: rect.width,
-        height: rect.height,
-        class: svg.getAttribute("class"),
-        id: svg.getAttribute("id"),
-        childElementCount: svg.childElementCount,
-        source: [doctype + source]
-      });
+    var source = (new XMLSerializer()).serializeToString(svg).replace('</style>', '<![CDATA[' + styles + ']]></style>');
+    var rect = svg.getBoundingClientRect();
+    svgInfo.push({
+      top: rect.top,
+      left: rect.left,
+      width: rect.width,
+      height: rect.height,
+      class: svg.getAttribute("class"),
+      id: svg.getAttribute("id"),
+      childElementCount: svg.childElementCount,
+      source: [doctype + source]
     });
+
     return svgInfo;
   }
 

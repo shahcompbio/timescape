@@ -82,13 +82,14 @@ HTMLWidgets.widget({
 
     // SET UP PAGE LAYOUT
 
-    var buttonDIV = d3.select(el).append("div").append("button")
+    var buttonDIV = d3.select(el).append("div")
+        .append("button")
         .attr("type","button")
         .attr("class", "downloadButton")
         .text("Download SVG")
         .on("click", function() {
             // download the svg
-            downloadSVG();
+            downloadSVG("timesweep_" + view_id);
         });
 
     var canvasDIV = d3.select(el).append("div")
@@ -106,7 +107,7 @@ HTMLWidgets.widget({
 
     var canvasSVG = canvasDIV
         .append("svg:svg")  
-        .attr("class", "canvasSVG")     
+        .attr("class", "timesweep_" + view_id)     
         .attr("x", 0)
         .attr("y", 0) 
         .attr("width", dim.canvasSVGWidth) 
