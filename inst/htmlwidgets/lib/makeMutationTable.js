@@ -42,7 +42,9 @@ function _makeMutationTable(curVizObj, mutationTableDIV, data, table_height) {
 	        .on('click', 'tr', function () { 
 	        	
 	        	// hide VAF tooltips
-	        	curVizObj.tip.hide();
+	        	curVizObj.tips.forEach(function(curTip) {
+	        		curTip.hide();
+	        	})
 
 	        	// if mutation is already selected, 
 	        	if ($(this).hasClass("selected")) {
@@ -80,12 +82,12 @@ function _makeMutationTable(curVizObj, mutationTableDIV, data, table_height) {
 	                    _shadeTimeSweep(curVizObj);
                     	_shadeLegend(curVizObj);
 
-                    	//highlight this link TODO
+                    	// highlight this link 
 	                    d3.select("#" + view_id)
 	                        .select(".legendTreeLink." + cur_data.link_id)
 	                        .attr("stroke", "red");
 
-	                    // highlight all elements downstream of link TODO
+	                    // highlight all elements downstream of link 
 	                    _propagatedEffects(curVizObj, cur_data.link_id, curVizObj.link_ids, "downstream");
 
 		        		// mark as selected
@@ -110,17 +112,24 @@ function _makeMutationTable(curVizObj, mutationTableDIV, data, table_height) {
 		        			// for each prevalence
 		        			cur_prevs_filtered.forEach(function(prev) {
 
-		        				// tooltip for mutation VAFs
-		        				curVizObj.tip.html(function(d) {
+							    // tooltip for mutation VAFs
+							    var curTip = d3.tip()
+							        .attr('class', 'd3-tip')
+							        .offset([-10,0])
+							        .html(function(d) {
 							    		return "<span>" + d + "</span>";
 							  		})	
 
+							  	// add to list of tips
+							  	curVizObj.tips.push(curTip);
+
 							  	// invoke the tip in the context of this visualization
-							  	d3.select("#" + view_id).select(".timesweep_" + view_id).call(curVizObj.tip);
+							  	d3.select("#" + view_id).select(".timesweep_" + view_id).call(curTip);
 
 							  	// show tooltip
 							  	var rounded_VAF = (Math.round(prev.VAF*100)/100).toFixed(2);
-							  	curVizObj.tip.show(rounded_VAF, d3.select("#" + view_id).select(".xAxisLabels.tp_" + prev.timepoint)[0][0]);
+							  	curTip.show(rounded_VAF, 
+							  		d3.select("#" + view_id).select(".xAxisLabels.tp_" + prev.timepoint)[0][0]);
 		        			})
                         }
 		            }        		

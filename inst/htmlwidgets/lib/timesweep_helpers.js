@@ -454,8 +454,10 @@ function _backgroundClick(curVizObj) {
     // unhighlight phylogeny links (highlighting occurs when mutation selected)
     d3.select("#" + curVizObj.view_id).selectAll(".legendTreeLink").attr("stroke", dim.treeLinkColour);
 
-    // hide mutation tooltips
-    curVizObj.tip.hide();
+    // hide VAF tooltips
+    curVizObj.tips.forEach(function(curTip) {
+        curTip.hide();
+    })
 
     _resetView(curVizObj);
 }

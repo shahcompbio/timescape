@@ -222,13 +222,8 @@ HTMLWidgets.widget({
 
     // SET CONTENT
 
-    // tooltip for mutation VAFs
-    curVizObj.tip = d3.tip()
-        .attr('class', 'd3-tip')
-        .offset([-10,0])
-        .html(function(d) {
-            return "<strong>VAF:</strong> <span>" + d.VAF + "</span>";
-        }); 
+    // tips
+    curVizObj.tips = [];
 
     // get colour scheme
     _getPhyloColours(curVizObj);
