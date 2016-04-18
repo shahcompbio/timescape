@@ -68,7 +68,7 @@ HTMLWidgets.widget({
 
     // configuration based on available data
     dim.canvasSVGWidth = dim.width - dim.paddingGeneral - dim.paddingGeneral;
-    dim.canvasSVGHeight = dim.height - dim.paddingGeneral - dim.paddingGeneral;
+    dim.canvasSVGHeight = dim.height - dim.paddingGeneral - dim.paddingGeneral - dim.topBarHeight;
     dim.tsSVGHeight = (curVizObj.userConfig.mutations[0] == "NA") ? 
                         dim.canvasSVGHeight - dim.xAxisHeight - dim.smallMargin :
                         250;
