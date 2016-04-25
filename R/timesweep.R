@@ -301,6 +301,14 @@ timesweep <- function(clonal_prev,
   }
 
   # replace spaces with underscores
+  # --> timepoints
+  clonal_prev$timepoint <- stringr::str_replace_all(clonal_prev$timepoint,"\\s+","_")
+  if (is.data.frame(mutations)) {
+    prevs_split_small <- lapply(prevs_split_small, function(prevs) {
+      prevs$timepoint <- stringr::str_replace_all(prevs$timepoint,"\\s+","_")
+      return(prevs)
+    })
+  }
   # --> clone ids
   clonal_prev$clone_id <- stringr::str_replace_all(clonal_prev$clone_id,"\\s+","_")
   tree_edges$source <- stringr::str_replace_all(tree_edges$source,"\\s+","_")

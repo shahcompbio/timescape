@@ -2015,6 +2015,10 @@ function _getPhyloColours(curVizObj) {
 // returns brightness value from 0 to 255
 // http://www.webmasterworld.com/forum88/9769.htm
 function _get_brightness(hexCode) {
+    if (hexCode == undefined) {
+        return undefined;
+    }
+
     // strip off any leading #
     hexCode = hexCode.replace('#', '');
 
