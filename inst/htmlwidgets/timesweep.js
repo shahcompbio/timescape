@@ -30,7 +30,10 @@ HTMLWidgets.widget({
         curCloneIDs: [], // array of clone ids currently in the mutation table
         nClickedNodes: 0, // number of clicked nodes
         phantomRoot: "phantomRoot",
-        treeLinkColour: "black"
+        treeLinkColour: "black",
+        topBarHeight: 30, // height of top panel
+        topBarColour: "#ECECEC",
+        topBarHighlight: "#C6C6C6"
     };
 
     // global variable vizObj
@@ -65,7 +68,7 @@ HTMLWidgets.widget({
 
     // configuration based on available data
     dim.canvasSVGWidth = dim.width - dim.paddingGeneral - dim.paddingGeneral;
-    dim.canvasSVGHeight = dim.height - dim.paddingGeneral - dim.paddingGeneral;
+    dim.canvasSVGHeight = dim.height - dim.paddingGeneral - dim.paddingGeneral - dim.topBarHeight;
     dim.tsSVGHeight = (curVizObj.userConfig.mutations[0] == "NA") ? 
                         dim.canvasSVGHeight - dim.xAxisHeight - dim.smallMargin :
                         250;
@@ -85,17 +88,16 @@ HTMLWidgets.widget({
 
     // SET UP PAGE LAYOUT
 
-    var buttonDIV = d3.select(el).append("div")
-        .append("button")
-        .attr("type","button")
-        .attr("class", "downloadButton")
-        .text("Download SVG")
-        .on("click", function() {
-            // download the svg
-            downloadSVG("timesweep_" + view_id);
-        });
+    var topBarDIV = d3.select(el).append("div")
+        .attr("class", "topBarDIV")
+        .style("position", "relative")
+        .style("width", dim.width + "px")
+        .style("height", dim.topBarHeight + "px")
+        .style("float", "left");
 
     var canvasDIV = d3.select(el).append("div")
+        .style("height", dim.canvasSVGHeight + "px")
+        .style("width", dim.width + "px")
         .attr("class", "div")
         .attr("id", view_id);
 
@@ -108,6 +110,257 @@ HTMLWidgets.widget({
         .style("left", (dim.yAxisWidth + dim.smallMargin + dim.paddingGeneral) + "px")
         .style("float", "left");
 
+    // canvas for image png output
+    var canvas = d3.select(el).append("canvas")
+        .attr("height", dim.canvasSVGHeight + "px")
+        .attr("width", dim.width + "px")
+        .attr("style", "display:none");
+
+    // PLOT TOP PANEL
+
+    // svg
+    var topBarSVG = topBarDIV.append("svg:svg")
+        .attr("class", "topBar_" + view_id)
+        .attr("x", 0)
+        .attr("y", 0)
+        .attr("width", dim.width + "px")
+        .attr("height", dim.topBarHeight + "px");
+
+    // background bar
+    topBarSVG.append("rect")
+        .attr("x",0)
+        .attr("y",0)
+        .attr("width", dim.width + "px")
+        .attr("height", dim.topBarHeight)
+        .attr("rx", 10)
+        .attr("ry", 10)
+        .attr("fill", dim.topBarColour);
+
+    var downloadButtonWidth = 80; // width of the top panel download button
+    var resetButtonWidth = 42; // width of the top panel reset button
+
+    var resetButton_base64 = "data:image/svg+xml;base64," + "PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4NCjwhLS0gR2VuZXJhdG9yOiBBZG9iZSBJbGx1c3RyYXRvciAxNC4wLjAsIFNWRyBFeHBvcnQgUGx1Zy1JbiAuIFNWRyBWZXJzaW9uOiA2LjAwIEJ1aWxkIDQzMzYzKSAgLS0+DQo8IURPQ1RZUEUgc3ZnIFBVQkxJQyAiLS8vVzNDLy9EVEQgU1ZHIDEuMS8vRU4iICJodHRwOi8vd3d3LnczLm9yZy9HcmFwaGljcy9TVkcvMS4xL0RURC9zdmcxMS5kdGQiPg0KPHN2ZyB2ZXJzaW9uPSIxLjEiIGlkPSJDYXBhXzEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHg9IjBweCIgeT0iMHB4Ig0KCSB3aWR0aD0iNTEycHgiIGhlaWdodD0iNTEycHgiIHZpZXdCb3g9IjAgMCA1MTIgNTEyIiBlbmFibGUtYmFja2dyb3VuZD0ibmV3IDAgMCA1MTIgNTEyIiB4bWw6c3BhY2U9InByZXNlcnZlIj4NCjxnPg0KCTxwYXRoIGZpbGw9IiNGRkZGRkYiIGQ9Ik00MzIuOTc1LDgwLjAzNGMtMjcuOTk4LTI3Ljk2My02MC45MjYtNDcuODYtOTYuMDM3LTU5Ljc2NHY3NS4xODkNCgkJYzE2LjkwNCw4LjQxNywzMi45MjgsMTkuMzY5LDQ2Ljk4LDMzLjQ1NmM3MC4xODgsNzAuMjI0LDcwLjE4OCwxODQuMzk3LDAsMjU0LjU4NGMtNzAuMTg5LDcwLjA4NC0xODQuMjkzLDcwLjA4NC0yNTQuNTg3LDANCgkJYy03MC4xMTctNzAuMjU4LTcwLjExNy0xODQuMzYxLDAtMjU0LjU4NGMwLjE3Ny0wLjIxMSwwLjc0LTAuNTYzLDAuOTg3LTAuODhoMC4wN2w3NC4yMTcsODEuNzMxTDIxNC41LDguNUw4LjkwNSwzLjM1Ng0KCQlsNzIuNDYxLDc1LjU4NmMtMC4yNDcsMC40MjItMC42MzQsMC44NDUtMC45NTEsMS4wOTJjLTk3LjMwNSw5Ny4yNy05Ny4zMDUsMjU1LjA3OSwwLDM1Mi4zNDkNCgkJYzk3LjQ0Niw5Ny4zNzUsMjU1LjE1LDk3LjM3NSwzNTIuNTYsMEM1MzAuMjA5LDMzNS4xMTMsNTMwLjMxNCwxNzcuMzA0LDQzMi45NzUsODAuMDM0eiIvPg0KPC9nPg0KPC9zdmc+DQo="
+    var downloadButton_base64 = "data:image/svg+xml;base64," + "PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4NCjwhLS0gR2VuZXJhdG9yOiBBZG9iZSBJbGx1c3RyYXRvciAxNC4wLjAsIFNWRyBFeHBvcnQgUGx1Zy1JbiAuIFNWRyBWZXJzaW9uOiA2LjAwIEJ1aWxkIDQzMzYzKSAgLS0+DQo8IURPQ1RZUEUgc3ZnIFBVQkxJQyAiLS8vVzNDLy9EVEQgU1ZHIDEuMS8vRU4iICJodHRwOi8vd3d3LnczLm9yZy9HcmFwaGljcy9TVkcvMS4xL0RURC9zdmcxMS5kdGQiPg0KPHN2ZyB2ZXJzaW9uPSIxLjEiIGlkPSJMYXllcl8xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB4PSIwcHgiIHk9IjBweCINCgkgd2lkdGg9IjUxMnB4IiBoZWlnaHQ9IjUxMnB4IiB2aWV3Qm94PSIwIDAgNTEyIDUxMiIgZW5hYmxlLWJhY2tncm91bmQ9Im5ldyAwIDAgNTEyIDUxMiIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSI+DQo8cG9seWdvbiBmaWxsPSIjRkZGRkZGIiBwb2ludHM9IjM1NC41LDMzMy41IDMzMy41LDMxMy41IDI3MS44MzUsMzY1LjU2NCAyNzEuODM1LDcuOTE3IDI0MC4xNjUsNy45MTcgMjQwLjE2NSwzNjUuNTY0IDE4MC41LDMxNC41IA0KCTE1Ny41LDMzNi41IDI1Niw0MjYuMTg4ICIvPg0KPHBvbHlnb24gZmlsbD0iI0ZGRkZGRiIgcG9pbnRzPSIyOC41LDQ3Mi40MTIgNDg5LjUsNDcyLjQxMiA0OTAuNSw1MDQuMDgyIDI3LjUsNTA0LjA4MiAiLz4NCjxwb2x5Z29uIGZpbGw9IiNGRkZGRkYiIHBvaW50cz0iMjYuNTgsMzY2LjQxMiA2My40NjcsMzY2LjQxMiA2My41NDcsNTAyLjUgMjYuNSw1MDIuNSAiLz4NCjxwb2x5Z29uIGZpbGw9IiNGRkZGRkYiIHBvaW50cz0iNDUyLjUzMywzNjUuNDEyIDQ4OS40MTksMzY1LjQxMiA0ODkuNSw1MDEuNSA0NTIuNDUzLDUwMS41ICIvPg0KPC9zdmc+DQo="
+    var timesweepButton_base64 = "data:image/svg+xml;base64," + "PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4NCjwhLS0gR2VuZXJhdG9yOiBBZG9iZSBJbGx1c3RyYXRvciAxNC4wLjAsIFNWRyBFeHBvcnQgUGx1Zy1JbiAuIFNWRyBWZXJzaW9uOiA2LjAwIEJ1aWxkIDQzMzYzKSAgLS0+DQo8IURPQ1RZUEUgc3ZnIFBVQkxJQyAiLS8vVzNDLy9EVEQgU1ZHIDEuMS8vRU4iICJodHRwOi8vd3d3LnczLm9yZy9HcmFwaGljcy9TVkcvMS4xL0RURC9zdmcxMS5kdGQiPg0KPHN2ZyB2ZXJzaW9uPSIxLjEiIGlkPSJMYXllcl8xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB4PSIwcHgiIHk9IjBweCINCgkgd2lkdGg9Ijg3MHB4IiBoZWlnaHQ9IjI4MHB4IiB2aWV3Qm94PSIwIDAgODcwIDI4MCIgZW5hYmxlLWJhY2tncm91bmQ9Im5ldyAwIDAgODcwIDI4MCIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSI+DQo8ZGVmcyAgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGh0bWwiPg0KCTxzdHlsZSAgdHlwZT0idGV4dC9jc3MiPg0KCQk8IVtDREFUQVtdXT4NCgk8L3N0eWxlPg0KPC9kZWZzPg0KPGRlZnMgIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hodG1sIj4NCgk8c3R5bGUgIHR5cGU9InRleHQvY3NzIj48L3N0eWxlPg0KPC9kZWZzPg0KPHBhdGggZmlsbD0iI0ZGRkZGRiIgc3Ryb2tlPSIjRkZGRkZGIiBkPSJNNjcuNSwxMzUuNDg3YzQ1LDAsNDUtMTI0Ljk4Nyw5MC0xMjQuOTg3bDAsMGM5MCwwLDkwLDAsMTgwLDBsMCwwYzE4MCwwLTg1LDAsOTUsMGwwLDANCgl2MjQ5Ljk3NWwwLDBjLTE4MCwwLDAsMC05NSwwbDAsMGMtOTAsMC05MCwwLTE4MCwwbDAsMEMxMTIuNSwyNjAuNDc1LDExMi41LDEzNS40ODcsNjcuNSwxMzUuNDg3Ii8+DQo8ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSg3NjAsMCkiPg0KPC9nPg0KPGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNzYwLDIwOCkiPg0KPC9nPg0KPC9zdmc+DQo="
+    var clonalTrajButton_base64 = "data:image/svg+xml;base64," + "PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4NCjwhLS0gR2VuZXJhdG9yOiBBZG9iZSBJbGx1c3RyYXRvciAxNC4wLjAsIFNWRyBFeHBvcnQgUGx1Zy1JbiAuIFNWRyBWZXJzaW9uOiA2LjAwIEJ1aWxkIDQzMzYzKSAgLS0+DQo8IURPQ1RZUEUgc3ZnIFBVQkxJQyAiLS8vVzNDLy9EVEQgU1ZHIDEuMS8vRU4iICJodHRwOi8vd3d3LnczLm9yZy9HcmFwaGljcy9TVkcvMS4xL0RURC9zdmcxMS5kdGQiPg0KPHN2ZyB2ZXJzaW9uPSIxLjEiIGlkPSJMYXllcl8xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB4PSIwcHgiIHk9IjBweCINCgkgd2lkdGg9Ijk3MHB4IiBoZWlnaHQ9IjI4MHB4IiB2aWV3Qm94PSIwIDAgOTcwIDI4MCIgZW5hYmxlLWJhY2tncm91bmQ9Im5ldyAwIDAgOTcwIDI4MCIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSI+DQo8ZGVmcyAgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGh0bWwiPg0KCTxzdHlsZSAgdHlwZT0idGV4dC9jc3MiPg0KCQk8IVtDREFUQVtdXT4NCgk8L3N0eWxlPg0KPC9kZWZzPg0KPGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMjUsMCkiPg0KCTxwYXRoIGZpbGw9IiNGRkZGRkYiIHN0cm9rZT0iI0ZGRkZGRiIgZD0iTS0yMSw1MC41MjZjNzguNDE3LDAsNzguNDE3LDAsMTU2LjgzMywwbDAsMEMyOTIuNjY3LDUwLjUyNiwyOTIuNjY3LDAsNDQ5LjUsMGwwLDANCgkJdjEwMS4wNTRsMCwwYy0xNTYuODMzLDAtMTU2LjgzMy01MC41MjctMzEzLjY2Ny01MC41MjdsMCwwQzU3LjQxNyw1MC41MjYsNTcuNDE3LDUwLjUyNi0yMSw1MC41MjYiLz4NCgk8cGF0aCBmaWxsPSIjRkZGRkZGIiBzdHJva2U9IiNGRkZGRkYiIGQ9Ik0tMjEsMjA0LjM1MWM3OC40MTcsMCw3OC40MTctNzMuMjM4LDE1Ni44MzMtNzMuMjM4bDAsMA0KCQljMTU2LjgzMywwLDE1Ni44MzMsNzMuMDA4LDMxMy42NjcsNzMuMDA4bDAsMHYwLjQ1NWwwLDBjLTE1Ni44MzMsMC0xNTYuODMzLDczLjAxMi0zMTMuNjY3LDczLjAxMmwwLDANCgkJQzU3LjQxNywyNzcuNTg4LDU3LjQxNywyMDQuMzUxLTIxLDIwNC4zNTEiLz4NCjwvZz4NCjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDg2MCwwKSI+DQo8L2c+DQo8ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSg4NjAsMjA4KSI+DQo8L2c+DQo8L3N2Zz4NCg=="
+
+    var resetButtonIconWidth = dim.topBarHeight - 10; // icon size for reset button
+    var downloadButtonIconWidth = dim.topBarHeight - 10; // icon size for download button
+    var timesweepButtonIconWidth = 50; // icon size for timesweep button
+    var clonalTrajButtonIconWidth = 60; // icon size for timesweep button
+
+    // reset button
+    topBarSVG.append("rect")
+        .attr("class", "resetButton")
+        .attr("x", 0)
+        .attr("y", 0)
+        .attr("width", resetButtonWidth)
+        .attr("height", dim.topBarHeight)
+        .attr("rx", 10)
+        .attr("ry", 10)
+        .attr("fill", dim.topBarColour)
+        .on("mouseover", function() {
+            d3.select(this).attr("fill", dim.topBarHighlight);
+        })
+        .on("mouseout", function() {
+            d3.select(this).attr("fill", dim.topBarColour);
+        })
+        .on("click", function() {
+            // background click
+            _backgroundClick(curVizObj);
+        });
+    topBarSVG.append("image")
+        .attr("xlink:href", resetButton_base64)
+        .attr("x", (resetButtonWidth/2) - (resetButtonIconWidth/2))
+        .attr("y", 5)
+        .attr("width", resetButtonIconWidth)
+        .attr("height", resetButtonIconWidth)
+        .on("mouseover", function() {
+            d3.select("#" + view_id).select(".resetButton").attr("fill", dim.topBarHighlight);
+        })
+        .on("mouseout", function() {
+            d3.select("#" + view_id).select(".resetButton").attr("fill", dim.topBarColour);
+        })
+        .on("click", function() {
+            // background click
+            _backgroundClick(curVizObj);
+        });
+
+    // SVG button
+    topBarSVG.append("rect")
+        .attr("class", "svgButton")
+        .attr("x", dim.width - downloadButtonWidth)
+        .attr("y", 0)
+        .attr("width", downloadButtonWidth)
+        .attr("height", dim.topBarHeight)
+        .attr("rx", 10)
+        .attr("ry", 10)
+        .attr("fill", dim.topBarColour)
+        .on("mouseover", function() {
+            d3.select(this).attr("fill", dim.topBarHighlight);
+        })
+        .on("mouseout", function() {
+            d3.select(this).attr("fill", dim.topBarColour);
+        })
+        .on("click", function() {
+            // download the svg
+            downloadSVG("timesweep_" + view_id);
+        });
+    topBarSVG.append("text")
+        .attr("class", "svgButtonText")
+        .attr("x", dim.width - 10)
+        .attr("y", dim.topBarHeight/2)
+        .attr("text-anchor", "end")
+        .attr("dy", "+0.35em")
+        .attr("font-family", "Arial")
+        .attr("fill", "white")
+        .attr("pointer-events","none")
+        .text("SVG");
+    topBarSVG.append("image")
+        .attr("xlink:href", downloadButton_base64)
+        .attr("x", dim.width - downloadButtonWidth + 10)
+        .attr("y", 5)
+        .attr("width", downloadButtonIconWidth)
+        .attr("height", downloadButtonIconWidth)
+        .on("mouseover", function() {
+            d3.select("#" + view_id).select(".svgButton").attr("fill", dim.topBarHighlight);
+        })
+        .on("mouseout", function() {
+            d3.select("#" + view_id).select(".svgButton").attr("fill", dim.topBarColour);
+        })
+        .on("click", function() {
+            // download the svg
+            downloadSVG("timesweep_" + view_id);
+        });
+
+    // PNG button
+    topBarSVG.append("rect")
+        .attr("class", "pngButton")
+        .attr("x", dim.width - downloadButtonWidth*2)
+        .attr("y", 0)
+        .attr("width", downloadButtonWidth)
+        .attr("height", dim.topBarHeight)
+        .attr("rx", 10)
+        .attr("ry", 10)
+        .attr("fill",dim.topBarColour)
+        .on("mouseover", function() {
+            d3.select(this).attr("fill", dim.topBarHighlight);
+        })
+        .on("mouseout", function() {
+            d3.select(this).attr("fill", dim.topBarColour);
+        })
+        .on("click", function(){
+            // download the png
+            _downloadPNG("timesweep_" + view_id, "timesweep_" + view_id + ".png");
+        });
+    topBarSVG.append("text")
+        .attr("class", "pngButtonText")
+        .attr("x", dim.width - downloadButtonWidth - 10)
+        .attr("y", dim.topBarHeight/2)
+        .attr("text-anchor", "end")
+        .attr("dy", "+0.35em")
+        .attr("font-family", "Arial")
+        .attr("fill", "white")
+        .attr("pointer-events","none")
+        .text("PNG");
+    topBarSVG.append("image")
+        .attr("xlink:href", downloadButton_base64)
+        .attr("x", dim.width - 2*downloadButtonWidth + 10)
+        .attr("y", 5)
+        .attr("width", downloadButtonIconWidth)
+        .attr("height", downloadButtonIconWidth)
+        .on("mouseover", function() {
+            d3.select("#" + view_id).select(".pngButton").attr("fill", dim.topBarHighlight);
+        })
+        .on("mouseout", function() {
+            d3.select("#" + view_id).select(".pngButton").attr("fill", dim.topBarColour);
+        })
+        .on("click", function() {
+            // download the png
+            _downloadPNG("timesweep_" + view_id, "timesweep_" + view_id + ".png");
+        });
+
+    // TimeSweep button
+    topBarSVG.append("rect")
+        .attr("class", "tsButton")
+        .attr("x", dim.width - downloadButtonWidth*2 - resetButtonWidth)
+        .attr("y", 0)
+        .attr("width", resetButtonWidth)
+        .attr("height", dim.topBarHeight)
+        .attr("rx", 10)
+        .attr("ry", 10)
+        .attr("fill",dim.topBarColour)
+        .on("mouseover", function() {
+            d3.select(this).attr("fill", dim.topBarHighlight);
+        })
+        .on("mouseout", function() {
+            d3.select(this).attr("fill", dim.topBarColour);
+        })
+        .on("click", function(){
+            // change view
+            _sweepClick(curVizObj);
+            
+        });
+    topBarSVG.append("image")
+        .attr("class", "timesweepIcon")
+        .attr("xlink:href", timesweepButton_base64)
+        .attr("x", dim.width - 2*downloadButtonWidth - resetButtonWidth + 5)
+        .attr("y", -10)
+        .attr("width", timesweepButtonIconWidth)
+        .attr("height", timesweepButtonIconWidth)
+        .on("mouseover", function() {
+            d3.select("#" + view_id).select(".tsButton").attr("fill", dim.topBarHighlight);
+        })
+        .on("mouseout", function() {
+            d3.select("#" + view_id).select(".tsButton").attr("fill", dim.topBarColour);
+        })
+        .attr("opacity", 0) // start with opacity zero
+        .on("click", function() {
+            // change view
+            _sweepClick(curVizObj);
+
+            // turn off opacity & pointer events
+            d3.select(this)
+                .attr("opacity", 0)
+                .attr("pointer-events", "none");
+
+            // turn on clonal trajectory icon opacity & pointer events
+            d3.select("#" + view_id).select(".clonalTrajIcon")
+                .attr("opacity", 1)
+                .attr("pointer-events", "auto");
+        });
+    topBarSVG.append("image")
+        .attr("class", "clonalTrajIcon")
+        .attr("xlink:href", clonalTrajButton_base64)
+        .attr("x", dim.width - 2*downloadButtonWidth - resetButtonWidth + 5)
+        .attr("y", -15)
+        .attr("width", clonalTrajButtonIconWidth)
+        .attr("height", clonalTrajButtonIconWidth)
+        .on("mouseover", function() {
+            d3.select("#" + view_id).select(".tsButton").attr("fill", dim.topBarHighlight);
+        })
+        .on("mouseout", function() {
+            d3.select("#" + view_id).select(".tsButton").attr("fill", dim.topBarColour);
+        })
+        .attr("opacity", 1) // start with opacity 1
+        .on("click", function() {
+            // change view
+            _sweepClick(curVizObj);
+
+            // turn off opacity & pointer events
+            d3.select(this)
+                .attr("opacity", 0)
+                .attr("pointer-events", "none");
+
+            // turn on timesweep icon opacity & pointer events
+            d3.select("#" + view_id).select(".timesweepIcon")
+                .attr("opacity", 1)
+                .attr("pointer-events", "auto");
+
+        });
+
+    // OTHER SVGS
+
     var canvasSVG = canvasDIV
         .append("svg:svg")  
         .attr("class", "timesweep_" + view_id)     
@@ -119,10 +372,7 @@ HTMLWidgets.widget({
         .style("margin-right",  dim.paddingGeneral)
         .style("margin-left",  dim.paddingGeneral)
         .style("margin-top",  dim.paddingGeneral)
-        .style("margin-bottom",  dim.paddingGeneral)
-        .on("click", function() {
-            _backgroundClick(curVizObj);
-        });
+        .style("margin-bottom",  dim.paddingGeneral);
 
     var tsSVG = canvasSVG
         .append("g")  
@@ -240,10 +490,7 @@ HTMLWidgets.widget({
         .attr("y", 0)
         .attr("height", dim.tsSVGHeight)
         .attr("width", dim.tsSVGWidth)
-        .attr("fill", "#F7F7F7")
-        .on("click", function() {
-            _backgroundClick(curVizObj);
-        });
+        .attr("fill", "#F7F7F7");
 
     // plot timesweep data
     curVizObj.view.tsSVG
@@ -412,6 +659,7 @@ HTMLWidgets.widget({
         .text('Phylogeny'); 
 
     // d3 tree layout
+    var treeR = 4;
     var treePadding = 10,
         treeTitleHeight = d3.select("#" + curVizObj.view_id)
                             .select('.treeTitle').node().getBBox().height,
@@ -563,44 +811,44 @@ HTMLWidgets.widget({
 
     // SWITCH between traditional and tracks views
 
-    // checkbox
-    var input = curVizObj.view.tsSwitch
-        .append("foreignObject")
-        .attr('x', -10)
-        .attr('y', 5)
-        .attr('width', 50)
-        .attr('height', 20)
-        .append("xhtml:body")
-        .html("<input type=\"checkbox\">");
+    // // checkbox
+    // var input = curVizObj.view.tsSwitch
+    //     .append("foreignObject")
+    //     .attr('x', -10)
+    //     .attr('y', 5)
+    //     .attr('width', 50)
+    //     .attr('height', 20)
+    //     .append("xhtml:body")
+    //     .html("<input type=\"checkbox\">");
 
-    // checkbox text
-    var bottomPadding = 5,
-        betweenTextPadding = 2,
-        clonalTrajectoryFontSize = 15;
-    curVizObj.view.tsSwitch
-        .append("text")
-        .attr('x', 17)
-        .attr('y', dim.clonalTrajectoryLabelHeight - bottomPadding - 
-            betweenTextPadding - clonalTrajectoryFontSize)
-        .attr('text-anchor', 'left')
-        .attr('font-family', 'Arial')
-        .attr('font-size', clonalTrajectoryFontSize + 'px')
-        .attr('font-weight', 'bold')
-        .text("Clonal")
-    curVizObj.view.tsSwitch
-        .append("text")
-        .attr('x', 17)
-        .attr('y', dim.clonalTrajectoryLabelHeight - bottomPadding)
-        .attr('text-anchor', 'left')
-        .attr('font-family', 'Arial')
-        .attr('font-size', clonalTrajectoryFontSize + 'px')
-        .attr('font-weight', 'bold')
-        .text("Trajectory")
+    // // checkbox text
+    // var bottomPadding = 5,
+    //     betweenTextPadding = 2,
+    //     clonalTrajectoryFontSize = 15;
+    // curVizObj.view.tsSwitch
+    //     .append("text")
+    //     .attr('x', 17)
+    //     .attr('y', dim.clonalTrajectoryLabelHeight - bottomPadding - 
+    //         betweenTextPadding - clonalTrajectoryFontSize)
+    //     .attr('text-anchor', 'left')
+    //     .attr('font-family', 'Arial')
+    //     .attr('font-size', clonalTrajectoryFontSize + 'px')
+    //     .attr('font-weight', 'bold')
+    //     .text("Clonal")
+    // curVizObj.view.tsSwitch
+    //     .append("text")
+    //     .attr('x', 17)
+    //     .attr('y', dim.clonalTrajectoryLabelHeight - bottomPadding)
+    //     .attr('text-anchor', 'left')
+    //     .attr('font-family', 'Arial')
+    //     .attr('font-size', clonalTrajectoryFontSize + 'px')
+    //     .attr('font-weight', 'bold')
+    //     .text("Trajectory")
 
-    // when checkbox selected, change view
-    input.on("change", function() {
-        _sweepClick(curVizObj);
-    });
+    // // when checkbox selected, change view
+    // input.on("change", function() {
+    //     _sweepClick(curVizObj);
+    // });
 
     // MUTATION TABLE
 
