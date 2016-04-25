@@ -434,7 +434,7 @@ HTMLWidgets.widget({
         .data(links)                   
         .enter().append("path")                   
         .attr("class", function(d) { 
-            d.link_id = "treeLink_" + d.source.id + "_" + d.target.id;
+            d.link_id = "treeLink_source_" + d.source.id + "_target_" + d.target.id;
             curVizObj.link_ids.push(d.link_id);
             return "legendTreeLink " + d.link_id;
         })

@@ -61,8 +61,8 @@ function _propagatedEffects(curVizObj, link_id, link_ids, stream_direction) {
 */
 function _getPropatagedItems(curVizObj, link_id, link_ids, stream_direction) {
     var view_id = curVizObj.view_id,
-        generalTargetRX = new RegExp("treeLink_.+_(.+)"), // regex to get target
-        generalSourceRX = new RegExp("treeLink_(.+)_.+"); // regex to get source
+        generalTargetRX = new RegExp("treeLink_source_.+_target_(.+)"), // regex to get target
+        generalSourceRX = new RegExp("treeLink_source_(.+)_target_.+"); // regex to get source
 
     // get target & source id of this link
     var target_id = generalTargetRX.exec(link_id)[1];
@@ -70,8 +70,8 @@ function _getPropatagedItems(curVizObj, link_id, link_ids, stream_direction) {
 
     // get the targets of this target, or sources of source
     var nextNodeRX = (stream_direction == "downstream") ? 
-        new RegExp("treeLink_" + target_id + "_(.+)") :
-        new RegExp("treeLink_(.+)_" + source_id);
+        new RegExp("treeLink_source_" + target_id + "_target_(.+)") :
+        new RegExp("treeLink_source_(.+)_target_" + source_id);
     var targetLinks_of_targetNode = [];
     link_ids.map(function(id) {
         if (id.match(nextNodeRX)) {
@@ -2122,7 +2122,7 @@ function _reformatMutations(curVizObj) {
     original_muts.forEach(function(mut) {
 
         // link id where mutation occurred
-        var link_id = "treeLink_" + curVizObj.data.direct_ancestors[mut.clone_id] + "_" +  mut.clone_id;
+        var link_id = "treeLink_source_" + curVizObj.data.direct_ancestors[mut.clone_id] + "_target_" +  mut.clone_id;
 
         // add this gene to the array
         var cur_mut = {

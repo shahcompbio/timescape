@@ -1,13 +1,14 @@
 Package: timesweep
 Title: Patient Clonal Timesweeps
-Version: 0.0.3.9038
+Version: 0.0.3.9039
 Authors@R: person("Maia", "Smith", email = "maiaannesmith@gmail.com", role = c("aut", "cre"))
 Description: What the package does (one paragraph).
 Depends:
     R (>= 3.2.2)
 Imports:
     htmlwidgets (>= 0.5),
-    jsonlite (>= 0.9.19)
+    jsonlite (>= 0.9.19),
+	stringr (>= 1.0.0)
 License: What license is it under?
 LazyData: true
 RoxygenNote: 5.0.1

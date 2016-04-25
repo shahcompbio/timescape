@@ -300,6 +300,18 @@ timesweep <- function(clonal_prev,
     mutation_info <- "NA"
   }
 
+  # replace spaces with underscores
+  # --> clone ids
+  clonal_prev$clone_id <- stringr::str_replace_all(clonal_prev$clone_id,"\\s+","_")
+  tree_edges$source <- stringr::str_replace_all(tree_edges$source,"\\s+","_")
+  tree_edges$target <- stringr::str_replace_all(tree_edges$target,"\\s+","_")
+  if (is.data.frame(clone_colours)) {
+    clone_colours$clone_id <- stringr::str_replace_all(clone_colours$clone_id,"\\s+","_")
+  }
+  if (is.data.frame(mutations)) {
+    mutation_info$clone_id <- stringr::str_replace_all(mutation_info$clone_id,"\\s+","_")
+  }
+
   # forward options using x
   x = list(
     clonal_prev = jsonlite::toJSON(clonal_prev),
