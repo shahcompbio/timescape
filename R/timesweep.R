@@ -300,6 +300,10 @@ timesweep <- function(clonal_prev,
     mutation_info <- "NA"
   }
 
+  # create map of original sample ids to space-replaced sample ids
+  timepoint_map <- data.frame(original_timepoint = unique(clonal_prev$timepoint), stringsAsFactors=FALSE)
+  timepoint_map$space_replaced_timepoint <- stringr::str_replace_all(timepoint_map$original_timepoint,"\\s+","_")
+
   # replace spaces with underscores
   # --> timepoints
   clonal_prev$timepoint <- stringr::str_replace_all(clonal_prev$timepoint,"\\s+","_")
@@ -332,7 +336,8 @@ timesweep <- function(clonal_prev,
     alpha = alpha,
     genotype_position = genotype_position,
     perturbations = jsonlite::toJSON(perturbations),
-    sort_gtypes = sort
+    sort_gtypes = sort,
+    timepoint_map = jsonlite::toJSON(timepoint_map)
   )
 
   # create widget

@@ -80,6 +80,9 @@ HTMLWidgets.widget({
                             0 : 
                             dim.mutationTableHeight;
 
+    console.log("curVizObj");
+    console.log(curVizObj);
+
     // SET UP PAGE LAYOUT
 
     var buttonDIV = d3.select(el).append("div")
@@ -334,7 +337,12 @@ HTMLWidgets.widget({
         .attr('text-anchor', 'middle')
         .attr('font-family', 'Arial')
         .attr('font-size', '11px')
-        .text(function(d) { return d; })
+        .text(function(d) { 
+            // get original label (spaces were replaced with underscores)
+            var tp = (d == "T0") ? "T0" :
+                _.findWhere(curVizObj.userConfig.timepoint_map, {"space_replaced_timepoint": d})["original_timepoint"];
+            return tp;
+        })
         .on('mouseover', function(d, i) {
             if (!dim.selectOn) {
 
@@ -389,9 +397,6 @@ HTMLWidgets.widget({
 
 
     // PLOT TREE GLYPH
-
-    console.log("curVizObj");
-    console.log(curVizObj);
 
     // plot tree title
     curVizObj.view.tsTree
