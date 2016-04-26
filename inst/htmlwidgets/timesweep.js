@@ -13,6 +13,7 @@ HTMLWidgets.widget({
         legendWidth: 110,
         treeHeight: 100,
         treeWidth: 100,
+        max_r: 7, // maximum radius for legend tree nodes
         xAxisHeight: 30,
         yAxisWidth: 20,
         smallMargin: 5,
@@ -30,7 +31,7 @@ HTMLWidgets.widget({
         curCloneIDs: [], // array of clone ids currently in the mutation table
         nClickedNodes: 0, // number of clicked nodes
         phantomRoot: "phantomRoot",
-        treeLinkColour: "black",
+        treeLinkColour: "#D3D3D3",
         topBarHeight: 30, // height of top panel
         topBarColour: "#ECECEC",
         topBarHighlight: "#C6C6C6"
@@ -659,12 +660,17 @@ HTMLWidgets.widget({
         .text('Phylogeny'); 
 
     // d3 tree layout
-    var treeR = 4;
-    var treePadding = 10,
+    var treeR = 4,
+        treePadding = 10,
         treeTitleHeight = d3.select("#" + curVizObj.view_id)
                             .select('.treeTitle').node().getBBox().height,
         treeLayout = d3.layout.tree()           
             .size([dim.treeHeight - treePadding - treeTitleHeight, dim.treeWidth - treePadding]); 
+
+    // get node radius for legend phylogeny (7 == # pixels between nodes)
+    var tree_height = curVizObj.data.tree_height;
+    dim.legendNode_r = (((dim.treeWidth-treePadding) - 7*tree_height)/tree_height)/2;
+    dim.legendNode_r = (dim.legendNode_r > dim.max_r) ? dim.max_r : dim.legendNode_r;
 
     // get nodes and links
     var root = $.extend({}, curVizObj.data.treeStructure), // copy tree into new variable
@@ -692,8 +698,28 @@ HTMLWidgets.widget({
             return "legendTreeLink " + d.link_id;
         })
         .attr('stroke', dim.treeLinkColour)
+        .attr('stroke-width', '3px')
         .attr('fill', 'none')                
-        .attr("d", _elbow); 
+        .attr("d", _elbow)
+        .on("mouseover", function(d) {
+            // we're not selecting nodes or mutations
+            if (!dim.selectOn && !dim.mutSelectOn) {
+
+                // shade view & legend 
+                _shadeTimeSweep(curVizObj);
+                _shadeLegend(curVizObj);
+
+                // highlight all elements downstream of link
+                _propagatedEffects(curVizObj, d.link_id, curVizObj.link_ids, "downstream");
+            }
+        })
+        .on("mouseout", function() {
+            // we're not selecting nodes or mutations
+            if (!dim.selectOn && !dim.mutSelectOn) {
+                // background click
+                _backgroundClick(curVizObj);
+            }
+        }); 
 
     // create nodes
     var node = curVizObj.view.tsTree.selectAll(".legendTreeNode")                  
@@ -710,7 +736,7 @@ HTMLWidgets.widget({
             return (d.id == dim.phantomRoot) ? "none" : colour_assignment[d.id];
         })
         .attr("id", function(d) { return d.sc_id; })
-        .attr("r", 4)
+        .attr("r", dim.legendNode_r)
         .on('mouseover', function(d) {
             // if we're selecting nodes
             if (dim.nClickedNodes > 0 && d.id != dim.phantomRoot) {

@@ -531,6 +531,15 @@ function _getTreeInfo(curVizObj) {
 
     // get siblings for each node
     curVizObj.data.siblings = _getSiblings(curVizObj.data.treeStructure, {}); 
+
+    // get the height of the tree
+    curVizObj.data.tree_height = 0;
+    Object.keys(curVizObj.data.treeAncestorsArr).forEach(function(key) {
+        var ancestor_arr = curVizObj.data.treeAncestorsArr[key];
+        if (ancestor_arr.length > curVizObj.data.tree_height) {
+            curVizObj.data.tree_height = ancestor_arr.length;
+        }
+    })
 }
 
 /* function to find a key by its name - if the key doesn't exist, it will be created and added to the list of nodes
