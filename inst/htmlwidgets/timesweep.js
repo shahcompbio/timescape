@@ -97,7 +97,7 @@ HTMLWidgets.widget({
         .style("float", "left");
 
     var canvasDIV = d3.select(el).append("div")
-        .style("height", dim.canvasSVGHeight + "px")
+        .style("height", dim.canvasSVGHeight + dim.topBarHeight + "px")
         .style("width", dim.width + "px")
         .attr("class", "div")
         .attr("id", view_id);
@@ -400,17 +400,12 @@ HTMLWidgets.widget({
         .append("g") 
         .attr("class", "tsTreeSVG");
 
-    var tsSwitch = canvasSVG
-        .append("g") 
-        .attr("class", "tsSwitch");
-
     curVizObj.view.canvasSVG = canvasSVG;
     curVizObj.view.xAxisSVG = xAxisSVG;
     curVizObj.view.yAxisSVG = yAxisSVG;
     curVizObj.view.tsSVG = tsSVG;
     curVizObj.view.tsLegendSVG = tsLegendSVG;
     curVizObj.view.tsTree = tsTree;
-    curVizObj.view.tsSwitch = tsSwitch;
 
 
     // GET CONTENT
@@ -439,16 +434,9 @@ HTMLWidgets.widget({
         } 
     }
 
-    // move the tree SVG down by the height of the legend
-    // 25 for legend title and space
-    var legendHeight = curVizObj.data.treeNodes.length * dim.legendGtypeHeight + 25 + 25; 
+    // move the tree SVG in the x-direction past timesweep
     curVizObj.view.tsTree.attr("transform", "translate(" + 
         (dim.yAxisWidth + dim.smallMargin + dim.tsSVGWidth + dim.paddingGeneral) + ",0)");
-
-    // move the switch SVG down by the height of the legend + height of the tree
-    curVizObj.view.tsSwitch.attr("transform", "translate(" + 
-        (dim.yAxisWidth + dim.smallMargin + dim.tsSVGWidth + dim.paddingGeneral) + "," + 
-        (dim.tsSVGHeight - dim.clonalTrajectoryLabelHeight) + ")");
 
     // get timepoints, prepend a "T0" timepoint to represent the timepoint before any data originated
     var timepoints = _.uniq(_.pluck(x.clonal_prev, "timepoint"));
@@ -736,7 +724,7 @@ HTMLWidgets.widget({
             return (d.id == dim.phantomRoot) ? "none" : colour_assignment[d.id];
         })
         .attr("id", function(d) { return d.sc_id; })
-        .attr("r", dim.legendNode_r)
+        .attr("r", dim.legendNode_r + "px")
         .on('mouseover', function(d) {
             // if we're selecting nodes
             if (dim.nClickedNodes > 0 && d.id != dim.phantomRoot) {
@@ -834,47 +822,6 @@ HTMLWidgets.widget({
                 d3.event.stopPropagation();
             }
         });
-
-    // SWITCH between traditional and tracks views
-
-    // // checkbox
-    // var input = curVizObj.view.tsSwitch
-    //     .append("foreignObject")
-    //     .attr('x', -10)
-    //     .attr('y', 5)
-    //     .attr('width', 50)
-    //     .attr('height', 20)
-    //     .append("xhtml:body")
-    //     .html("<input type=\"checkbox\">");
-
-    // // checkbox text
-    // var bottomPadding = 5,
-    //     betweenTextPadding = 2,
-    //     clonalTrajectoryFontSize = 15;
-    // curVizObj.view.tsSwitch
-    //     .append("text")
-    //     .attr('x', 17)
-    //     .attr('y', dim.clonalTrajectoryLabelHeight - bottomPadding - 
-    //         betweenTextPadding - clonalTrajectoryFontSize)
-    //     .attr('text-anchor', 'left')
-    //     .attr('font-family', 'Arial')
-    //     .attr('font-size', clonalTrajectoryFontSize + 'px')
-    //     .attr('font-weight', 'bold')
-    //     .text("Clonal")
-    // curVizObj.view.tsSwitch
-    //     .append("text")
-    //     .attr('x', 17)
-    //     .attr('y', dim.clonalTrajectoryLabelHeight - bottomPadding)
-    //     .attr('text-anchor', 'left')
-    //     .attr('font-family', 'Arial')
-    //     .attr('font-size', clonalTrajectoryFontSize + 'px')
-    //     .attr('font-weight', 'bold')
-    //     .text("Trajectory")
-
-    // // when checkbox selected, change view
-    // input.on("change", function() {
-    //     _sweepClick(curVizObj);
-    // });
 
     // MUTATION TABLE
 

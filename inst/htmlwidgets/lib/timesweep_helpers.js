@@ -2207,6 +2207,13 @@ function _sort2DArrByValue(obj)
 * @param fileOutputName -- filename for output
 */
 function _downloadPNG(className, fileOutputName) {
+    // get current margin of svg element
+    var cur_margin = d3.select("." + className).style("margin");
+
+    // temporarily remove the margin so the view isn't cut off
+    d3.select("." + className)
+        .style("margin", "0px");
+
     var html = d3.select("." + className)
         .attr("version", 1.1)
         .attr("xmlns", "http://www.w3.org/2000/svg")
@@ -2231,4 +2238,8 @@ function _downloadPNG(className, fileOutputName) {
         a.href = canvasdata;
         a.click();
     };
+
+    // reset the margin of the svg element
+    d3.select("." + className)
+        .style("margin", cur_margin);
 }
