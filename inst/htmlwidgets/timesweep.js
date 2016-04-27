@@ -446,8 +446,9 @@ HTMLWidgets.widget({
     // get cellular prevalence info
     _getCPData(curVizObj);
 
-    // get emergence values for each genotype
+    // get emergence values & timepoints for each genotype
     curVizObj.data.emergence_values = _getEmergenceValues(curVizObj);
+    curVizObj.data.emergence_tps = _getEmergenceTimepoints(curVizObj);
 
     // convert time-centric cellular prevalence data into genotype-centric cellular prevalence data
     _getGenotypeCPData(curVizObj);

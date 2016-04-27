@@ -778,6 +778,31 @@ function _getEmergenceValues(curVizObj) {
     return emergence_values;
 };
 
+/* function to get the timepoint that each genotype emerges
+* @param {Object} curVizObj
+*/
+function _getEmergenceTimepoints(curVizObj) {
+    var cp_data = curVizObj.data.cp_data,
+        emergence_tps = {},
+        gtypes;
+
+    // for each time point
+    curVizObj.data.timepoints.forEach(function(tp) { 
+
+        // get genotypes
+        gtypes = Object.keys(cp_data[tp]); 
+
+        // add genotypes if not present already
+        $.each(gtypes, function(idx, g) {
+            if (Object.keys(emergence_tps).indexOf(g) == -1) { 
+                emergence_tps[g] = tp;
+            }
+        })
+    });
+
+    return emergence_tps;
+};
+
 /* function to get the genotype-centric cellular prevalence data from the time-centric cellular prevalence data
 * @param {Object} curVizObj
 */
@@ -804,11 +829,17 @@ function _getGenotypeCPData(curVizObj) {
 function _getLayout(curVizObj) {
     var gtypePos = curVizObj.userConfig.genotype_position;
 
+
+    // traverse the tree to sort the genotypes into a final vertical stacking order (incorporating hierarchy)
+    curVizObj.data.layoutOrder = _getLayoutOrder(curVizObj.generalConfig, 
+                                                        curVizObj.data.treeStructure, 
+                                                        curVizObj.data.emergence_values,
+                                                        curVizObj.data.emergence_tps, 
+                                                        curVizObj.data.timepoints,
+                                                        []);
+
     // ------> CENTRED 
     if (gtypePos == "centre") {
-
-        // get genotype layout order
-        curVizObj.data.layoutOrder = _getCentredLayoutOrder(curVizObj, curVizObj.data.treeStructure, []);
 
         // get layout of each genotype at each timepoint
         curVizObj.data.layout = {};
@@ -819,12 +850,6 @@ function _getLayout(curVizObj) {
 
     // ------> STACKED and SPACED
     else {
-
-        // traverse the tree to sort the genotypes into a final vertical stacking order (incorporating hierarchy)
-        curVizObj.data.layoutOrder = _getStackedLayoutOrder(curVizObj.generalConfig, 
-                                                            curVizObj.data.treeStructure, 
-                                                            curVizObj.data.emergence_values, 
-                                                            []);
 
         // get layout of each genotype at each timepoint
         if (gtypePos == "stack") {
@@ -842,58 +867,18 @@ function _getLayout(curVizObj) {
     _shiftEmergence(curVizObj)
 }
 
-/* function to get genotype layout order for centred timesweep layout
-* @param {Object} curNode -- current node in the tree
-* @param {Array} layoutOrder -- originally empty array will be filled with the layout order of genotypes
-*/
-function _getCentredLayoutOrder(curVizObj, curNode, layoutOrder) {
-    var dim = curVizObj.generalConfig,
-        emergence_values = curVizObj.data.emergence_values,
-        child_emerg_vals = [], // emergence values of children
-        sorted_children, // children sorted by their emergence values
-        child_obj, // current child node 
-        sort_by_emerg = curVizObj.userConfig.sort_gtypes; // T/F vertically sort children by emergence values
-
-    if (curNode.id != dim.phantomRoot) {
-        layoutOrder.push(curNode.id);
-    }
-
-    // vertically sort children by their emergence values
-    if (sort_by_emerg) {
-        // get emergence value of children
-        for (i=0; i<curNode.children.length; i++) {
-            var emerg_val = emergence_values[curNode.children[i].id];
-            child_emerg_vals.push([curNode.children[i].id, emerg_val]);
-        }
-        sorted_children = _sort2DArrByValue(child_emerg_vals).reverse();
-
-        // in the *reverse* order of emergence values, search children
-        sorted_children.map(function(child) {
-            child_obj = _.findWhere(curNode.children, {id: child});
-            _getCentredLayoutOrder(curVizObj, child_obj, layoutOrder);
-        })
-    }
-
-    // sort children by order in tree
-    else {
-        for (var i = 0; i < curNode.children.length; i++) {
-            _getCentredLayoutOrder(curVizObj, curNode.children[i], layoutOrder, sort_by_emerg);
-        }
-    }
-
-    return layoutOrder;
-}
-
 /*
-* function to, using the order of genotype emergence and the tree hierarchy, get the vertical
+* function to, using the order of genotype emergence (value & tp) and the tree hierarchy, get the vertical
 * stacking order of the genotypes
-* -- ensures that the *later* children emerge, the *closer* they are to their parent in the stack
+* -- ensures that the *later* children emerge, the *closer* they are to the top of the parent sweep
 * @param {Object} dim -- general configurations of the visualization
 * @param {Object} timesweep_data -- timesweep data
 * @param {Array} emergence_values -- values of genotype emergence
+* @param {Array} emergence_tps -- timepoints of genotype emergence
+* @param {Array} timepoints -- timepoints in dataset
 * @param {Array} layoutOrder -- originally empty array of the final vertical stacking order
 */
-function _getStackedLayoutOrder(dim, curNode, emergence_values, layoutOrder) {
+function _getLayoutOrder(dim, curNode, emergence_values, emergence_tps, timepoints, layoutOrder) {
     var child_emerg_vals = [], // emergence values of children
         sorted_children, // children sorted by their emergence values
         child_obj, // current child node
@@ -907,36 +892,40 @@ function _getStackedLayoutOrder(dim, curNode, emergence_values, layoutOrder) {
     // if the current key has children to search through
     if (curNode.children && curNode.children.length > 0) {
 
-        // sort children by emergence
-        if (sort_by_emerg) {
+        // get emergence value & timepoint of children
+        for (i=0; i<curNode.children.length; i++) {
+            var emerg_val = emergence_values[curNode.children[i].id],
+                emerge_tp = timepoints.indexOf(emergence_tps[curNode.children[i].id]);
 
-            // get emergence value of children
-            for (i=0; i<curNode.children.length; i++) {
-                var emerg_val = emergence_values[curNode.children[i].id];
-                child_emerg_vals.push([curNode.children[i].id, emerg_val]);
+            child_emerg_vals.push(
+                {
+                    "id": curNode.children[i].id,
+                    "emerg_val": emerg_val,
+                    "tp": timepoints.length - emerge_tp 
+                });
+            // vertically sort children by their emergence values
+            if (sort_by_emerg) {
+                sorted_children = _sortByKey(child_emerg_vals, "tp", "emerg_val");
             }
-            sorted_children = _sort2DArrByValue(child_emerg_vals).reverse();
-
-            // in the *reverse* order of emergence values, search children
-            sorted_children.map(function(child) {
-                child_obj = _.findWhere(curNode.children, {id: child});
-                _getStackedLayoutOrder(dim, child_obj, emergence_values, layoutOrder);
-            })
-        }
-
-        // children sorted by order in tree
-        else {
-            for (var i = 0; i < curNode.children.length; i++) {
-                _getStackedLayoutOrder(dim, curNode.children[i], emergence_values, layoutOrder);
+            // do not vertically sort by emergence values
+            else {
+                sorted_children = _sortByKey(child_emerg_vals, "tp");
             }
         }
-    } 
+
+        // in the *reverse* order of emergence values, search children
+        sorted_children.map(function(child) {
+            child_obj = _.findWhere(curNode.children, {id: child.id});
+            _getLayoutOrder(dim, child_obj, emergence_values, emergence_tps, timepoints, layoutOrder);
+        })
+    }
 
     return layoutOrder;
 }
 
 /*
 * function to get the layout of the timesweep
+* -- ensures that the *later* children emerge, the *closer* they are to the top of the parent sweep
 * @param {Object} curVizObj
 * @param {Object} curNode -- current key in the tree
 * @param {Number} yBottom -- where is the bottom of this genotype, in the y-dimension
@@ -2242,4 +2231,29 @@ function _downloadPNG(className, fileOutputName) {
     // reset the margin of the svg element
     d3.select("." + className)
         .style("margin", cur_margin);
+}
+
+/* function to sort array of objects by key 
+* modified from: http://stackoverflow.com/questions/8837454/sort-array-of-objects-by-single-key-with-date-value
+*/
+function _sortByKey(array, firstKey, secondKey) {
+    secondKey = secondKey || "NA";
+    return array.sort(function(a, b) {
+        var x = a[firstKey]; var y = b[firstKey];
+        var res = ((x < y) ? -1 : ((x > y) ? 1 : 0));
+        if (secondKey == "NA") {
+            return res;            
+        }
+        else {
+            if (typeof(a[secondKey] == "string")) {
+                return (res == 0) ? (a[secondKey] > b[secondKey]) : res;
+            }
+            else if (typeof(a[secondKey] == "number")) {
+                return (res == 0) ? (a[secondKey] - b[secondKey]) : res;
+            }
+            else {
+                return res;
+            }
+        }
+    });
 }
