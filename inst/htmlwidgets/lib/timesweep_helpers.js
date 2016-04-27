@@ -1151,32 +1151,50 @@ function _getSpacedLayout(curVizObj) {
                 gTypes_curTP = Object.keys(cp_data[tp]);
                 var cur_ancestor = direct_ancestors[gtype],
                     cur_ancestor_cp = cp_data[tp][cur_ancestor] || 0,
+                    cur_siblings = direct_descendants[cur_ancestor],
                     present_siblings = _getIntersection(direct_descendants[cur_ancestor], gTypes_curTP),
                     cur_space = ((present_siblings.length+1) * space < cur_ancestor_cp) ? 
                         space : 
                         cur_ancestor_cp/(present_siblings.length+1);
 
-                // sort children by reverse layout order (top to bottom)
-                var sorted_siblings = present_siblings.sort(_sortByLayoutOrder(layoutOrder)).reverse();
+                // sort children by reverse layout order (top to bottom (in terms of y-value))
+                var sorted_present_sibs = present_siblings.sort(_sortByLayoutOrder(layoutOrder)).reverse();
+                var sorted_cur_sibs = cur_siblings.sort(_sortByLayoutOrder(layoutOrder)).reverse();
 
-                if (sorted_siblings.length > 0) {
+                if (sorted_present_sibs.length > 0) {
 
                     // set the stack height (from the top)
-                    sHeight = (layout[tp][cur_ancestor]["top"] == layout[tp][cur_ancestor]["bottom"]) ?
-                        // if the ancestor has been replaced, set top as the first sibling's top value
-                        layout[tp][sorted_siblings[0]]["top"] : 
-                        // otherwise, set the top as the ancestor's top value
-                        layout[tp][cur_ancestor]["top"]; 
+                    // if there's an ancestor 
+                    if (layout[tp][cur_ancestor]) {
+                        sHeight = (layout[tp][cur_ancestor]["top"] == layout[tp][cur_ancestor]["bottom"]) ?
+                            // if the ancestor has been replaced, set stack top as the first sibling's top value
+                            layout[tp][sorted_siblings[0]]["top"] : 
+                            // otherwise, set the top as the ancestor's top value
+                            layout[tp][cur_ancestor]["top"]; 
+                    }
+                    // no ancestor
+                    else {
+                        sHeight = 1;
+                    }
 
                     // for each sibling
-                    for (var i = 0; i < sorted_siblings.length; i++) {
+                    for (var i = 0; i < sorted_cur_sibs.length; i++) {
 
-                        var sib = sorted_siblings[i], // current sibling
-                            cur_width = layout[tp][sib]["top"] - layout[tp][sib]["bottom"]; // width of sibling
+                        // current sibling
+                        var sib = sorted_cur_sibs[i]; 
 
-                        // alter its layout
-                        layout[tp][sib]["top"] = sHeight - cur_space;
-                        layout[tp][sib]["bottom"] = sHeight - cur_width - cur_space;
+                        // width of sibling
+                        var cur_width = (layout[tp][sib]) ? 
+                            // if the sibling (or its descendants) exist at this time point
+                            layout[tp][sib]["top"] - layout[tp][sib]["bottom"] :
+                            // sibling doesn't exist at this tp, nor does any of its descendants
+                            0; 
+
+                        // if sibling exists, alter its layout at this timepoint
+                        if (layout[tp][sib]) {
+                            layout[tp][sib]["top"] = sHeight - cur_space;
+                            layout[tp][sib]["bottom"] = sHeight - cur_width - cur_space;
+                        }
 
                         // if this sibling emerges at the previous time point, update its emergence y-coordinate
                         if (cp_data[prev_tp] && layout[prev_tp][sib] && layout[prev_tp][sib]["state"] == "emerges") {
@@ -1190,7 +1208,7 @@ function _getSpacedLayout(curVizObj) {
                         seenGTypes.push(sib);
 
                         // note the amount of space subtracted from ancestor's cellular prevalence
-                        if (i == (sorted_siblings.length-1)) {
+                        if (i == (sorted_present_sibs.length-1) && layout[tp][cur_ancestor]) {
                             layout[tp][cur_ancestor]["space"] = (i+1)*cur_space;
                         }
                     }
