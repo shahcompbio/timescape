@@ -143,13 +143,38 @@ function _sweepClick(curVizObj) {
         sweeps
             .enter()
             .insert('path', '.tsPlot')
-            .attr('class', 'tsPlot')
+            .attr('class', function(d) { return 'tsPlot gtype_' + d.gtype; })
             .attr("d", _centreLine(curVizObj))
             .attr('fill', function(d) { 
+                // if we're selecting nodes, but we haven't clicked this one yet
+                if ((dim.nClickedNodes > 0) && (_.uniq(dim.curCloneIDs).indexOf(d.id) == -1)) {
+                        // greyscale
+                        return _getGreyscaleEquivalent(alpha_colour_assignment[d.gtype]);
+                }
+                // otherwise
                 return alpha_colour_assignment[d.gtype];
             }) 
             .attr('stroke', function(d) { 
+                // if we're selecting nodes, but we haven't clicked this one yet
+                if ((dim.nClickedNodes > 0) && (_.uniq(dim.curCloneIDs).indexOf(d.id) == -1)) {
+                        // greyscale
+                        return _getGreyscaleEquivalent(colour_assignment[d.gtype]);
+                }
+                // otherwise
                 return colour_assignment[d.gtype]; 
+            })
+            .on('mouseover', function(d) {
+                if (!dim.selectOn && !dim.mutSelectOn) {
+                    _shadeTimeSweep(curVizObj);
+                    _shadeLegend(curVizObj);
+                    _gtypeHighlight(d.gtype, curVizObj);
+                    _showLabels(d.gtype, curVizObj);
+                }
+            })
+            .on('mouseout', function(d) {
+                if (!dim.selectOn && !dim.mutSelectOn) {
+                    _resetView(curVizObj);
+                }
             })
             .transition()
             .duration(1000)
@@ -196,13 +221,10 @@ function _shadeTimeSweep(curVizObj) {
     // dim genotypes in the timesweep
     d3.select("#" + curVizObj.view_id).selectAll('.tsPlot')
         .attr('fill', function(d) { 
-            col = alpha_colour_assignment[d.gtype];
-            brightness = Math.round(_get_brightness(col));
-            return _rgb2hex("rgb(" + brightness + "," + brightness + "," + brightness + ")");
+            return _getGreyscaleEquivalent(alpha_colour_assignment[d.gtype]);
         })
         .attr('stroke', function(d) { 
-            brightness = Math.round(_get_brightness(colour_assignment[d.gtype]));
-            return _rgb2hex("rgb(" + brightness + "," + brightness + "," + brightness + ")");
+            return _getGreyscaleEquivalent(colour_assignment[d.gtype]);
         });
 }
 
@@ -218,15 +240,12 @@ function _shadeLegend(curVizObj) {
     // dim genotypes in the legend
     d3.select("#" + curVizObj.view_id).selectAll('.legendTreeNode')
         .attr('fill', function(d) { 
-            col = alpha_colour_assignment[d.id];
-            brightness = Math.round(_get_brightness(col));
             return (d.id == dim.phantomRoot) ? 
-                "none" : _rgb2hex("rgb(" + brightness + "," + brightness + "," + brightness + ")");
+                "none" : _getGreyscaleEquivalent(alpha_colour_assignment[d.id]);
         })
         .attr('stroke', function(d) { 
-            brightness = Math.round(_get_brightness(colour_assignment[d.id]));
             return (d.id == dim.phantomRoot) ? 
-                "none" : _rgb2hex("rgb(" + brightness + "," + brightness + "," + brightness + ")");
+                "none" : _getGreyscaleEquivalent(colour_assignment[d.id]);
         });
 }
 
@@ -1953,6 +1972,13 @@ function _getBezierPaths(paths, tsSVGWidth, tsSVGHeight) {
 
 // COLOUR FUNCTIONS
 
+
+/* function to get the greyscale equivalent of a particular colour
+*/
+function _getGreyscaleEquivalent(col) {
+    brightness = Math.round(_get_brightness(col));
+    return _rgb2hex("rgb(" + brightness + "," + brightness + "," + brightness + ")");
+}
 
 /* function to calculate colours based on phylogeny 
 * @param {Object} curVizObj -- vizObj for the current view

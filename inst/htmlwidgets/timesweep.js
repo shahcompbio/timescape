@@ -729,6 +729,7 @@ HTMLWidgets.widget({
         .on('mouseover', function(d) {
             // if we're selecting nodes
             if (dim.nClickedNodes > 0 && d.id != dim.phantomRoot) {
+                console.log("selecting nodes");
                 // highlight node in the legend
                 d3.select(this)
                     .attr('fill', function(d) { 
@@ -740,6 +741,7 @@ HTMLWidgets.widget({
             }
             // we're not selecting nodes or mutations - highlight genotype
             if (!dim.selectOn && !dim.mutSelectOn) {
+                console.log("not selecting nodes or mutations");
                 _shadeTimeSweep(curVizObj);
                 _shadeLegend(curVizObj);
                 _gtypeHighlight(d.id, curVizObj);
