@@ -465,8 +465,15 @@ HTMLWidgets.widget({
 
     // SET CONTENT
 
-    // tips
-    curVizObj.tips = [];
+    // tips (for VAF and node genotypes)
+    curVizObj.vafTips = [];
+    var nodeTip = d3.tip()
+        .attr('class', 'd3-tip')
+        .offset([-10,0])
+        .html(function(d) {
+            return "<span>" + d + "</span>";
+        });  
+    d3.select("#" + view_id).select(".timesweep_" + view_id).call(nodeTip);
 
     // get colour scheme
     _getPhyloColours(curVizObj);
@@ -727,6 +734,9 @@ HTMLWidgets.widget({
         .attr("id", function(d) { return d.sc_id; })
         .attr("r", dim.legendNode_r + "px")
         .on('mouseover', function(d) {
+            // show node genotype
+            nodeTip.show(d.id);
+
             // if we're selecting nodes
             if (dim.nClickedNodes > 0 && d.id != dim.phantomRoot) {
                 console.log("selecting nodes");
@@ -749,6 +759,9 @@ HTMLWidgets.widget({
             }
         })
         .on('mouseout', function(d) {
+            // hide node genotype
+            nodeTip.hide();
+
             // if we're selecting nodes, but we haven't clicked this one yet
             if ((dim.nClickedNodes > 0) && (_.uniq(dim.curCloneIDs).indexOf(d.id) == -1)) {
                 // unhighlight this node in the legend

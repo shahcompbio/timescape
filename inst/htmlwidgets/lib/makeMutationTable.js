@@ -42,7 +42,7 @@ function _makeMutationTable(curVizObj, mutationTableDIV, data, table_height) {
 	        .on('click', 'tr', function () { 
 	        	
 	        	// hide VAF tooltips
-	        	curVizObj.tips.forEach(function(curTip) {
+	        	curVizObj.vafTips.forEach(function(curTip) {
 	        		curTip.hide();
 	        	})
 
@@ -121,7 +121,7 @@ function _makeMutationTable(curVizObj, mutationTableDIV, data, table_height) {
 							  		})	
 
 							  	// add to list of tips
-							  	curVizObj.tips.push(curTip);
+							  	curVizObj.vafTips.push(curTip);
 
 							  	// invoke the tip in the context of this visualization
 							  	d3.select("#" + view_id).select(".timesweep_" + view_id).call(curTip);

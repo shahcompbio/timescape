@@ -474,7 +474,7 @@ function _backgroundClick(curVizObj) {
     d3.select("#" + curVizObj.view_id).selectAll(".legendTreeLink").attr("stroke", dim.treeLinkColour);
 
     // hide VAF tooltips
-    curVizObj.tips.forEach(function(curTip) {
+    curVizObj.vafTips.forEach(function(curTip) {
         curTip.hide();
     })
 
