@@ -766,18 +766,36 @@ function _getCPData(curVizObj) {
     var x = curVizObj.userConfig;
 
     // for each time point, for each genotype, get cellular prevalence
-    var cp_data = {};
+    var cp_data_original = {};
     $.each(x.clonal_prev, function(idx, hit) { // for each hit (genotype/timepoint combination)
-        cp_data[hit["timepoint"]] = cp_data[hit["timepoint"]] || {};
+        cp_data_original[hit["timepoint"]] = cp_data_original[hit["timepoint"]] || {};
         // only note cellular prevalences not marked as zero
         if (parseFloat(hit["clonal_prev"]) != 0) {
-            cp_data[hit["timepoint"]][hit["clone_id"]] = parseFloat(hit["clonal_prev"]); 
+            cp_data_original[hit["timepoint"]][hit["clone_id"]] = parseFloat(hit["clonal_prev"]); 
         }
     });
 
     // create timepoint zero with 100% cellular prevalence for the root of the tree
-    cp_data["T0"] = {};
-    curVizObj.data.cp_data = cp_data;
+    cp_data_original["T0"] = {};
+    curVizObj.data.cp_data_original = cp_data_original;
+
+    // get normalized cp data (in cases where cp doesn't add to 1)
+    var cp_data_norm = {};
+    Object.keys(cp_data_original).forEach(function(tp_key) {
+        // get total cp for this timepoint
+        var tp_total = 0;
+        Object.keys(cp_data_original[tp_key]).forEach(function(gtype_key) {
+            tp_total += cp_data_original[tp_key][gtype_key];
+        });
+
+        // get proportionate cp for each genotype
+        cp_data_norm[tp_key] = {};
+        Object.keys(cp_data_original[tp_key]).forEach(function(gtype_key) {
+            cp_data_norm[tp_key][gtype_key] = cp_data_original[tp_key][gtype_key]/tp_total;
+        });
+    })
+
+    curVizObj.data.cp_data = cp_data_norm;
 }
 
 /* function to get the cellular prevalence value for each genotype at its emergence
@@ -1453,6 +1471,7 @@ function _getTraditionalCPLabels(curVizObj) {
         data, // data for a genotype at a time point
         label, // current label to add
         curDescendants,
+        cp_data_original = curVizObj.data.cp_data_original,
         gTypes_curTP; 
 
     // for each time point
@@ -1479,7 +1498,7 @@ function _getTraditionalCPLabels(curVizObj) {
                     if (curVizObj.userConfig.genotype_position == "centre") { 
                         label['tp'] = tp;
                         label['gtype'] = gtype;
-                        label['cp'] = data.cp;
+                        label['cp'] = cp_data_original[tp][gtype];
                         label['middle'] = data.top - (data.cp/(2*(data.presentChildren+1)));
                         label['type'] = "traditional";
                     }
@@ -1487,7 +1506,7 @@ function _getTraditionalCPLabels(curVizObj) {
                     else if (curVizObj.userConfig.genotype_position == "stack") { 
                         label['tp'] = tp;
                         label['gtype'] = gtype;
-                        label['cp'] = data.cp;
+                        label['cp'] = cp_data_original[tp][gtype];
                         label['middle'] = (2*data.bottom + data.effective_cp)/2; 
                         label['type'] = "traditional";
                     }
@@ -1495,7 +1514,7 @@ function _getTraditionalCPLabels(curVizObj) {
                     else if (curVizObj.userConfig.genotype_position == "space") { 
                         label['tp'] = tp;
                         label['gtype'] = gtype;
-                        label['cp'] = data.cp;
+                        label['cp'] = cp_data_original[tp][gtype];
                         // if this genotype was split for spacing, how much CP has been taken up by the upper splits
                         label['middle'] = (data.space) ? 
                             (2*data.bottom + data.effective_cp - data.space)/2 : 
@@ -1519,12 +1538,12 @@ function _getTraditionalCPLabels(curVizObj) {
 */
 function _getSeparateCPLabels(curVizObj) {
     var tracks_paths = curVizObj.data.tracks_paths,
+        cp_data_original = curVizObj.data.cp_data_original,
         labels = [],
         label,
         gtype,
         midpoint,
         path,
-        cp, // cellular prevalence
         tp; // time point
 
     // for each genotype
@@ -1535,16 +1554,15 @@ function _getSeparateCPLabels(curVizObj) {
 
         // for each point in the path
         for (var j = 0; j < path.length; j++) {
-            cp = path[j]["cp"];
             tp = path[j]["tp"];
 
             if (tp != "T0") {
 
                 // if the genotype exists at this time point (isn't emerging or disappearing / replaced)
-                if (cp) {
+                if (cp_data_original[tp][gtype]) {
                     label = {};
                     label['tp'] = tp;
-                    label['cp'] = cp;
+                    label['cp'] = cp_data_original[tp][gtype];
                     label['middle'] = midpoint;
                     label['gtype'] = gtype;
                     label['type'] = "tracks";
