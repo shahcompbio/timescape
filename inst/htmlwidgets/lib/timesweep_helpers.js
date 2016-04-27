@@ -20,11 +20,11 @@ function _propagatedEffects(curVizObj, link_id, link_ids, stream_direction) {
     // get propagation info
     _getPropatagedItems(curVizObj, link_id, link_ids, stream_direction);
 
-    // highlight links in the legend
-    curVizObj.view.propagation.link_ids.forEach(function(link) {
-        d3.select("#" + view_id)
-            .select(".legendTreeLink." + link)
-            .attr("stroke", "red");
+    // highlight links in legend
+    curVizObj.view.propagation.link_ids.forEach(function(cur_link_id) {
+        d3.select("#" + curVizObj.view_id)
+            .select(".legendTreeLink." + cur_link_id)
+            .attr("stroke-opacity", 1);
     });
 
     // highlight nodes in the legend
@@ -237,7 +237,11 @@ function _shadeLegend(curVizObj) {
         colour_assignment = curVizObj.view.colour_assignment,
         alpha_colour_assignment = curVizObj.view.alpha_colour_assignment;
 
-    // dim genotypes in the legend
+    // dim links in legend
+    d3.select("#" + curVizObj.view_id).selectAll('.legendTreeLink')
+        .attr("stroke-opacity", 0.2);
+
+    // dim nodes in the legend
     d3.select("#" + curVizObj.view_id).selectAll('.legendTreeNode')
         .attr('fill', function(d) { 
             return (d.id == dim.phantomRoot) ? 
@@ -267,7 +271,7 @@ function _resetView(curVizObj) {
             return colour_assignment[d.gtype];
         });
 
-    // reset colours in legend
+    // reset node colours in legend
     d3.select("#" + curVizObj.view_id).selectAll('.legendTreeNode')
         .attr('fill', function(d) { 
             return (d.id == dim.phantomRoot) ? "none" : alpha_colour_assignment[d.id];
@@ -275,6 +279,10 @@ function _resetView(curVizObj) {
         .attr('stroke', function(d) { 
             return (d.id == dim.phantomRoot) ? "none" : colour_assignment[d.id];
         });
+
+    // reset links in legend
+    d3.select("#" + curVizObj.view_id).selectAll('.legendTreeLink')
+        .attr("stroke-opacity", 1);
 
     // remove labels
     _removeLabels(curVizObj);
