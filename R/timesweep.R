@@ -234,14 +234,14 @@ timesweep <- function(clonal_prev,
       mutations$impact <- as.character(mutations$impact)
     }
 
-    # check that all CLONE IDS in the mutations data are present in the clonal prev data
+    # check that all CLONE IDS in the mutations data are present in the tree data
     mutations_clone_ids <- unique(mutations$clone_id)
-    clonal_prev_clone_ids <- unique(clonal_prev$clone_id)
-    clone_ids_missing_from_clonal_prev_data <- setdiff(mutations_clone_ids, clonal_prev_clone_ids)
-    if (length(clone_ids_missing_from_clonal_prev_data) > 0) {
+    tree_edges_clone_ids <- c(unique(tree_edges$source), unique(tree_edges$target))
+    clone_ids_missing_from_tree_edges_data <- setdiff(mutations_clone_ids, tree_edges_clone_ids)
+    if (length(clone_ids_missing_from_tree_edges_data) > 0) {
       stop(paste("The following clone ID(s) are present in the mutations data but ",
-        "are missing from the clonal prevalence data: ",
-        paste(clone_ids_missing_from_clonal_prev_data, collapse=", "), ".", sep=""))
+        "are missing from the tree edges data: ",
+        paste(clone_ids_missing_from_tree_edges_data, collapse=", "), ".", sep=""))
     }
 
     # check that all TIMEPOINTS in the mutations data are present in the clonal prev data
