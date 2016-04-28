@@ -304,6 +304,10 @@ timesweep <- function(clonal_prev,
   timepoint_map <- data.frame(original_timepoint = unique(clonal_prev$timepoint), stringsAsFactors=FALSE)
   timepoint_map$space_replaced_timepoint <- stringr::str_replace_all(timepoint_map$original_timepoint,"\\s+","_")
 
+  # create map of original clone ids to space-replaced clone ids
+  clone_id_map <- data.frame(original_clone_id = unique(c(tree_edges$source, tree_edges$target)), stringsAsFactors=FALSE)
+  clone_id_map$space_replaced_clone_id <- stringr::str_replace_all(clone_id_map$original_clone_id,"\\s+","_")
+
   # replace spaces with underscores
   # --> timepoints
   clonal_prev$timepoint <- stringr::str_replace_all(clonal_prev$timepoint,"\\s+","_")
@@ -337,7 +341,8 @@ timesweep <- function(clonal_prev,
     genotype_position = genotype_position,
     perturbations = jsonlite::toJSON(perturbations),
     sort_gtypes = sort,
-    timepoint_map = jsonlite::toJSON(timepoint_map)
+    timepoint_map = jsonlite::toJSON(timepoint_map),
+    clone_id_map = jsonlite::toJSON(clone_id_map)
   )
 
   # create widget
