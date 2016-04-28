@@ -735,7 +735,7 @@ HTMLWidgets.widget({
         .attr("r", dim.legendNode_r + "px")
         .on('mouseover', function(d) {
             // show node genotype
-            nodeTip.show(d.id);
+            nodeTip.show("ID: " + d.id);
 
             // if we're selecting nodes
             if (dim.nClickedNodes > 0 && d.id != dim.phantomRoot) {
