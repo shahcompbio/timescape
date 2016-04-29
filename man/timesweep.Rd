@@ -5,9 +5,9 @@
 \title{Timesweeps}
 \usage{
 timesweep(clonal_prev, tree_edges, mutations = "NA", clone_colours = "NA",
-  xaxis_title = "Time Point", yaxis_title = "Relative Cellular Prevalence",
+  xaxis_title = "Time Point", yaxis_title = "Clonal Prevalence",
   alpha = 50, genotype_position = "stack", perturbations = "NA",
-  sort = FALSE, width = 900, height = 300)
+  sort = FALSE, width = 900, height = NULL)
 }
 \arguments{
 \item{clonal_prev}{{Data Frame} Clonal prevalence.
@@ -23,7 +23,7 @@ Format: columns are (1) {String} "source" - source node id
 Format: columns are (1) {String} "chrom" - chromosome number
                     (2) {Number} "coord" - coordinate of mutation on chromosome
                     (3) {String} "clone_id" - clone id
-                    (4) {String} "sample_id" - id for the tumour sample 
+                    (4) {String} "timepoint" - time point
                     (5) {Number} "VAF" - variant allele frequency of the mutation in the corresponding sample
                     (6) {String} (Optional) "gene_name" - name of the affected gene (can be "" if none affected).
                     (7) {String} (Optional) "effect" - effect of the mutation 
@@ -55,9 +55,9 @@ Format: columns are (1) {String} "pert_name" - the perturbation name
 
 \item{sort}{{Boolean} (Optional) Whether (TRUE) or not (FALSE) to vertically sort the genotypes by their emergence values (descending).}
 
-\item{width}{{Number} (Optional) Width of the plot.}
+\item{width}{{Number} (Optional) Width of the plot. Minimum width is 450.}
 
-\item{height}{{Number} (Optional) Height of the plot.}
+\item{height}{{Number} (Optional) Height of the plot. Minimum height with and without mutations is 500 and 260, respectively.}
 }
 \description{
 \code{timesweep} generates patient clonal timesweeps.
