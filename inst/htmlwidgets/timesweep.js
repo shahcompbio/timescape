@@ -33,7 +33,7 @@ HTMLWidgets.widget({
         phantomRoot: "phantomRoot",
         treeLinkColour: "#D3D3D3",
         topBarHeight: 30, // height of top panel
-        topBarColour: "#ECECEC",
+        topBarColour: "#D9D9D9",
         topBarHighlight: "#C6C6C6"
     };
 
