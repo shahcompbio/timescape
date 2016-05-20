@@ -372,33 +372,34 @@ HTMLWidgets.widget({
         .style("float", "left")
         .style("margin-right",  dim.paddingGeneral)
         .style("margin-left",  dim.paddingGeneral)
-        .style("margin-top",  dim.paddingGeneral)
         .style("margin-bottom",  dim.paddingGeneral);
 
     var tsSVG = canvasSVG
         .append("g")  
         .attr("class", "tsSVG")     
-        .attr("transform", "translate(" + (dim.yAxisWidth + dim.smallMargin) + "," + 0 + ")");
+        .attr("transform", "translate(" + (dim.yAxisWidth + dim.smallMargin) + "," + dim.paddingGeneral + ")");
 
     var yAxisSVG = canvasSVG
         .append("g") 
         .attr("class", "yAxisSVG")      
-        .attr("transform", "translate(" + 0 + "," + 0 + ")");
+        .attr("transform", "translate(" + 0 + "," + dim.paddingGeneral + ")");
 
     var xAxisSVG = canvasSVG
         .append("g") 
         .attr("class", "xAxisSVG")      
-        .attr("transform", "translate(" + 0 + "," + (dim.tsSVGHeight + dim.smallMargin) + ")");
+        .attr("transform", "translate(" + 0 + "," + (dim.tsSVGHeight + dim.smallMargin + dim.paddingGeneral) + ")");
 
     var tsLegendSVG = canvasSVG
         .append("g") 
         .attr("class", "tsLegendSVG")
         .attr("transform", "translate(" + (dim.yAxisWidth + dim.smallMargin + dim.tsSVGWidth + dim.paddingGeneral) + 
-            "," + 0 + ")");
+            "," + dim.paddingGeneral + ")");
 
     var tsTree = canvasSVG
         .append("g") 
-        .attr("class", "tsTreeSVG");
+        .attr("class", "tsTreeSVG")// move the tree SVG in the x-direction past timesweep
+        .attr("transform", "translate(" + (dim.yAxisWidth + dim.smallMargin + dim.tsSVGWidth + dim.paddingGeneral) + 
+            "," + dim.paddingGeneral + ")");
 
     curVizObj.view.canvasSVG = canvasSVG;
     curVizObj.view.xAxisSVG = xAxisSVG;
@@ -434,9 +435,7 @@ HTMLWidgets.widget({
         } 
     }
 
-    // move the tree SVG in the x-direction past timesweep
-    curVizObj.view.tsTree.attr("transform", "translate(" + 
-        (dim.yAxisWidth + dim.smallMargin + dim.tsSVGWidth + dim.paddingGeneral) + ",0)");
+    
 
     // get timepoints, prepend a "T0" timepoint to represent the timepoint before any data originated
     var timepoints = _.uniq(_.pluck(x.clonal_prev, "timepoint"));
