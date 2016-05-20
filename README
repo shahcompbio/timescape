@@ -2,5 +2,6 @@ timesweep is an htmlwidget to visually display temporal clonal evolution.
 
 Run example:
 
+devtools::install("<your_directory>/timesweep")
 library("timesweep")
 example("timesweep")
