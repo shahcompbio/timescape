@@ -117,7 +117,7 @@ function _makeMutationTable(curVizObj, mutationTableDIV, data, table_height) {
 							        .attr('class', 'd3-tip')
 							        .offset([-10,0])
 							        .html(function(d) {
-							    		return "<span>" + d + "</span>";
+							    		return "<span>VAF: " + d + "</span>";
 							  		})	
 
 							  	// add to list of tips
