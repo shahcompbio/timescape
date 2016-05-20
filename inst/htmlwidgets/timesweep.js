@@ -419,18 +419,18 @@ HTMLWidgets.widget({
 
         // get column names (depending on the available data, which columns will be shown)
         dim.mutationColumns = [
-                        { "data": "chrom", "title": "Chromosome" },
-                        { "data": "coord", "title": "Coordinate" },
-                        { "data": "empty", "title": "Clone", "bSortable": false }
+                        { "data": "chrom", "title": "Chromosome", "defaultContent": "" },
+                        { "data": "coord", "title": "Coordinate", "defaultContent": "" },
+                        { "data": "empty", "title": "Clone", "bSortable": false, "defaultContent": "" }
                     ];
         if (curVizObj.userConfig.mutations[0].hasOwnProperty("gene_name")) {
-            dim.mutationColumns.push({ "data": "gene_name", "title": "Gene Name" });
+            dim.mutationColumns.push({ "data": "gene_name", "title": "Gene Name", "defaultContent": "" });
         }
         if (curVizObj.userConfig.mutations[0].hasOwnProperty("effect")) {
-            dim.mutationColumns.push({ "data": "effect", "title": "Effect" });
+            dim.mutationColumns.push({ "data": "effect", "title": "Effect", "defaultContent": "" });
         }
         if (curVizObj.userConfig.mutations[0].hasOwnProperty("impact")) {
-            dim.mutationColumns.push({ "data": "impact", "title": "Impact" });
+            dim.mutationColumns.push({ "data": "impact", "title": "Impact", "defaultContent": "" });
         } 
     }
 
