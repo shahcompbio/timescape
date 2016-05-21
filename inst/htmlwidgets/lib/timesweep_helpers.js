@@ -2213,6 +2213,12 @@ function _reformatMutations(curVizObj) {
         if (mut.hasOwnProperty("impact")) {
             cur_mut["impact"] = mut.impact;
         }
+        if (mut.hasOwnProperty("nuc_change")) {
+            cur_mut["nuc_change"] = mut.nuc_change;
+        }
+        if (mut.hasOwnProperty("aa_change")) {
+            cur_mut["aa_change"] = mut.aa_change;
+        }
         muts_arr.push(cur_mut);
     });
 

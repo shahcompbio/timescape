@@ -433,6 +433,12 @@ HTMLWidgets.widget({
         if (curVizObj.userConfig.mutations[0].hasOwnProperty("impact")) {
             dim.mutationColumns.push({ "data": "impact", "title": "Impact", "defaultContent": "" });
         } 
+        if (curVizObj.userConfig.mutations[0].hasOwnProperty("nuc_change")) {
+            dim.mutationColumns.push({ "data": "nuc_change", "title": "Nucleotide Change", "defaultContent": "" });
+        } 
+        if (curVizObj.userConfig.mutations[0].hasOwnProperty("aa_change")) {
+            dim.mutationColumns.push({ "data": "aa_change", "title": "Amino Acid Change", "defaultContent": "" });
+        } 
     }
 
     
