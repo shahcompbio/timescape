@@ -39,6 +39,7 @@
 #'                       (3) {Number} "frac" - the fraction of total tumour content remaining at the 
 #'                                             time of perturbation, range [0, 1].
 #' @param sort {Boolean} (Optional) Whether (TRUE) or not (FALSE) to vertically sort the genotypes by their emergence values (descending).
+#' @param show_warnings {Boolean} (Optional) Whether or not to show any warnings. Default is TRUE.
 #' @param width {Number} (Optional) Width of the plot. Minimum width is 450.
 #' @param height {Number} (Optional) Height of the plot. Minimum height with and without mutations is 500 and 260, respectively. 
 #' @export
@@ -66,6 +67,7 @@ timesweep <- function(clonal_prev,
                       genotype_position = "stack", 
                       perturbations = "NA", 
                       sort = FALSE, 
+                      show_warnings = TRUE,
                       width = 900, 
                       height = NULL) {
   
@@ -287,7 +289,9 @@ timesweep <- function(clonal_prev,
 
     # keep only those mutations whose clone ids are present in the phylogeny
     mutation_prevalences <- mutation_prevalences[which(mutation_prevalences$clone_id %in% clones_in_phylo),]
-    if (nrow(mutation_prevalences) > 10000) {
+
+    # warn if more than 10,000 rows in data that the visualization may be slow
+    if (nrow(mutation_prevalences) > 10000 && show_warnings) {
       print(paste("[WARNING] Number of rows in mutations data exceeds 10,000. ",
         "Resultantly, visualization may be slow. ",
         "It is recommended to filter the data to a smaller set of mutations.", sep=""))
