@@ -3,8 +3,9 @@
 * @param {Number} width -- width of the view
 * @param {Number} height -- height of the view
 * @param {Object} userConfig -- user configurations
+* @param {Object} curVizObj -- vizObj for current view
 */
-function _run_timesweep(view_id, width, height, userConfig) {
+function _run_timesweep(view_id, width, height, userConfig, curVizObj) {
 
 	// defaults
 	var defaults = {
@@ -37,14 +38,13 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	};
 
 
-	var curVizObj = {};
-	curVizObj.view_id = view_id;
-	curVizObj.data = {};
-	curVizObj.view = {};
+	curVizObj.tsView_id = view_id;
+	curVizObj.tsData = {};
+	curVizObj.tsView = {};
 
 	// set configurations
-	curVizObj.generalConfig = $.extend(true, {}, defaults);
-	var dim = curVizObj.generalConfig;
+	curVizObj.tsGeneralConfig = $.extend(true, {}, defaults);
+	var dim = curVizObj.tsGeneralConfig;
 
 	// get params from R
 	curVizObj.userConfig = userConfig;
@@ -84,7 +84,7 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	    .attr("class", "div")
 	    .attr("id", view_id);
 
-	curVizObj.view.mutationTableDIV = d3.select("#" + view_id)
+	curVizObj.tsView.mutationTableDIV = d3.select("#" + view_id)
 	    .append("div")
 	    .attr("class", "mutationTableDIV")
 	    .style("position", "relative")
@@ -150,7 +150,7 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	    })
 	    .on("click", function() {
 	        // background click
-	        _backgroundClick(curVizObj);
+	        _ts_backgroundClick(curVizObj);
 	    });
 	topBarSVG.append("image")
 	    .attr("xlink:href", resetButton_base64)
@@ -166,7 +166,7 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	    })
 	    .on("click", function() {
 	        // background click
-	        _backgroundClick(curVizObj);
+	        _ts_backgroundClick(curVizObj);
 	    });
 
 	// SVG button
@@ -234,7 +234,7 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	    })
 	    .on("click", function(){
 	        // download the png
-	        _downloadPNG("timesweep_" + view_id, "timesweep_" + view_id + ".png");
+	        _ts_downloadPNG("timesweep_" + view_id, "timesweep_" + view_id + ".png");
 	    });
 	topBarSVG.append("text")
 	    .attr("class", "pngButtonText")
@@ -260,7 +260,7 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	    })
 	    .on("click", function() {
 	        // download the png
-	        _downloadPNG("timesweep_" + view_id, "timesweep_" + view_id + ".png");
+	        _ts_downloadPNG("timesweep_" + view_id, "timesweep_" + view_id + ".png");
 	    });
 
 	// TimeSweep button
@@ -281,7 +281,7 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	    })
 	    .on("click", function(){
 	        // change view
-	        _sweepClick(curVizObj);
+	        _ts_sweepClick(curVizObj);
 	        
 	    });
 	topBarSVG.append("image")
@@ -300,7 +300,7 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	    .attr("opacity", 0) // start with opacity zero
 	    .on("click", function() {
 	        // change view
-	        _sweepClick(curVizObj);
+	        _ts_sweepClick(curVizObj);
 
 	        // turn off opacity & pointer events
 	        d3.select(this)
@@ -328,7 +328,7 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	    .attr("opacity", 1) // start with opacity 1
 	    .on("click", function() {
 	        // change view
-	        _sweepClick(curVizObj);
+	        _ts_sweepClick(curVizObj);
 
 	        // turn off opacity & pointer events
 	        d3.select(this)
@@ -383,22 +383,22 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	    .attr("transform", "translate(" + (dim.yAxisWidth + dim.smallMargin + dim.tsSVGWidth + dim.paddingGeneral) + 
 	        "," + dim.paddingGeneral + ")");
 
-	curVizObj.view.canvasSVG = canvasSVG;
-	curVizObj.view.xAxisSVG = xAxisSVG;
-	curVizObj.view.yAxisSVG = yAxisSVG;
-	curVizObj.view.tsSVG = tsSVG;
-	curVizObj.view.tsLegendSVG = tsLegendSVG;
-	curVizObj.view.tsTree = tsTree;
+	curVizObj.tsView.canvasSVG = canvasSVG;
+	curVizObj.tsView.xAxisSVG = xAxisSVG;
+	curVizObj.tsView.yAxisSVG = yAxisSVG;
+	curVizObj.tsView.tsSVG = tsSVG;
+	curVizObj.tsView.tsLegendSVG = tsLegendSVG;
+	curVizObj.tsView.tsTree = tsTree;
 
 
 	// GET CONTENT
 
 	// extract all info from tree about nodes, edges, ancestors, descendants
-	_getTreeInfo(curVizObj);
+	_ts_getTreeInfo(curVizObj);
 
 	// get mutation data in better format
 	if (curVizObj.userConfig.mutations[0] != "NA") {
-	    _reformatMutations(curVizObj);
+	    _ts_reformatMutations(curVizObj);
 
 	    // get column names (depending on the available data, which columns will be shown)
 	    dim.mutationColumns = [
@@ -428,27 +428,27 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	// get timepoints, prepend a "T0" timepoint to represent the timepoint before any data originated
 	var timepoints = _.uniq(_.pluck(curVizObj.userConfig.clonal_prev, "timepoint"));
 	timepoints.unshift("T0");
-	curVizObj.data.timepoints = timepoints;
+	curVizObj.tsData.timepoints = timepoints;
 
 	// get cellular prevalence info
-	_getCPData(curVizObj);
+	_ts_getCPData(curVizObj);
 
 	// get emergence values & timepoints for each genotype
-	curVizObj.data.emergence_values = _getEmergenceValues(curVizObj);
-	curVizObj.data.emergence_tps = _getEmergenceTimepoints(curVizObj);
+	curVizObj.tsData.emergence_values = _ts_getEmergenceValues(curVizObj);
+	curVizObj.tsData.emergence_tps = _ts_getEmergenceTimepoints(curVizObj);
 
 	// convert time-centric cellular prevalence data into genotype-centric cellular prevalence data
-	_getGenotypeCPData(curVizObj);
+	_ts_getGenotypeCPData(curVizObj);
 
 	// get the layout of the traditional timesweep
-	_getLayout(curVizObj);
+	_ts_getLayout(curVizObj);
 
 	// get paths for plotting
-	_getPaths(curVizObj);
+	_ts_getPaths(curVizObj);
 
 	// get cellular prevalence labels
-	curVizObj.data.ts_trad_labels = _getTraditionalCPLabels(curVizObj);
-	curVizObj.data.ts_sep_labels = _getSeparateCPLabels(curVizObj);
+	curVizObj.tsData.ts_trad_labels = _ts_getTraditionalCPLabels(curVizObj);
+	curVizObj.tsData.ts_sep_labels = _ts_getSeparateCPLabels(curVizObj);
 
 	// SET CONTENT
 
@@ -463,12 +463,12 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	d3.select("#" + view_id).select(".timesweep_" + view_id).call(nodeTip);
 
 	// get colour scheme
-	_getPhyloColours(curVizObj);
-	var colour_assignment = curVizObj.view.colour_assignment,
-	    alpha_colour_assignment = curVizObj.view.alpha_colour_assignment;
+	_ts_getPhyloColours(curVizObj);
+	var colour_assignment = curVizObj.tsView.colour_assignment,
+	    alpha_colour_assignment = curVizObj.tsView.alpha_colour_assignment;
 
 	// plot light grey timesweep background
-	curVizObj.view.tsSVG
+	curVizObj.tsView.tsSVG
 	    .append("rect")
 	    .attr("x", 0)
 	    .attr("y", 0)
@@ -477,9 +477,9 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	    .attr("fill", "#F7F7F7");
 
 	// plot timesweep data
-	curVizObj.view.tsSVG
+	curVizObj.tsView.tsSVG
 	    .selectAll('.tsPlot')
-	    .data(curVizObj.data.bezier_paths, function(d) {
+	    .data(curVizObj.tsData.bezier_paths, function(d) {
 	        return d.gtype;
 	    })
 	    .enter().append('path')
@@ -493,29 +493,29 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	    })
 	    .on('mouseover', function(d) {
 	        if (!dim.selectOn && !dim.mutSelectOn) {
-	            _shadeTimeSweep(curVizObj);
-	            _shadeLegend(curVizObj);
-	            _gtypeHighlight(d.gtype, curVizObj);
-	            _showLabels(d.gtype, curVizObj);
+	            _ts_shadeTimeSweep(curVizObj);
+	            _ts_shadeLegend(curVizObj);
+	            _ts_gtypeHighlight(d.gtype, curVizObj);
+	            _ts_showLabels(d.gtype, curVizObj);
 	        }
 	    })
 	    .on('mouseout', function(d) {
 	        if (!dim.selectOn && !dim.mutSelectOn) {
-	            _resetView(curVizObj);
+	            _ts_resetView(curVizObj);
 	        }
 	    });
 
 	// PLOT PERTURBATIONS INFO
 
 	// plot labels
-	curVizObj.view.xAxisSVG
+	curVizObj.tsView.xAxisSVG
 	    .selectAll('.pertLabel')
 	    .data(curVizObj.userConfig.perturbations)
 	    .enter().append('text')
 	    .attr('class', 'pertLabel')
 	    .attr('x', function(d) { 
-	        var prevTP_idx = curVizObj.data.timepoints.indexOf(d.prev_tp);
-	        return ((prevTP_idx + 0.5) / (curVizObj.data.timepoints.length-1)) * (dim.tsSVGWidth) + 
+	        var prevTP_idx = curVizObj.tsData.timepoints.indexOf(d.prev_tp);
+	        return ((prevTP_idx + 0.5) / (curVizObj.tsData.timepoints.length-1)) * (dim.tsSVGWidth) + 
 	            dim.smallMargin + dim.yAxisWidth; 
 	    })
 	    .attr('y', 0)
@@ -527,16 +527,16 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	    .on('mouseover', function(d) {
 	        if (!dim.selectOn) {
 	            // plot guide
-	            curVizObj.view.tsSVG
+	            curVizObj.tsView.tsSVG
 	                .append('line')
 	                .attr('class', function() { return 'pertGuide pert_' + d.pert_name; })
 	                .attr('x1', function() { 
-	                    var prevTP_idx = curVizObj.data.timepoints.indexOf(d.prev_tp);
-	                    return ((prevTP_idx + 0.5) / (curVizObj.data.timepoints.length-1)) * (dim.tsSVGWidth); 
+	                    var prevTP_idx = curVizObj.tsData.timepoints.indexOf(d.prev_tp);
+	                    return ((prevTP_idx + 0.5) / (curVizObj.tsData.timepoints.length-1)) * (dim.tsSVGWidth); 
 	                })
 	                .attr('x2', function() { 
-	                    var prevTP_idx = curVizObj.data.timepoints.indexOf(d.prev_tp);
-	                    return ((prevTP_idx + 0.5) / (curVizObj.data.timepoints.length-1)) * (dim.tsSVGWidth); 
+	                    var prevTP_idx = curVizObj.tsData.timepoints.indexOf(d.prev_tp);
+	                    return ((prevTP_idx + 0.5) / (curVizObj.tsData.timepoints.length-1)) * (dim.tsSVGWidth); 
 	                })
 	                .attr('y1', 0)
 	                .attr('y2', dim.tsSVGHeight)
@@ -547,7 +547,7 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	    })
 	    .on('mouseout', function(d) {
 	        if (!dim.selectOn) {
-	            d3.select("#" + curVizObj.view_id)
+	            d3.select("#" + curVizObj.tsView_id)
 	                .selectAll(".pertGuide.pert_" + d.pert_name).remove();
 	        }
 	    });
@@ -555,13 +555,13 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	// PLOT AXES
 
 	// plot x-axis labels
-	curVizObj.view.xAxisSVG
+	curVizObj.tsView.xAxisSVG
 	    .selectAll('.xAxisLabels')
-	    .data(curVizObj.data.timepoints)
+	    .data(curVizObj.tsData.timepoints)
 	    .enter().append('text')
 	    .attr('class', function(d) { return 'xAxisLabels tp_' + d; })
 	    .attr('x', function(d, i) { 
-	        return (i / (curVizObj.data.timepoints.length-1)) * (dim.tsSVGWidth) + dim.smallMargin + dim.yAxisWidth; 
+	        return (i / (curVizObj.tsData.timepoints.length-1)) * (dim.tsSVGWidth) + dim.smallMargin + dim.yAxisWidth; 
 	    })
 	    .attr('y', 0)
 	    .attr('dy', '.71em')
@@ -578,11 +578,11 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	        if (!dim.selectOn) {
 
 	            // plot time point guides
-	            curVizObj.view.tsSVG
+	            curVizObj.tsView.tsSVG
 	                .append('line')
 	                .attr('class', function() { return 'tpGuide tp_' + d; })
-	                .attr('x1', function() { return (i / (curVizObj.data.timepoints.length - 1)) * dim.tsSVGWidth; })
-	                .attr('x2', function() { return (i / (curVizObj.data.timepoints.length - 1)) * dim.tsSVGWidth; })
+	                .attr('x1', function() { return (i / (curVizObj.tsData.timepoints.length - 1)) * dim.tsSVGWidth; })
+	                .attr('x2', function() { return (i / (curVizObj.tsData.timepoints.length - 1)) * dim.tsSVGWidth; })
 	                .attr('y1', 0)
 	                .attr('y2', dim.tsSVGHeight)
 	                .attr('stroke', 'grey')
@@ -592,12 +592,12 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	    })
 	    .on('mouseout', function(d) {
 	        if (!dim.selectOn) {
-	            d3.select("#" + curVizObj.view_id).selectAll(".tpGuide.tp_" + d).remove();
+	            d3.select("#" + curVizObj.tsView_id).selectAll(".tpGuide.tp_" + d).remove();
 	        }
 	    });
 
 	// plot y-axis title
-	curVizObj.view.yAxisSVG
+	curVizObj.tsView.yAxisSVG
 	    .append('text')
 	    .attr('class', 'axisTitle yAxis')
 	    .attr('x', 0)
@@ -613,7 +613,7 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	    });
 
 	// plot x-axis title
-	curVizObj.view.xAxisSVG
+	curVizObj.tsView.xAxisSVG
 	    .append('text')
 	    .attr('class', 'axisTitle xAxis')
 	    .attr('x', dim.yAxisWidth + dim.smallMargin + dim.xAxisWidth/2)
@@ -630,7 +630,7 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	// PLOT TREE GLYPH
 
 	// plot tree title
-	curVizObj.view.tsTree
+	curVizObj.tsView.tsTree
 	    .append('text')
 	    .attr('class', 'treeTitle')
 	    .attr('x', 0)
@@ -645,18 +645,18 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	// d3 tree layout
 	var treeR = 4,
 	    treePadding = 10,
-	    treeTitleHeight = d3.select("#" + curVizObj.view_id)
+	    treeTitleHeight = d3.select("#" + curVizObj.tsView_id)
 	                        .select('.treeTitle').node().getBBox().height,
 	    treeLayout = d3.layout.tree()           
 	        .size([dim.treeHeight - treePadding - treeTitleHeight, dim.treeWidth - treePadding]); 
 
 	// get node radius for legend phylogeny (7 == # pixels between nodes)
-	var tree_height = curVizObj.data.tree_height;
+	var tree_height = curVizObj.tsData.tree_height;
 	dim.legendNode_r = (((dim.treeWidth-treePadding) - 7*tree_height)/tree_height)/2;
 	dim.legendNode_r = (dim.legendNode_r > dim.max_r) ? dim.max_r : dim.legendNode_r;
 
 	// get nodes and links
-	var root = $.extend({}, curVizObj.data.treeStructure), // copy tree into new variable
+	var root = $.extend({}, curVizObj.tsData.treeStructure), // copy tree into new variable
 	    nodes = treeLayout.nodes(root), 
 	    links = treeLayout.links(nodes);   
 
@@ -670,7 +670,7 @@ function _run_timesweep(view_id, width, height, userConfig) {
 
 	// create links
 	curVizObj.link_ids = [];
-	var link = curVizObj.view.tsTree.append("g")
+	var link = curVizObj.tsView.tsTree.append("g")
 	    .classed("treeLinks", true)
 	    .selectAll(".legendTreeLink")                  
 	    .data(links)                   
@@ -683,29 +683,29 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	    .attr('stroke', dim.treeLinkColour)
 	    .attr('stroke-width', '3px')
 	    .attr('fill', 'none')                
-	    .attr("d", _elbow)
+	    .attr("d", _ts_elbow)
 	    .on("mouseover", function(d) {
 	        // we're not selecting nodes or mutations
 	        if (!dim.selectOn && !dim.mutSelectOn) {
 
 	            // shade view & legend 
-	            _shadeTimeSweep(curVizObj);
-	            _shadeLegend(curVizObj);
+	            _ts_shadeTimeSweep(curVizObj);
+	            _ts_shadeLegend(curVizObj);
 
 	            // highlight all elements downstream of link
-	            _propagatedEffects(curVizObj, d.link_id, curVizObj.link_ids, "downstream");
+	            _ts_propagatedEffects(curVizObj, d.link_id, curVizObj.link_ids, "downstream");
 	        }
 	    })
 	    .on("mouseout", function() {
 	        // we're not selecting nodes or mutations
 	        if (!dim.selectOn && !dim.mutSelectOn) {
 	            // background click
-	            _backgroundClick(curVizObj);
+	            _ts_backgroundClick(curVizObj);
 	        }
 	    }); 
 
 	// create nodes
-	var node = curVizObj.view.tsTree.selectAll(".legendTreeNode")                  
+	var node = curVizObj.tsView.tsTree.selectAll(".legendTreeNode")                  
 	    .data(nodes)                   
 	    .enter()
 	    .append("circle")     
@@ -741,10 +741,10 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	        // we're not selecting nodes or mutations - highlight genotype
 	        if (!dim.selectOn && !dim.mutSelectOn) {
 	            console.log("not selecting nodes or mutations");
-	            _shadeTimeSweep(curVizObj);
-	            _shadeLegend(curVizObj);
-	            _gtypeHighlight(d.id, curVizObj);
-	            _showLabels(d.id, curVizObj);
+	            _ts_shadeTimeSweep(curVizObj);
+	            _ts_shadeLegend(curVizObj);
+	            _ts_gtypeHighlight(d.id, curVizObj);
+	            _ts_showLabels(d.id, curVizObj);
 	        }
 	    })
 	    .on('mouseout', function(d) {
@@ -757,19 +757,19 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	            d3.select(this)
 	                .attr('fill', function(d) { 
 	                    col = alpha_colour_assignment[d.id];
-	                    brightness = Math.round(_get_brightness(col));
+	                    brightness = Math.round(_ts_get_brightness(col));
 	                    return (d.id == dim.phantomRoot) ? 
-	                        "none" : _rgb2hex("rgb(" + brightness + "," + brightness + "," + brightness + ")");
+	                        "none" : _ts_rgb2hex("rgb(" + brightness + "," + brightness + "," + brightness + ")");
 	                })
 	                .attr('stroke', function(d) { 
-	                    brightness = Math.round(_get_brightness(colour_assignment[d.id]));
+	                    brightness = Math.round(_ts_get_brightness(colour_assignment[d.id]));
 	                    return (d.id == dim.phantomRoot) ? 
-	                        "none" : _rgb2hex("rgb(" + brightness + "," + brightness + "," + brightness + ")");
+	                        "none" : _ts_rgb2hex("rgb(" + brightness + "," + brightness + "," + brightness + ")");
 	                });
 	        }
 	        // we're not selecting nodes or mutations - mouseout as normal
 	        if (!dim.selectOn && !dim.mutSelectOn) {
-	            return _resetView(curVizObj);
+	            return _ts_resetView(curVizObj);
 	        }
 	    })
 	    .on("click", function(d) {
@@ -780,11 +780,11 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	            dim.nClickedNodes++; // increment the number of clicked nodes
 
 	            // reset view (get rid of any labels, etc.)
-	            _removeLabels(curVizObj);
+	            _ts_removeLabels(curVizObj);
 
 	            // get data for this clone
 	            var filtered_muts = 
-	                _.filter(curVizObj.data.mutations, function(mut) { return mut.clone_id == d.id; });
+	                _.filter(curVizObj.tsData.mutations, function(mut) { return mut.clone_id == d.id; });
 
 	            // if there's no data for this clone, add a row of "None"
 	            if (filtered_muts.length == 0) { 
@@ -798,31 +798,31 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	            // if it's the first clicked node
 	            if (dim.nClickedNodes == 1) {
 	                // delete existing data table
-	                d3.select("#" + curVizObj.view_id + "_mutationTable" + "_wrapper").remove();   
+	                d3.select("#" + curVizObj.tsView_id + "_mutationTable" + "_wrapper").remove();   
 
 	                // plot filtered data table
-	                _makeMutationTable(curVizObj, curVizObj.view.mutationTableDIV, filtered_muts,
+	                _ts_makeMutationTable(curVizObj, curVizObj.tsView.mutationTableDIV, filtered_muts,
 	                    dim.mutationTableHeight); 
 
 	                // shade view & legend 
-	                _shadeTimeSweep(curVizObj);
-	                _shadeLegend(curVizObj);
+	                _ts_shadeTimeSweep(curVizObj);
+	                _ts_shadeLegend(curVizObj);
 	            }
 	            // otherwise
 	            else {
 	                // add to existing data table
-	                var table = $("#" + curVizObj.view_id + "_mutationTable").DataTable();
+	                var table = $("#" + curVizObj.tsView_id + "_mutationTable").DataTable();
 	                table.rows.add(filtered_muts).draw(false);
 
 	                // add this clone id to the list of clone ids in the mutation table
 	                dim.curCloneIDs = dim.curCloneIDs.concat(_.pluck(filtered_muts, "clone_id"));
 
 	                // plot clone svg circles in mutation table
-	                _addCloneSVGsToTable(curVizObj, dim.curCloneIDs);
+	                _ts_addCloneSVGsToTable(curVizObj, dim.curCloneIDs);
 	            }
 
 	            // highlight this clone
-	            _gtypeHighlight(d.id, curVizObj);
+	            _ts_gtypeHighlight(d.id, curVizObj);
 
 	            d3.event.stopPropagation();
 	        }
@@ -834,7 +834,7 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	if (curVizObj.userConfig.mutations != "NA") {
 
 	    // make the table
-	    _makeMutationTable(curVizObj, curVizObj.view.mutationTableDIV, curVizObj.data.mutations,
+	    _ts_makeMutationTable(curVizObj, curVizObj.tsView.mutationTableDIV, curVizObj.tsData.mutations,
 	        dim.mutationTableHeight);
 	}
 }
