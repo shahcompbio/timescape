@@ -70,7 +70,63 @@ timesweep <- function(clonal_prev,
                       show_warnings = TRUE,
                       width = 900, 
                       height = NULL) {
-  
+
+  # forward options using x
+  x = processUserData(clonal_prev, 
+                      tree_edges, 
+                      mutations,
+                      clone_colours, 
+                      xaxis_title, 
+                      yaxis_title, 
+                      alpha, 
+                      genotype_position, 
+                      perturbations, 
+                      sort, 
+                      show_warnings,
+                      width, 
+                      height)
+
+  # create widget
+  htmlwidgets::createWidget(
+    name = "timesweep",
+    x,
+    width = width,
+    height = height,
+    package = "timesweep"
+  )
+}
+
+#' Widget output function for use in Shiny
+#'
+#' @export
+timesweepOutput <- function(outputId, width = "100%", height = "400px"){
+  htmlwidgets::shinyWidgetOutput(outputId, "timesweep", width, height, 
+                                 package = "timesweep")
+}
+
+#' Widget render function for use in Shiny
+#'
+#' @export
+renderTimesweep <- function(expr, env = parent.frame(), quoted = FALSE) {
+  if (!quoted) { expr <- substitute(expr) } # force quoted
+  htmlwidgets::shinyRenderWidget(expr, timesweepOutput, env, quoted = TRUE)
+}
+
+#' Function to process the user data
+processUserData <- function(clonal_prev, 
+                      tree_edges, 
+                      mutations,
+                      clone_colours, 
+                      xaxis_title, 
+                      yaxis_title, 
+                      alpha, 
+                      genotype_position, 
+                      perturbations, 
+                      sort, 
+                      show_warnings,
+                      width, 
+                      height) {
+
   # ENSURE MINIMUM DIMENSIONS SATISFIED
   checkMinDims(mutations, height, width)
 
@@ -114,7 +170,7 @@ timesweep <- function(clonal_prev,
   mutation_prevalences <- spaces_replaced$mutation_prevalences
 
   # forward options using x
-  x = list(
+  return(list(
     clonal_prev = jsonlite::toJSON(clonal_prev),
     tree_edges = jsonlite::toJSON(tree_edges),
     clone_cols = jsonlite::toJSON(clone_colours),
@@ -128,32 +184,7 @@ timesweep <- function(clonal_prev,
     sort_gtypes = sort,
     timepoint_map = jsonlite::toJSON(timepoint_map),
     clone_id_map = jsonlite::toJSON(clone_id_map)
-  )
-
-  # create widget
-  htmlwidgets::createWidget(
-    name = "timesweep",
-    x,
-    width = width,
-    height = height,
-    package = "timesweep"
-  )
-}
-
-#' Widget output function for use in Shiny
-#'
-#' @export
-timesweepOutput <- function(outputId, width = "100%", height = "400px"){
-  htmlwidgets::shinyWidgetOutput(outputId, "timesweep", width, height, 
-                                 package = "timesweep")
-}
-
-#' Widget render function for use in Shiny
-#'
-#' @export
-renderTimesweep <- function(expr, env = parent.frame(), quoted = FALSE) {
-  if (!quoted) { expr <- substitute(expr) } # force quoted
-  htmlwidgets::shinyRenderWidget(expr, timesweepOutput, env, quoted = TRUE)
+  ))
 }
 
 #' Function to check minimum dimensions
