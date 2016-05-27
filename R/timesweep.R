@@ -72,6 +72,96 @@ timesweep <- function(clonal_prev,
                       height = NULL) {
   
   # ENSURE MINIMUM DIMENSIONS SATISFIED
+  checkMinDims(mutations, height, width)
+
+  # CHECK REQUIRED INPUTS ARE PRESENT
+  checkRequiredInputs(clonal_prev, tree_edges)
+
+  # ALPHA VALUE
+  checkAlpha(alpha)
+
+  # SORTED GENOTYPES
+  checkSort(sort)
+
+  # CLONAL PREVALENCE DATA
+  clonal_prev <- checkClonalPrev(clonal_prev)
+
+  # TREE EDGES DATA
+  tree_edges <- checkTreeEdges(tree_edges)
+
+  # GENOTYPE POSITIONING
+  checkGtypePositioning(genotype_position)
+
+  # CHECK CLONE COLOURS
+  checkCloneColours(clone_colours) 
+
+  # CHECK PERTURBATIONS
+  perturbations <- checkPerts(perturbations)
+
+  # MUTATIONS DATA
+  mut_data <- getMutationsData(mutations, tree_edges, clonal_prev)
+  mutation_info <- mut_data$mutation_info
+  mutation_prevalences <- mut_data$mutation_prevalences
+
+  # REPLACE SPACES WITH UNDERSCORES
+  spaces_replaced <- replaceSpaces(clonal_prev, tree_edges, clone_colours, mutation_info, mutations, mutation_prevalences)
+  timepoint_map <- spaces_replaced$timepoint_map 
+  clone_id_map <- spaces_replaced$clone_id_map 
+  clonal_prev <- spaces_replaced$clonal_prev 
+  tree_edges <- spaces_replaced$tree_edges
+  mutation_info <- spaces_replaced$mutation_info
+  clone_colours <- spaces_replaced$clone_colours
+  mutation_prevalences <- spaces_replaced$mutation_prevalences
+
+  # forward options using x
+  x = list(
+    clonal_prev = jsonlite::toJSON(clonal_prev),
+    tree_edges = jsonlite::toJSON(tree_edges),
+    clone_cols = jsonlite::toJSON(clone_colours),
+    mutations = jsonlite::toJSON(mutation_info),
+    mutation_prevalences = jsonlite::toJSON(mutation_prevalences),
+    xaxis_title = xaxis_title,
+    yaxis_title = yaxis_title,
+    alpha = alpha,
+    genotype_position = genotype_position,
+    perturbations = jsonlite::toJSON(perturbations),
+    sort_gtypes = sort,
+    timepoint_map = jsonlite::toJSON(timepoint_map),
+    clone_id_map = jsonlite::toJSON(clone_id_map)
+  )
+
+  # create widget
+  htmlwidgets::createWidget(
+    name = "timesweep",
+    x,
+    width = width,
+    height = height,
+    package = "timesweep"
+  )
+}
+
+#' Widget output function for use in Shiny
+#'
+#' @export
+timesweepOutput <- function(outputId, width = "100%", height = "400px"){
+  htmlwidgets::shinyWidgetOutput(outputId, "timesweep", width, height, 
+                                 package = "timesweep")
+}
+
+#' Widget render function for use in Shiny
+#'
+#' @export
+renderTimesweep <- function(expr, env = parent.frame(), quoted = FALSE) {
+  if (!quoted) { expr <- substitute(expr) } # force quoted
+  htmlwidgets::shinyRenderWidget(expr, timesweepOutput, env, quoted = TRUE)
+}
+
+#' Function to check minimum dimensions
+#' 
+#' @param mutations -- mutations provided by user
+#' @param height -- height provided by user
+#' @param width -- width provided by user
+checkMinDims <- function(mutations, height, width) {
 
   # set height if not set by user
   if (is.null(height)) {
@@ -98,26 +188,49 @@ timesweep <- function(clonal_prev,
   if (width < min_width) {
     stop(paste("Width must be greater than or equal to ", min_width, "px.", sep=""))
   }
+}
 
-  # CHECK REQUIRED INPUTS ARE PRESENT 
+
+#' Function to check required inputs are present
+#' 
+#' @param clonal_prev -- clonal_prev provided by user
+#' @param tree_edges -- tree_edges provided by user
+checkRequiredInputs <- function(clonal_prev, tree_edges) {
+
   if (missing(clonal_prev)) {
     stop("Clonal prevalence data frame must be provided.")
   }
   if (missing(tree_edges)) {
     stop("Tree edge data frame must be provided.")
   }
+}
 
-  # ALPHA VALUE
+#' check alpha value input is correct
+#' 
+#' @param alpha -- alpha provided by user
+checkAlpha <- function(alpha) {
   if (!is.numeric(alpha)) {
     stop("Alpha value must be numeric.")
   }
 
-  # SORTED GENOTYPES
+  if (alpha < 0 || alpha > 100) {
+    stop("Alpha value must be between 0 and 100.")
+  }
+}
+
+#' check sort genotypes parameter input is correct
+#' 
+#' @param sort -- sort param provided by user
+checkSort <- function(sort) {
   if (!is.logical(sort)) {
     stop("Sort parameter must be a boolean.")
   }
+}
 
-  # CLONAL PREVALENCE DATA
+#' check clonal_prev parameter data
+#'
+#' @param clonal_prev -- clonal prevalence provided by user
+checkClonalPrev <- function(clonal_prev) {
 
   # ensure column names are correct
   if (!("timepoint" %in% colnames(clonal_prev)) ||
@@ -132,7 +245,13 @@ timesweep <- function(clonal_prev,
   clonal_prev$clone_id <- as.character(clonal_prev$clone_id)
   clonal_prev$clonal_prev <- as.numeric(as.character(clonal_prev$clonal_prev))
 
-  # TREE EDGES DATA
+  return(clonal_prev)
+}
+
+#' check tree_edges parameter data
+#'
+#' @param tree_edges -- tree edges provided by user
+checkTreeEdges <- function(tree_edges) {
 
   # ensure column names are correct
   if (!("source" %in% colnames(tree_edges)) ||
@@ -144,9 +263,6 @@ timesweep <- function(clonal_prev,
   # ensure data is of the correct type
   tree_edges$source <- as.character(tree_edges$source)
   tree_edges$target <- as.character(tree_edges$target)
-
-  # get list of clones in the phylogeny
-  clones_in_phylo <- unique(c(tree_edges$source, tree_edges$target))
 
   # check for tree rootedness
   sources <- unique(tree_edges$source)
@@ -167,13 +283,23 @@ timesweep <- function(clonal_prev,
       ") - tree must have only one root.",sep=""))
   }
 
-  # GENOTYPE POSITIONING
+  return(tree_edges)
+}
 
+
+#' check genotype_position parameter
+#'
+#' @param genotype_position -- genotype_position provided by user
+checkGtypePositioning <- function(genotype_position) {
   if (!(genotype_position %in% c("stack", "centre", "space"))) {
     stop("Genotype position must be one of c(\"stack\", \"centre\", \"space\")")
   }
+}
 
-  # NODE COLOURS
+#' check clone_colours parameter
+#'
+#' @param clone_colours -- clone_colours provided by user
+checkCloneColours <- function(clone_colours) {
   if (is.data.frame(clone_colours)) {
 
     # ensure column names are correct
@@ -183,8 +309,13 @@ timesweep <- function(clonal_prev,
           "\"clone_id\", \"colour\"", sep=""))
     }
   }
+}
 
-  # PERTURBATIONS
+#' check perturbations parameter
+#'
+#' @param perturbations -- perturbations provided by user
+checkPerts <- function(perturbations) {
+
   if (is.data.frame(perturbations)) {
 
     # ensure column names are correct
@@ -199,10 +330,17 @@ timesweep <- function(clonal_prev,
     perturbations$pert_name <- as.character(perturbations$pert_name)
     perturbations$prev_tp <- as.character(perturbations$prev_tp)
     perturbations$frac <- as.character(perturbations$frac)
-
   }
 
-  # MUTATIONS DATA
+  return(perturbations)
+}
+
+#' get mutation data
+#'
+#' @param mutations -- mutations data from user
+#' @param tree_edges -- tree edges data from user
+#' @param clonal_prev -- clonal prevalence data from user
+getMutationsData <- function(mutations, tree_edges, clonal_prev) {
 
   if (is.data.frame(mutations)) {
 
@@ -279,9 +417,12 @@ timesweep <- function(clonal_prev,
         "must be labelled \"X\" and \"Y\".", sep=""))
     }
 
+
+    # get list of clones in the phylogeny
+    clones_in_phylo <- unique(c(tree_edges$source, tree_edges$target))
+
     # keep only those mutations whose clone ids are present in the phylogeny
     mutations <- mutations[which(mutations$clone_id %in% clones_in_phylo),]
-
 
     # MUTATION PREVALENCES DATA
 
@@ -314,6 +455,18 @@ timesweep <- function(clonal_prev,
     mutation_info <- "NA"
   }
 
+  return(list("mutation_info"=mutation_info, "mutation_prevalences"=prevs_split_small))
+}
+
+#' function to replace spaces with underscores in all data frames & keep maps of original names to space-replaced names
+#' @param clonal_prev -- clonal_prev data from user
+#' @param tree_edges -- tree edges data from user
+#' @param clone_colours -- clone_colours data from user
+#' @param mutation_info -- processed mutation_info 
+#' @param mutations -- mutations data from user
+#' @param mutation_prevalences -- mutation_prevalences data from user
+replaceSpaces <- function(clonal_prev, tree_edges, clone_colours, mutation_info, mutations, mutation_prevalences) {
+
   # create map of original sample ids to space-replaced sample ids
   timepoint_map <- data.frame(original_timepoint = unique(clonal_prev$timepoint), stringsAsFactors=FALSE)
   timepoint_map$space_replaced_timepoint <- stringr::str_replace_all(timepoint_map$original_timepoint,"\\s+","_")
@@ -326,7 +479,7 @@ timesweep <- function(clonal_prev,
   # --> timepoints
   clonal_prev$timepoint <- stringr::str_replace_all(clonal_prev$timepoint,"\\s+","_")
   if (is.data.frame(mutations)) {
-    prevs_split_small <- lapply(prevs_split_small, function(prevs) {
+    mutation_prevalences <- lapply(mutation_prevalences, function(prevs) {
       prevs$timepoint <- stringr::str_replace_all(prevs$timepoint,"\\s+","_")
       return(prevs)
     })
@@ -342,45 +495,11 @@ timesweep <- function(clonal_prev,
     mutation_info$clone_id <- stringr::str_replace_all(mutation_info$clone_id,"\\s+","_")
   }
 
-  # forward options using x
-  x = list(
-    clonal_prev = jsonlite::toJSON(clonal_prev),
-    tree_edges = jsonlite::toJSON(tree_edges),
-    clone_cols = jsonlite::toJSON(clone_colours),
-    mutations = jsonlite::toJSON(mutation_info),
-    mutation_prevalences = jsonlite::toJSON(prevs_split_small),
-    xaxis_title = xaxis_title,
-    yaxis_title = yaxis_title,
-    alpha = alpha,
-    genotype_position = genotype_position,
-    perturbations = jsonlite::toJSON(perturbations),
-    sort_gtypes = sort,
-    timepoint_map = jsonlite::toJSON(timepoint_map),
-    clone_id_map = jsonlite::toJSON(clone_id_map)
-  )
-
-  # create widget
-  htmlwidgets::createWidget(
-    name = "timesweep",
-    x,
-    width = width,
-    height = height,
-    package = "timesweep"
-  )
-}
-
-#' Widget output function for use in Shiny
-#'
-#' @export
-timesweepOutput <- function(outputId, width = "100%", height = "400px"){
-  htmlwidgets::shinyWidgetOutput(outputId, "timesweep", width, height, 
-                                 package = "timesweep")
-}
-
-#' Widget render function for use in Shiny
-#'
-#' @export
-renderTimesweep <- function(expr, env = parent.frame(), quoted = FALSE) {
-  if (!quoted) { expr <- substitute(expr) } # force quoted
-  htmlwidgets::shinyRenderWidget(expr, timesweepOutput, env, quoted = TRUE)
+  return(list("timepoint_map"=timepoint_map, 
+              "clone_id_map"=clone_id_map, 
+              "clonal_prev"=clonal_prev, 
+              "tree_edges"=tree_edges,
+              "mutation_info"=mutation_info,
+              "clone_colours"=clone_colours,
+              "mutation_prevalences"=mutation_prevalences))
 }

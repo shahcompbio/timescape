@@ -881,7 +881,8 @@ function _getLayout(curVizObj) {
                                                         curVizObj.data.emergence_values,
                                                         curVizObj.data.emergence_tps, 
                                                         curVizObj.data.timepoints,
-                                                        []);
+                                                        [],
+                                                        curVizObj.userConfig.sort_gtypes);
 
     // ------> CENTRED 
     if (gtypePos == "centre") {
@@ -922,12 +923,12 @@ function _getLayout(curVizObj) {
 * @param {Array} emergence_tps -- timepoints of genotype emergence
 * @param {Array} timepoints -- timepoints in dataset
 * @param {Array} layoutOrder -- originally empty array of the final vertical stacking order
+* @param {Boolean} sort_by_emerg -- whether or not to vertically sort children by emergence values
 */
-function _getLayoutOrder(dim, curNode, emergence_values, emergence_tps, timepoints, layoutOrder) {
+function _getLayoutOrder(dim, curNode, emergence_values, emergence_tps, timepoints, layoutOrder, sort_by_emerg) {
     var child_emerg_vals = [], // emergence values of children
         sorted_children, // children sorted by their emergence values
-        child_obj, // current child node
-        sort_by_emerg = curVizObj.userConfig.sort_gtypes; // T/F vertically sort children by emergence values
+        child_obj; // current child node
 
     // add the current key id to the final vertical stacking order
     if (curNode.id != dim.phantomRoot) {
@@ -961,7 +962,7 @@ function _getLayoutOrder(dim, curNode, emergence_values, emergence_tps, timepoin
         // in the *reverse* order of emergence values, search children
         sorted_children.map(function(child) {
             child_obj = _.findWhere(curNode.children, {id: child.id});
-            _getLayoutOrder(dim, child_obj, emergence_values, emergence_tps, timepoints, layoutOrder);
+            _getLayoutOrder(dim, child_obj, emergence_values, emergence_tps, timepoints, layoutOrder, sort_by_emerg);
         })
     }
 
@@ -1627,7 +1628,7 @@ function _getTraditionalPaths(curVizObj) {
         appear_xTop,
         event_occurs, // whether or not an event occurs after a time point
         event_index, // index of the current event 
-        perturbations = curVizObj.data.perturbations, // user specified perturbations in the time-series data
+        perturbations = curVizObj.userConfig.perturbations, // user specified perturbations in the time-series data
         frac; // fraction of total tumour content remaining at the perturbation event;
 
     $.each(layoutOrder, function(gtype_idx, gtype) {

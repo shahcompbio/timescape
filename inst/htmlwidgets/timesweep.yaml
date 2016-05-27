@@ -33,6 +33,11 @@ dependencies:
    src: "htmlwidgets/lib"
    script: timesweep_helpers.js
    stylesheet: timesweep.css
+ - name: run_timesweep
+   version: 0.0.1
+   src: "htmlwidgets/lib"
+   script: run_timesweep.js
+   stylesheet: timesweep.css
  - name: my_svg_crowbar
    version: 0.0.0
    src: "htmlwidgets/lib"
