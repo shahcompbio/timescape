@@ -50,15 +50,15 @@ function _run_timesweep(view_id, width, height, userConfig, curVizObj) {
 	curVizObj.userConfig = userConfig;
 
 	// configuration based on available data
-	dim.canvasSVGWidth = width - dim.paddingGeneral - dim.paddingGeneral;
-	dim.canvasSVGHeight = height - dim.paddingGeneral - dim.paddingGeneral - dim.topBarHeight;
+	dim.canvasSVGWidth = width;
+	dim.canvasSVGHeight = height - dim.topBarHeight;
 	dim.tsSVGHeight = (curVizObj.userConfig.mutations[0] == "NA") ? 
-	                    dim.canvasSVGHeight - dim.xAxisHeight - dim.smallMargin :
+	                    dim.canvasSVGHeight - dim.xAxisHeight - dim.smallMargin - dim.paddingGeneral*2:
 	                    250;
 	dim.tsSVGWidth = dim.canvasSVGWidth - dim.legendWidth - dim.yAxisWidth - dim.smallMargin - dim.paddingGeneral;
 	dim.xAxisWidth = dim.tsSVGWidth;
 	dim.yAxisHeight = dim.tsSVGHeight;
-	dim.mutationTableHeight = dim.canvasSVGHeight - dim.tsSVGHeight - dim.smallMargin - 25;
+	dim.mutationTableHeight = dim.canvasSVGHeight - dim.tsSVGHeight - dim.smallMargin - 25 - dim.xAxisHeight;
 	dim.mutationTableWidth = dim.tsSVGWidth;
 
 	// adjust canvas SVG height if mutation table is present
@@ -79,10 +79,11 @@ function _run_timesweep(view_id, width, height, userConfig, curVizObj) {
 	    .style("float", "left");
 
 	var canvasDIV = d3.select("#" + view_id).append("div")
-	    .style("height", dim.canvasSVGHeight + dim.topBarHeight + "px")
+	    .style("height", dim.canvasSVGHeight + "px")
 	    .style("width", width + "px")
 	    .attr("class", "div")
-	    .attr("id", view_id);
+	    .attr("id", view_id)
+	    .style("float", "left");
 
 	curVizObj.tsView.mutationTableDIV = d3.select("#" + view_id)
 	    .append("div")
@@ -90,7 +91,7 @@ function _run_timesweep(view_id, width, height, userConfig, curVizObj) {
 	    .style("position", "relative")
 	    .style("width", dim.mutationTableWidth + "px")
 	    .style("height", dim.mutationTableHeight + "px")
-	    .style("left", (dim.yAxisWidth + dim.smallMargin + dim.paddingGeneral) + "px")
+	    .style("left", (dim.yAxisWidth + dim.smallMargin) + "px")
 	    .style("float", "left");
 
 	// canvas for image png output
@@ -351,10 +352,7 @@ function _run_timesweep(view_id, width, height, userConfig, curVizObj) {
 	    .attr("y", 0) 
 	    .attr("width", dim.canvasSVGWidth) 
 	    .attr("height", dim.canvasSVGHeight)
-	    .style("float", "left")
-	    .style("margin-right",  dim.paddingGeneral)
-	    .style("margin-left",  dim.paddingGeneral)
-	    .style("margin-bottom",  dim.paddingGeneral);
+	    .style("float", "left");
 
 	var tsSVG = canvasSVG
 	    .append("g")  
