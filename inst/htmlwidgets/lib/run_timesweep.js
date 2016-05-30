@@ -4,7 +4,7 @@
 * @param {Number} height -- height of the view
 * @param {Object} userConfig -- user configurations
 */
-function _run_timesweep(view_id, width, height, userConfig) {
+function _run_timesweep(view_id, width, height, userConfig, linked) {
 
 	// defaults
 	var defaults = {
@@ -1044,6 +1044,11 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	        .attr('stroke', function(d) { 
 	            return colour_assignment[d.id];
 	        });
+
+	    // if this view is linked to single cell data view
+	    if (linked && (typeof _mouseoverGroupAnnot == 'function')) {
+	    	_mouseoverGroupAnnot(gtype, "black", curVizObj.view_id);
+	    }
 	}
 
 	/* function to shade the timesweep view
@@ -1122,6 +1127,11 @@ function _run_timesweep(view_id, width, height, userConfig) {
 
 	    // remove labels
 	    _removeLabels(curVizObj);
+
+	    // if linked to single cell data view
+	    if (linked && (typeof _mouseoutGroupAnnot == 'function')) {
+	    	_mouseoutGroupAnnot(curVizObj.view_id);
+	    }
 
 	}
 
