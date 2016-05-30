@@ -66,7 +66,7 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	                        0 : 
 	                        dim.mutationTableHeight;
 
-	console.log("curVizObj");
+	console.log("timesweep curVizObj");
 	console.log(curVizObj);
 
 	// SET UP PAGE LAYOUT
@@ -726,7 +726,6 @@ function _run_timesweep(view_id, width, height, userConfig) {
 
 	        // if we're selecting nodes
 	        if (dim.nClickedNodes > 0 && d.id != dim.phantomRoot) {
-	            console.log("selecting nodes");
 	            // highlight node in the legend
 	            d3.select(this)
 	                .attr('fill', function(d) { 
@@ -738,7 +737,6 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	        }
 	        // we're not selecting nodes or mutations - highlight genotype
 	        if (!dim.selectOn && !dim.mutSelectOn) {
-	            console.log("not selecting nodes or mutations");
 	            _shadeTimeSweep(curVizObj);
 	            _shadeLegend(curVizObj);
 	            _gtypeHighlight(d.id, curVizObj);
