@@ -886,6 +886,14 @@ function _run_timesweep(view_id, width, height, userConfig, linked) {
 	                return colour_assignment[d.gtype]; 
 	            });
 	    });
+
+	    // if linked to single cell data
+	    if (linked && (typeof _mouseoverGroupAnnot == 'function')) {
+	    	curVizObj.view.propagation.node_ids.forEach(function(node) {
+		    	// highlight this genotype in the single cell view
+		    	_mouseoverGroupAnnot(node, "black", curVizObj.view_id);
+		    });
+	    }
 	};
 
 
