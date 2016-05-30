@@ -172,7 +172,7 @@ processUserData <- function(clonal_prev,
   # forward options using x
   return(list(
     clonal_prev = jsonlite::toJSON(clonal_prev),
-    tree_edges = jsonlite::toJSON(tree_edges),
+    gtype_tree_edges = jsonlite::toJSON(tree_edges),
     clone_cols = jsonlite::toJSON(clone_colours),
     mutations = jsonlite::toJSON(mutation_info),
     mutation_prevalences = jsonlite::toJSON(mutation_prevalences),

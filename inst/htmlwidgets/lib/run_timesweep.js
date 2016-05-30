@@ -1334,7 +1334,7 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	*/
 	function _getTreeInfo(curVizObj) {
 	    var userConfig = curVizObj.userConfig,
-	        cur_edges = userConfig.tree_edges,
+	        cur_edges = userConfig.gtype_tree_edges,
 	        phantomRoot = curVizObj.tsGeneralConfig.phantomRoot; // root so we have a lead-in link to the real root
 
 	    // get tree nodes
