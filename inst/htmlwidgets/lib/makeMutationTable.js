@@ -8,7 +8,7 @@
 */
 function _ts_makeMutationTable(curVizObj, mutationTableDIV, data, table_height) {
 	var dim = curVizObj.tsGeneralConfig,
-		view_id = curVizObj.tsView_id,
+		view_id = curVizObj.view_id,
 		table;
 
 	// make deferred object for mutation table setup
@@ -66,13 +66,13 @@ function _ts_makeMutationTable(curVizObj, mutationTableDIV, data, table_height) 
 		        	if (!dim.selectOn) {
 
 		        		// if a different row was previously selected
-		        		if (d3.select("#" + curVizObj.tsView_id).selectAll(".selected")[0].length == 1) {
+		        		if (d3.select("#" + curVizObj.view_id).selectAll(".selected")[0].length == 1) {
 
 		        			// deselect that row
-			        		d3.select("#" + curVizObj.tsView_id).select(".selected").classed("selected", false);
+			        		d3.select("#" + curVizObj.view_id).select(".selected").classed("selected", false);
 
 			        		// remove all mutation prevalences information from view
-    						d3.select("#" + curVizObj.tsView_id).selectAll(".mutationPrev").remove();
+    						d3.select("#" + curVizObj.view_id).selectAll(".mutationPrev").remove();
 
     						// unhighlight (red) the previous link
     						d3.select("#" + view_id).selectAll(".legendTreeLink").attr("stroke", dim.treeLinkColour);
@@ -156,14 +156,14 @@ function _ts_makeMutationTable(curVizObj, mutationTableDIV, data, table_height) 
 */
 function _ts_addCloneSVGsToTable(curVizObj, clone_ids) {
 	// remove any previous clone SVGs
-	d3.select("#" + curVizObj.tsView_id).selectAll(".svgCloneCircle").remove();
+	d3.select("#" + curVizObj.view_id).selectAll(".svgCloneCircle").remove();
 
 	// get clone column number
 	var mut_columns = _.pluck(curVizObj.tsGeneralConfig.mutationColumns, "data");
 	var clone_column_no = mut_columns.indexOf("empty") + 1;
 
 	// add clone SVGs
-	var rows = d3.select("#" + curVizObj.tsView_id + "_mutationTable").selectAll("tr");
+	var rows = d3.select("#" + curVizObj.view_id + "_mutationTable").selectAll("tr");
 	var svgColumn = rows.selectAll("td:nth-child(" + clone_column_no + ")")
 		.append("div")
 		.attr("id", "svgCloneCircleDIV")
@@ -180,7 +180,7 @@ function _ts_addCloneSVGsToTable(curVizObj, clone_ids) {
         .attr("cy", 5)
         .attr("r", 4)
         .attr("fill", function() {
-        	return curVizObj.tsView.alpha_colour_assignment[clone_ids[index++]];
+        	return curVizObj.view.alpha_colour_assignment[clone_ids[index++]];
         })
         .attr("stroke", function() {
         	// fill happens first for all rows, so we have to reset the index to zero
@@ -188,6 +188,6 @@ function _ts_addCloneSVGsToTable(curVizObj, clone_ids) {
         	if (index == clone_ids.length) {
         		index = 0;
         	}
-        	return curVizObj.tsView.colour_assignment[clone_ids[index++]];
+        	return curVizObj.view.colour_assignment[clone_ids[index++]];
         });
 }

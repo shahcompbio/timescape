@@ -9,26 +9,26 @@
 * @param {String} stream_direction -- "downstream" or "upstream"
 */
 function _ts_propagatedEffects(curVizObj, link_id, link_ids, stream_direction) {
-    var view_id = curVizObj.tsView_id,
+    var view_id = curVizObj.view_id,
         dim = curVizObj.tsGeneralConfig,
-        colour_assignment = curVizObj.tsView.colour_assignment,
-        alpha_colour_assignment = curVizObj.tsView.alpha_colour_assignment;
+        colour_assignment = curVizObj.view.colour_assignment,
+        alpha_colour_assignment = curVizObj.view.alpha_colour_assignment;
 
     // clear propagation info in vizObj
-    curVizObj.tsView.propagation = {};
+    curVizObj.view.propagation = {};
 
     // get propagation info
     _ts_getPropatagedItems(curVizObj, link_id, link_ids, stream_direction);
 
     // highlight links in legend
-    curVizObj.tsView.propagation.link_ids.forEach(function(cur_link_id) {
-        d3.select("#" + curVizObj.tsView_id)
+    curVizObj.view.propagation.link_ids.forEach(function(cur_link_id) {
+        d3.select("#" + curVizObj.view_id)
             .select(".legendTreeLink." + cur_link_id)
             .attr("stroke-opacity", 1);
     });
 
     // highlight nodes in the legend
-    curVizObj.tsView.propagation.node_ids.forEach(function(node) {
+    curVizObj.view.propagation.node_ids.forEach(function(node) {
         d3.select("#" + view_id)
             .select(".legendTreeNode.gtype_" + node)
             .attr("fill", function(d) {
@@ -40,7 +40,7 @@ function _ts_propagatedEffects(curVizObj, link_id, link_ids, stream_direction) {
     });
 
     // highlight genotypes in timesweep
-    curVizObj.tsView.propagation.node_ids.forEach(function(node) {
+    curVizObj.view.propagation.node_ids.forEach(function(node) {
         d3.select("#" + view_id)
             .select(".tsPlot.gtype_" + node)
             .attr('fill', function(d) { 
@@ -60,7 +60,7 @@ function _ts_propagatedEffects(curVizObj, link_id, link_ids, stream_direction) {
 * @param {String} stream_direction -- "downstream" or "upstream"
 */
 function _ts_getPropatagedItems(curVizObj, link_id, link_ids, stream_direction) {
-    var view_id = curVizObj.tsView_id,
+    var view_id = curVizObj.view_id,
         generalTargetRX = new RegExp("treeLink_source_.+_target_(.+)"), // regex to get target
         generalSourceRX = new RegExp("treeLink_source_(.+)_target_.+"); // regex to get source
 
@@ -80,11 +80,11 @@ function _ts_getPropatagedItems(curVizObj, link_id, link_ids, stream_direction) 
     });
 
     // add information to curVizObj
-    curVizObj.tsView.propagation = curVizObj.tsView.propagation || {};
-    curVizObj.tsView.propagation.node_ids = curVizObj.tsView.propagation.node_ids || [];
-    curVizObj.tsView.propagation.node_ids.push(target_id);
-    curVizObj.tsView.propagation.link_ids = curVizObj.tsView.propagation.link_ids || [];
-    curVizObj.tsView.propagation.link_ids.push(link_id);
+    curVizObj.view.propagation = curVizObj.view.propagation || {};
+    curVizObj.view.propagation.node_ids = curVizObj.view.propagation.node_ids || [];
+    curVizObj.view.propagation.node_ids.push(target_id);
+    curVizObj.view.propagation.link_ids = curVizObj.view.propagation.link_ids || [];
+    curVizObj.view.propagation.link_ids.push(link_id);
 
     // for each of the target's targets, highlight their downstream links
     targetLinks_of_targetNode.map(function(target_link_id) {
@@ -95,21 +95,21 @@ function _ts_getPropatagedItems(curVizObj, link_id, link_ids, stream_direction) 
 
 function _ts_sweepClick(curVizObj) {
     var dim = curVizObj.tsGeneralConfig,
-        colour_assignment = curVizObj.tsView.colour_assignment,
-        alpha_colour_assignment = curVizObj.tsView.alpha_colour_assignment,
+        colour_assignment = curVizObj.view.colour_assignment,
+        alpha_colour_assignment = curVizObj.view.alpha_colour_assignment,
         x = curVizObj.userConfig;
 
     // hide any cellular prevalence labels
-    d3.select("#" + curVizObj.tsView_id).selectAll(".label, .sepLabel")
+    d3.select("#" + curVizObj.view_id).selectAll(".label, .sepLabel")
         .attr('opacity', 0);
-    d3.select("#" + curVizObj.tsView_id).selectAll(".labelCirc, .sepLabelCirc")
+    d3.select("#" + curVizObj.view_id).selectAll(".labelCirc, .sepLabelCirc")
         .attr('fill-opacity', 0);
 
     // transition to tracks timesweep view
     if (dim.switchView) {
-        var sweeps = curVizObj.tsView.tsSVG
+        var sweeps = curVizObj.view.tsSVG
             .selectAll('.tsPlot')
-            .data(curVizObj.tsData.tracks_bezier_paths, function(d) {
+            .data(curVizObj.data.tracks_bezier_paths, function(d) {
                 return d.gtype;
             })
 
@@ -128,9 +128,9 @@ function _ts_sweepClick(curVizObj) {
     }
     // transition to traditional timesweep view
     else {
-        var sweeps = curVizObj.tsView.tsSVG
+        var sweeps = curVizObj.view.tsSVG
             .selectAll('.tsPlot')
-            .data(curVizObj.tsData.bezier_paths, function(d) {
+            .data(curVizObj.data.bezier_paths, function(d) {
                 return d.gtype;
             })
 
@@ -188,11 +188,11 @@ function _ts_sweepClick(curVizObj) {
 * @param {Object} curVizObj -- vizObj for the current view
 */
 function _ts_gtypeHighlight(gtype, curVizObj) {
-    var alpha_colour_assignment = curVizObj.tsView.alpha_colour_assignment,
-        colour_assignment = curVizObj.tsView.colour_assignment;
+    var alpha_colour_assignment = curVizObj.view.alpha_colour_assignment,
+        colour_assignment = curVizObj.view.colour_assignment;
 
     // highlight genotype in timesweep
-    d3.select("#" + curVizObj.tsView_id).select('.tsPlot.gtype_' + gtype)
+    d3.select("#" + curVizObj.view_id).select('.tsPlot.gtype_' + gtype)
         .attr('fill', function(d) { 
             return alpha_colour_assignment[d.gtype];
         })
@@ -201,7 +201,7 @@ function _ts_gtypeHighlight(gtype, curVizObj) {
         });
 
     // highlight genotype in legend
-    d3.select("#" + curVizObj.tsView_id).select('.legendTreeNode.gtype_' + gtype)
+    d3.select("#" + curVizObj.view_id).select('.legendTreeNode.gtype_' + gtype)
         .attr('fill', function(d) { 
             return alpha_colour_assignment[d.id];
         })
@@ -215,11 +215,11 @@ function _ts_gtypeHighlight(gtype, curVizObj) {
 function _ts_shadeTimeSweep(curVizObj) {
     var brightness,
         col,
-        colour_assignment = curVizObj.tsView.colour_assignment,
-        alpha_colour_assignment = curVizObj.tsView.alpha_colour_assignment;
+        colour_assignment = curVizObj.view.colour_assignment,
+        alpha_colour_assignment = curVizObj.view.alpha_colour_assignment;
 
     // dim genotypes in the timesweep
-    d3.select("#" + curVizObj.tsView_id).selectAll('.tsPlot')
+    d3.select("#" + curVizObj.view_id).selectAll('.tsPlot')
         .attr('fill', function(d) { 
             return _ts_getGreyscaleEquivalent(alpha_colour_assignment[d.gtype]);
         })
@@ -234,15 +234,15 @@ function _ts_shadeLegend(curVizObj) {
     var brightness,
         col,
         dim = curVizObj.tsGeneralConfig,
-        colour_assignment = curVizObj.tsView.colour_assignment,
-        alpha_colour_assignment = curVizObj.tsView.alpha_colour_assignment;
+        colour_assignment = curVizObj.view.colour_assignment,
+        alpha_colour_assignment = curVizObj.view.alpha_colour_assignment;
 
     // dim links in legend
-    d3.select("#" + curVizObj.tsView_id).selectAll('.legendTreeLink')
+    d3.select("#" + curVizObj.view_id).selectAll('.legendTreeLink')
         .attr("stroke-opacity", 0.2);
 
     // dim nodes in the legend
-    d3.select("#" + curVizObj.tsView_id).selectAll('.legendTreeNode')
+    d3.select("#" + curVizObj.view_id).selectAll('.legendTreeNode')
         .attr('fill', function(d) { 
             return (d.id == dim.phantomRoot) ? 
                 "none" : _ts_getGreyscaleEquivalent(alpha_colour_assignment[d.id]);
@@ -258,12 +258,12 @@ function _ts_shadeLegend(curVizObj) {
 */
 function _ts_resetView(curVizObj) {
     var dim = curVizObj.tsGeneralConfig,
-        colour_assignment = curVizObj.tsView.colour_assignment,
-        alpha_colour_assignment = curVizObj.tsView.alpha_colour_assignment,
+        colour_assignment = curVizObj.view.colour_assignment,
+        alpha_colour_assignment = curVizObj.view.alpha_colour_assignment,
         x = curVizObj.userConfig;
 
     // reset colours in timesweep
-    d3.select("#" + curVizObj.tsView_id).selectAll('.tsPlot')
+    d3.select("#" + curVizObj.view_id).selectAll('.tsPlot')
         .attr('fill', function(d) { 
             return alpha_colour_assignment[d.gtype];
         })
@@ -272,7 +272,7 @@ function _ts_resetView(curVizObj) {
         });
 
     // reset node colours in legend
-    d3.select("#" + curVizObj.tsView_id).selectAll('.legendTreeNode')
+    d3.select("#" + curVizObj.view_id).selectAll('.legendTreeNode')
         .attr('fill', function(d) { 
             return (d.id == dim.phantomRoot) ? "none" : alpha_colour_assignment[d.id];
         })
@@ -281,7 +281,7 @@ function _ts_resetView(curVizObj) {
         });
 
     // reset links in legend
-    d3.select("#" + curVizObj.tsView_id).selectAll('.legendTreeLink')
+    d3.select("#" + curVizObj.view_id).selectAll('.legendTreeLink')
         .attr("stroke-opacity", 1);
 
     // remove labels
@@ -298,7 +298,7 @@ function _ts_createLabels(curVizObj, label_data) {
 
     // for each cellular prevalence label for this genotype
     label_data.forEach(function(data) {
-        curVizObj.tsView.tsSVG
+        curVizObj.view.tsSVG
             .append('circle')
             .attr('class', function() { 
                 if (data.type == "traditional") {
@@ -309,12 +309,12 @@ function _ts_createLabels(curVizObj, label_data) {
             .attr('cx', function() { 
 
                 // index of this time point relative to others
-                var index = curVizObj.tsData.timepoints.indexOf(data.tp); 
+                var index = curVizObj.data.timepoints.indexOf(data.tp); 
 
-                var x_val = (index / (curVizObj.tsData.timepoints.length-1)) * (dim.tsSVGWidth);
+                var x_val = (index / (curVizObj.data.timepoints.length-1)) * (dim.tsSVGWidth);
 
                 // if the time point is the last
-                if (index == curVizObj.tsData.timepoints.length - 1) {
+                if (index == curVizObj.data.timepoints.length - 1) {
                     // shift it to the left
                     x_val -= dim.circleR;
                 }
@@ -345,7 +345,7 @@ function _ts_createLabels(curVizObj, label_data) {
             .attr('fill', 'white')
             .style('pointer-events', 'none');
 
-        curVizObj.tsView.tsSVG
+        curVizObj.view.tsSVG
             .append('text')
             .attr('font-family', 'Arial')
             .attr('font-size', dim.fontSize)
@@ -366,12 +366,12 @@ function _ts_createLabels(curVizObj, label_data) {
             .attr('x', function() { 
 
                 // index of this time point relative to others
-                var index = curVizObj.tsData.timepoints.indexOf(data.tp); 
+                var index = curVizObj.data.timepoints.indexOf(data.tp); 
 
-                var x_val = (index / (curVizObj.tsData.timepoints.length-1)) * (dim.tsSVGWidth);
+                var x_val = (index / (curVizObj.data.timepoints.length-1)) * (dim.tsSVGWidth);
 
                 // if the time point is the last
-                if (index == curVizObj.tsData.timepoints.length - 1) {
+                if (index == curVizObj.data.timepoints.length - 1) {
                     // shift it to the left
                     x_val -= dim.circleR;
                 }
@@ -411,7 +411,7 @@ function _ts_showLabels(gtype, curVizObj) {
     // traditional view
     if (dim.switchView) { 
         // get clonal prevalence labels for this genotype
-        var labels = curVizObj.tsData.ts_trad_labels;
+        var labels = curVizObj.data.ts_trad_labels;
         var gtype_labels = _.filter(labels, function(lab) { return (lab.gtype == gtype); });
 
         // create the labels for this genotype
@@ -421,7 +421,7 @@ function _ts_showLabels(gtype, curVizObj) {
     // tracks view
     else { 
         // get clonal prevalence labels for this genotype
-        var labels = curVizObj.tsData.ts_sep_labels;
+        var labels = curVizObj.data.ts_sep_labels;
         var gtype_labels = _.filter(labels, function(lab) { return (lab.gtype == gtype); });
 
         // create the labels for this genotype
@@ -438,19 +438,19 @@ function _ts_removeLabels(curVizObj) {
     // traditional view
     if (dim.switchView) {
         // hide labels
-        d3.select("#" + curVizObj.tsView_id).selectAll(".label").remove();
+        d3.select("#" + curVizObj.view_id).selectAll(".label").remove();
 
         // hide label backgrounds
-        d3.select("#" + curVizObj.tsView_id).selectAll(".labelCirc").remove();
+        d3.select("#" + curVizObj.view_id).selectAll(".labelCirc").remove();
     }
 
     // tracks view
     else {
         // hide labels
-        d3.select("#" + curVizObj.tsView_id).selectAll(".sepLabel").remove();
+        d3.select("#" + curVizObj.view_id).selectAll(".sepLabel").remove();
 
         // hide label backgrounds
-        d3.select("#" + curVizObj.tsView_id).selectAll(".sepLabelCirc").remove();
+        d3.select("#" + curVizObj.view_id).selectAll(".sepLabelCirc").remove();
     }
 }
 
@@ -463,10 +463,10 @@ function _ts_backgroundClick(curVizObj) {
     // if there was just a link selection, refresh the mutations table
     if (dim.selectOn) {
         // delete existing data table
-        d3.select("#" + curVizObj.tsView_id + "_mutationTable" + "_wrapper").remove();
+        d3.select("#" + curVizObj.view_id + "_mutationTable" + "_wrapper").remove();
 
         // make new full table
-        _ts_makeMutationTable(curVizObj, curVizObj.tsView.mutationTableDIV, curVizObj.tsData.mutations,
+        _ts_makeMutationTable(curVizObj, curVizObj.view.mutationTableDIV, curVizObj.data.mutations,
             dim.mutationTableHeight);
     }
 
@@ -476,10 +476,10 @@ function _ts_backgroundClick(curVizObj) {
     dim.curCloneIDs = [];
 
     // mark all mutations as unselected
-    d3.select("#" + curVizObj.tsView_id + "_mutationTable").selectAll("tr").classed('selected', false);
+    d3.select("#" + curVizObj.view_id + "_mutationTable").selectAll("tr").classed('selected', false);
 
     // unhighlight phylogeny links (highlighting occurs when mutation selected)
-    d3.select("#" + curVizObj.tsView_id).selectAll(".legendTreeLink").attr("stroke", dim.treeLinkColour);
+    d3.select("#" + curVizObj.view_id).selectAll(".legendTreeLink").attr("stroke", dim.treeLinkColour);
 
     // hide VAF tooltips
     curVizObj.vafTips.forEach(function(curTip) {
@@ -500,71 +500,71 @@ function _ts_getTreeInfo(curVizObj) {
         phantomRoot = curVizObj.tsGeneralConfig.phantomRoot; // root so we have a lead-in link to the real root
 
     // get tree nodes
-    curVizObj.tsData.treeNodes = _.uniq(_.pluck(cur_edges, "source").concat(_.pluck(cur_edges, "target")));
-    curVizObj.tsData.treeNodes.push(phantomRoot);
+    curVizObj.data.treeNodes = _.uniq(_.pluck(cur_edges, "source").concat(_.pluck(cur_edges, "target")));
+    curVizObj.data.treeNodes.push(phantomRoot);
 
     // get tree edges
-    curVizObj.tsData.treeEdges = [];
+    curVizObj.data.treeEdges = [];
     for (var i = 0; i < cur_edges.length; i++) {
-        curVizObj.tsData.treeEdges.push({
+        curVizObj.data.treeEdges.push({
             "source": cur_edges[i].source,
             "target": cur_edges[i].target
         })
     }
 
     // find tree root
-    var cur_source = curVizObj.tsData.treeEdges[0].source;
+    var cur_source = curVizObj.data.treeEdges[0].source;
     var source_as_target = // edge where the current source is the target
-        _.findWhere(curVizObj.tsData.treeEdges, {"target": cur_source}); 
+        _.findWhere(curVizObj.data.treeEdges, {"target": cur_source}); 
     while (source_as_target) { // iterate as long as there are edges with the current source as the target
         cur_source = source_as_target.source;
-        source_as_target = _.findWhere(curVizObj.tsData.treeEdges, {"target": cur_source});
+        source_as_target = _.findWhere(curVizObj.data.treeEdges, {"target": cur_source});
     }
     var rootName = cur_source;
 
     // add the phantomRoot to the tree edges array
-    curVizObj.tsData.treeEdges.push({
+    curVizObj.data.treeEdges.push({
         "source": phantomRoot,
         "target": rootName
     })
 
     // get tree structure
     var nodesByName = [];
-    for (var i = 0; i < curVizObj.tsData.treeEdges.length; i++) {
-        var parent = _ts_findNodeByName(nodesByName, curVizObj.tsData.treeEdges[i].source);
-        var child = _ts_findNodeByName(nodesByName, curVizObj.tsData.treeEdges[i].target);
+    for (var i = 0; i < curVizObj.data.treeEdges.length; i++) {
+        var parent = _ts_findNodeByName(nodesByName, curVizObj.data.treeEdges[i].source);
+        var child = _ts_findNodeByName(nodesByName, curVizObj.data.treeEdges[i].target);
         parent["children"].push(child);
     }
     var root_tree = _ts_findNodeByName(nodesByName, phantomRoot); 
-    curVizObj.tsData.treeStructure = root_tree; 
+    curVizObj.data.treeStructure = root_tree; 
 
     // get linear chains
-    curVizObj.tsData.treeChainRoots = []; // keep track of linear chain segment roots
-    curVizObj.tsData.treeChains = 
-        _ts_getLinearTreeSegments(curVizObj, curVizObj.tsData.treeStructure, {}, "");
+    curVizObj.data.treeChainRoots = []; // keep track of linear chain segment roots
+    curVizObj.data.treeChains = 
+        _ts_getLinearTreeSegments(curVizObj, curVizObj.data.treeStructure, {}, "");
 
     // get descendants for each node
-    curVizObj.tsData.treeDescendantsArr = {};
-    curVizObj.tsData.treeNodes.forEach(function(node, idx) {
+    curVizObj.data.treeDescendantsArr = {};
+    curVizObj.data.treeNodes.forEach(function(node, idx) {
         var curRoot = _ts_findNodeByName(nodesByName, node);
         var curDescendants = _ts_getDescendantIds(curRoot, []);
-        curVizObj.tsData.treeDescendantsArr[node] = curDescendants;
+        curVizObj.data.treeDescendantsArr[node] = curDescendants;
     })
-    curVizObj.tsData.direct_descendants = _ts_getDirectDescendants(curVizObj.tsData.treeStructure, {});
+    curVizObj.data.direct_descendants = _ts_getDirectDescendants(curVizObj.data.treeStructure, {});
 
     // get ancestors for each node
-    curVizObj.tsData.treeAncestorsArr = _ts_getAncestorIds(curVizObj);
-    curVizObj.tsData.direct_ancestors = _ts_getDirectAncestors(curVizObj.tsData.treeStructure, {});
+    curVizObj.data.treeAncestorsArr = _ts_getAncestorIds(curVizObj);
+    curVizObj.data.direct_ancestors = _ts_getDirectAncestors(curVizObj.data.treeStructure, {});
 
     // get siblings for each node
-    curVizObj.tsData.siblings = _ts_getSiblings(curVizObj.tsData.treeStructure, {}); 
+    curVizObj.data.siblings = _ts_getSiblings(curVizObj.data.treeStructure, {}); 
 
     // get the height of the tree
-    curVizObj.tsData.tree_height = 0;
-    Object.keys(curVizObj.tsData.treeAncestorsArr).forEach(function(key) {
-        var ancestor_arr = curVizObj.tsData.treeAncestorsArr[key];
-        if (ancestor_arr.length > curVizObj.tsData.tree_height) {
-            curVizObj.tsData.tree_height = ancestor_arr.length;
+    curVizObj.data.tree_height = 0;
+    Object.keys(curVizObj.data.treeAncestorsArr).forEach(function(key) {
+        var ancestor_arr = curVizObj.data.treeAncestorsArr[key];
+        if (ancestor_arr.length > curVizObj.data.tree_height) {
+            curVizObj.data.tree_height = ancestor_arr.length;
         }
     })
 }
@@ -609,8 +609,8 @@ function _ts_getDescendantIds(root, descendants) {
 function _ts_getAncestorIds(curVizObj) {
     var ancestors = {},
         curDescendants,
-        descendants_arr = curVizObj.tsData.treeDescendantsArr,
-        treeNodes = curVizObj.tsData.treeNodes;
+        descendants_arr = curVizObj.data.treeDescendantsArr,
+        treeNodes = curVizObj.data.treeNodes;
 
     // set up each node as originally containing an empty list of ancestors
     treeNodes.forEach(function(node, idx) {
@@ -735,7 +735,7 @@ function _ts_getLinearTreeSegments(curVizObj, curNode, chains, base) {
     if (base == "") {
         base = curNode.id;
         chains[base] = [];
-        curVizObj.tsData.treeChainRoots.push(curNode.id);
+        curVizObj.data.treeChainRoots.push(curNode.id);
     }
     // if it's a linear descendant, append the current key to the chain
     else {
@@ -777,7 +777,7 @@ function _ts_getCPData(curVizObj) {
 
     // create timepoint zero with 100% cellular prevalence for the root of the tree
     cp_data_original["T0"] = {};
-    curVizObj.tsData.cp_data_original = cp_data_original;
+    curVizObj.data.cp_data_original = cp_data_original;
 
     // get normalized cp data (in cases where cp doesn't add to 1)
     var cp_data_norm = {};
@@ -795,19 +795,19 @@ function _ts_getCPData(curVizObj) {
         });
     })
 
-    curVizObj.tsData.cp_data = cp_data_norm;
+    curVizObj.data.cp_data = cp_data_norm;
 }
 
 /* function to get the cellular prevalence value for each genotype at its emergence
 * @param {Object} curVizObj
 */
 function _ts_getEmergenceValues(curVizObj) {
-    var cp_data = curVizObj.tsData.cp_data,
+    var cp_data = curVizObj.data.cp_data,
         emergence_values = {},
         gtypes;
 
     // for each time point
-    curVizObj.tsData.timepoints.forEach(function(tp) { 
+    curVizObj.data.timepoints.forEach(function(tp) { 
 
         // get genotypes
         gtypes = Object.keys(cp_data[tp]); 
@@ -827,12 +827,12 @@ function _ts_getEmergenceValues(curVizObj) {
 * @param {Object} curVizObj
 */
 function _ts_getEmergenceTimepoints(curVizObj) {
-    var cp_data = curVizObj.tsData.cp_data,
+    var cp_data = curVizObj.data.cp_data,
         emergence_tps = {},
         gtypes;
 
     // for each time point
-    curVizObj.tsData.timepoints.forEach(function(tp) { 
+    curVizObj.data.timepoints.forEach(function(tp) { 
 
         // get genotypes
         gtypes = Object.keys(cp_data[tp]); 
@@ -852,7 +852,7 @@ function _ts_getEmergenceTimepoints(curVizObj) {
 * @param {Object} curVizObj
 */
 function _ts_getGenotypeCPData(curVizObj) {
-    var cp_data = curVizObj.tsData.cp_data,
+    var cp_data = curVizObj.data.cp_data,
         genotype_cp = {};
 
     Object.keys(cp_data).forEach(function(tp, tp_idx) {
@@ -862,7 +862,7 @@ function _ts_getGenotypeCPData(curVizObj) {
         });
     }); 
 
-    curVizObj.tsData.genotype_cp = genotype_cp;
+    curVizObj.data.genotype_cp = genotype_cp;
 }
 
 // LAYOUT FUNCTIONS
@@ -876,11 +876,11 @@ function _ts_getLayout(curVizObj) {
 
 
     // traverse the tree to sort the genotypes into a final vertical stacking order (incorporating hierarchy)
-    curVizObj.tsData.layoutOrder = _ts_getLayoutOrder(curVizObj.tsGeneralConfig, 
-                                                        curVizObj.tsData.treeStructure, 
-                                                        curVizObj.tsData.emergence_values,
-                                                        curVizObj.tsData.emergence_tps, 
-                                                        curVizObj.tsData.timepoints,
+    curVizObj.data.layoutOrder = _ts_getLayoutOrder(curVizObj.tsGeneralConfig, 
+                                                        curVizObj.data.treeStructure, 
+                                                        curVizObj.data.emergence_values,
+                                                        curVizObj.data.emergence_tps, 
+                                                        curVizObj.data.timepoints,
                                                         [],
                                                         curVizObj.userConfig.sort_gtypes);
 
@@ -888,9 +888,9 @@ function _ts_getLayout(curVizObj) {
     if (gtypePos == "centre") {
 
         // get layout of each genotype at each timepoint
-        curVizObj.tsData.layout = {};
-        $.each(curVizObj.tsData.timepoints, function(tp_idx, tp) { 
-            _ts_getCentredLayout(curVizObj, curVizObj.tsData.treeStructure, tp, curVizObj.tsData.layout, 0);
+        curVizObj.data.layout = {};
+        $.each(curVizObj.data.timepoints, function(tp_idx, tp) { 
+            _ts_getCentredLayout(curVizObj, curVizObj.data.treeStructure, tp, curVizObj.data.layout, 0);
         })
     }
 
@@ -899,10 +899,10 @@ function _ts_getLayout(curVizObj) {
 
         // get layout of each genotype at each timepoint
         if (gtypePos == "stack") {
-            curVizObj.tsData.layout = _ts_getStackedLayout(curVizObj);
+            curVizObj.data.layout = _ts_getStackedLayout(curVizObj);
         }
         else if (gtypePos == "space") {
-            curVizObj.tsData.layout = _ts_getSpacedLayout(curVizObj); 
+            curVizObj.data.layout = _ts_getSpacedLayout(curVizObj); 
         }
     }   
 
@@ -978,19 +978,19 @@ function _ts_getLayoutOrder(dim, curNode, emergence_values, emergence_tps, timep
 */
 function _ts_getCentredLayout(curVizObj, curNode, tp, layout, yBottom) {
     var gtype = curNode.id,
-        cp_data = curVizObj.tsData.cp_data,
-        timepoints = curVizObj.tsData.timepoints,
+        cp_data = curVizObj.data.cp_data,
+        timepoints = curVizObj.data.timepoints,
         next_tp = timepoints[timepoints.indexOf(tp)+1],
         prev_tp = timepoints[timepoints.indexOf(tp)-1],
         gTypes_curTP = Object.keys(cp_data[tp]), // genotypes with cp data at the CURRENT time point
         // genotypes with cp data at the PREVIOUS time point
         gTypes_prevTP = (cp_data[prev_tp]) ? Object.keys(cp_data[prev_tp]) : undefined, 
-        curDescendants = curVizObj.tsData.treeDescendantsArr[gtype],
+        curDescendants = curVizObj.data.treeDescendantsArr[gtype],
         gTypeAndDescendants = ($.extend([], curDescendants)),
         nChildren = curNode.children.length,
         childCP = 0, // cumulative amount of cellular prevalence in the children;
         childYBottom, // bottom y-value for the next child
-        layoutOrder = curVizObj.tsData.layoutOrder,
+        layoutOrder = curVizObj.data.layoutOrder,
         sorted_children, // children sorted by the layout order
         cur_cp = cp_data[tp][gtype],
         prev_cp = (cp_data[prev_tp]) ? cp_data[prev_tp][gtype] : undefined, // CP for this genotype, prev tp
@@ -1033,7 +1033,7 @@ function _ts_getCentredLayout(curVizObj, curNode, tp, layout, yBottom) {
             "top": yBottom + width,
             "cp": cur_cp,
             "state": "present",
-            "presentChildren": _ts_getIntersection(curVizObj.tsData.direct_descendants[gtype], gTypes_curTP).length
+            "presentChildren": _ts_getIntersection(curVizObj.data.direct_descendants[gtype], gTypes_curTP).length
         }
 
         // mark disappearance state
@@ -1071,9 +1071,9 @@ function _ts_getCentredLayout(curVizObj, curNode, tp, layout, yBottom) {
 */
 function _ts_getStackedLayout(curVizObj) {
     var layout = {},
-        cp_data = curVizObj.tsData.cp_data,
-        timepoints = curVizObj.tsData.timepoints,
-        layoutOrder = curVizObj.tsData.layoutOrder,
+        cp_data = curVizObj.data.cp_data,
+        timepoints = curVizObj.data.timepoints,
+        layoutOrder = curVizObj.data.layoutOrder,
         curDescendants,
         gTypeAndDescendants, // genotype and descendants
         gTypes_curTP, // genotypes with cp data at the CURRENT time point
@@ -1097,7 +1097,7 @@ function _ts_getStackedLayout(curVizObj) {
         $.each(layoutOrder, function(gtype_idx, gtype) { 
             gTypes_curTP = Object.keys(cp_data[tp]); 
             gTypes_prevTP = (cp_data[prev_tp]) ? Object.keys(cp_data[prev_tp]) : undefined; 
-            curDescendants = curVizObj.tsData.treeDescendantsArr[gtype];
+            curDescendants = curVizObj.data.treeDescendantsArr[gtype];
             gTypeAndDescendants = ($.extend([], curDescendants)); 
             gTypeAndDescendants.push(gtype); 
             
@@ -1161,9 +1161,9 @@ function _ts_getStackedLayout(curVizObj) {
 */
 function _ts_getSpacedLayout(curVizObj) {
     var layout = {},
-        cp_data = curVizObj.tsData.cp_data,
-        timepoints = curVizObj.tsData.timepoints,
-        layoutOrder = curVizObj.tsData.layoutOrder,
+        cp_data = curVizObj.data.cp_data,
+        timepoints = curVizObj.data.timepoints,
+        layoutOrder = curVizObj.data.layoutOrder,
         curDescendants,
         gTypeAndDescendants, // genotype and descendants
         curAncestors, // all ancestors of current genotype
@@ -1172,8 +1172,8 @@ function _ts_getSpacedLayout(curVizObj) {
         width, // the cp as the width to add for this genotype at this timepoint
         midpoint, // midpoint for emergence
         ancestor_midpoint, // ancestor's midpoint for emergence
-        direct_ancestors = curVizObj.tsData.direct_ancestors, // direct ancestor for each genotype
-        direct_descendants = curVizObj.tsData.direct_descendants, // direct descendant for each genotype
+        direct_ancestors = curVizObj.data.direct_ancestors, // direct ancestor for each genotype
+        direct_descendants = curVizObj.data.direct_descendants, // direct descendant for each genotype
         space = 8/curVizObj.tsGeneralConfig.height; // space between genotypes (in pixels) 
 
     // GET STACKED LAYOUT
@@ -1286,7 +1286,7 @@ function _ts_createStackElement(curVizObj, layout, tp, gtype, bottom_val, top_va
         "bottom": bottom_val,
         "top": top_val,
         "state": state,
-        "cp": curVizObj.tsData.cp_data[tp][gtype],
+        "cp": curVizObj.data.cp_data[tp][gtype],
         "effective_cp": effective_cp
     };
 }
@@ -1307,9 +1307,9 @@ function _ts_createStackElement(curVizObj, layout, tp, gtype, bottom_val, top_va
 function _ts_calculateWidth(curVizObj, tp, gtype, threshold) {
     var width, // width of this genotype (including all descendants)
         effective_cp, // effective cellular prevalence for this genotype
-        cp = curVizObj.tsData.cp_data[tp], // cellular prevalence for this time point
+        cp = curVizObj.data.cp_data[tp], // cellular prevalence for this time point
         gTypes_curTP = Object.keys(cp), // genotypes existing at the current time point
-        cur_direct_descendants = curVizObj.tsData.direct_descendants[gtype], // current direct descendants of genotype
+        cur_direct_descendants = curVizObj.data.direct_descendants[gtype], // current direct descendants of genotype
         sum_increment = 0, // sum of increment to low prevalence genotypes for this time point
         n_gtypes_high_cp = 0; // number of genotypes above threshold cp
 
@@ -1382,11 +1382,11 @@ function _ts_sortByLayoutOrder(layoutOrder) {
 */
 function _ts_shiftEmergence(curVizObj) {
     var dim = curVizObj.tsGeneralConfig,
-        layout = curVizObj.tsData.layout,
-        layoutOrder = curVizObj.tsData.layoutOrder,
-        timepoints = curVizObj.tsData.timepoints,
-        treeAncestorsArr = curVizObj.tsData.treeAncestorsArr,
-        treeDescendantsArr = curVizObj.tsData.treeDescendantsArr,
+        layout = curVizObj.data.layout,
+        layoutOrder = curVizObj.data.layoutOrder,
+        timepoints = curVizObj.data.timepoints,
+        treeAncestorsArr = curVizObj.data.treeAncestorsArr,
+        treeDescendantsArr = curVizObj.data.treeDescendantsArr,
         nPartitions,
         layoutOrder_rev,
         ancestors,
@@ -1467,12 +1467,12 @@ function _ts_shiftEmergence(curVizObj) {
 */
 function _ts_getTraditionalCPLabels(curVizObj) {
     var dim = curVizObj.tsGeneralConfig,
-        layout = curVizObj.tsData.layout,
+        layout = curVizObj.data.layout,
         labels = [], // array of labels
         data, // data for a genotype at a time point
         label, // current label to add
         curDescendants,
-        cp_data_original = curVizObj.tsData.cp_data_original,
+        cp_data_original = curVizObj.data.cp_data_original,
         gTypes_curTP; 
 
     // for each time point
@@ -1481,8 +1481,8 @@ function _ts_getTraditionalCPLabels(curVizObj) {
 
             // for each genotype
             Object.keys(layout[tp]).forEach(function(gtype, gtype_idx) {
-                curDescendants = curVizObj.tsData.treeDescendantsArr[gtype];
-                gTypes_curTP = Object.keys(curVizObj.tsData.cp_data[tp]); 
+                curDescendants = curVizObj.data.treeDescendantsArr[gtype];
+                gTypes_curTP = Object.keys(curVizObj.data.cp_data[tp]); 
 
                 // data for this genotype at this time point
                 data = layout[tp][gtype];
@@ -1538,8 +1538,8 @@ function _ts_getTraditionalCPLabels(curVizObj) {
 * @param {Object} curVizObj
 */
 function _ts_getSeparateCPLabels(curVizObj) {
-    var tracks_paths = curVizObj.tsData.tracks_paths,
-        cp_data_original = curVizObj.tsData.cp_data_original,
+    var tracks_paths = curVizObj.data.tracks_paths,
+        cp_data_original = curVizObj.data.cp_data_original,
         labels = [],
         label,
         gtype,
@@ -1588,14 +1588,14 @@ function _ts_getPaths(curVizObj) {
     // GET PROPORTIONATE, STRAIGHT EDGED PATHS
 
     // convert layout at each time point into a list of moves for each genotype's d3 path object
-    curVizObj.tsData.tracks_paths = _ts_getSeparatePaths(curVizObj);
-    curVizObj.tsData.traditional_paths = _ts_getTraditionalPaths(curVizObj);
+    curVizObj.data.tracks_paths = _ts_getSeparatePaths(curVizObj);
+    curVizObj.data.traditional_paths = _ts_getTraditionalPaths(curVizObj);
 
     // GET BEZIER PATHS READY FOR PLOTTING
 
     // convert proportionate paths into paths ready for plotting, with bezier curves
-    curVizObj.tsData.bezier_paths = _ts_getBezierPaths(curVizObj.tsData.traditional_paths, dim.tsSVGWidth, dim.tsSVGHeight);
-    curVizObj.tsData.tracks_bezier_paths = _ts_getBezierPaths(curVizObj.tsData.tracks_paths, dim.tsSVGWidth, dim.tsSVGHeight);
+    curVizObj.data.bezier_paths = _ts_getBezierPaths(curVizObj.data.traditional_paths, dim.tsSVGWidth, dim.tsSVGHeight);
+    curVizObj.data.tracks_bezier_paths = _ts_getBezierPaths(curVizObj.data.tracks_paths, dim.tsSVGWidth, dim.tsSVGHeight);
 
 }
 
@@ -1607,11 +1607,11 @@ function _ts_getPaths(curVizObj) {
 */
 function _ts_getTraditionalPaths(curVizObj) {
     var dim = curVizObj.tsGeneralConfig,
-        layout = curVizObj.tsData.layout,
-        timepoints = curVizObj.tsData.timepoints,
+        layout = curVizObj.data.layout,
+        timepoints = curVizObj.data.timepoints,
         timepoints_rev = ($.extend([], timepoints)).reverse(),
         mid_tp = (1/((timepoints.length-1)*2)), // half of x-distance between time points
-        layoutOrder = curVizObj.tsData.layoutOrder,
+        layoutOrder = curVizObj.data.layoutOrder,
         paths = [],
         cur_path,
         emerges, // whether or not a genotype emerges at a time point
@@ -1798,13 +1798,13 @@ function _ts_getTraditionalPaths(curVizObj) {
 */
 function _ts_getSeparatePaths(curVizObj) {
     var dim = curVizObj.tsGeneralConfig,
-        timepoints = curVizObj.tsData.timepoints,
+        timepoints = curVizObj.data.timepoints,
         timepoints_rev = ($.extend([], timepoints)).reverse(),
-        layoutOrder = curVizObj.tsData.layoutOrder,
-        genotype_cp = curVizObj.tsData.genotype_cp,
-        layout = curVizObj.tsData.layout,
+        layoutOrder = curVizObj.data.layoutOrder,
+        genotype_cp = curVizObj.data.genotype_cp,
+        layout = curVizObj.data.layout,
         padding = 0.03,
-        ts_sep_labels = curVizObj.tsData.ts_sep_labels,
+        ts_sep_labels = curVizObj.data.ts_sep_labels,
         paths = [],
         sHeight = 0,
         seenGTypes = [],
@@ -2038,11 +2038,11 @@ function _ts_getPhyloColours(curVizObj) {
             l = 0.77; // lightness
 
         // number of nodes
-        var n_nodes = curVizObj.tsData.treeChainRoots.length;
+        var n_nodes = curVizObj.data.treeChainRoots.length;
 
         // colour each tree chain root a sequential colour from the spectrum
         for (var i = 0; i < n_nodes; i++) {
-            var cur_node = curVizObj.tsData.treeChainRoots[i];
+            var cur_node = curVizObj.data.treeChainRoots[i];
             var h = (i/n_nodes + 0.96) % 1;
             var rgb = _ts_hslToRgb(h, s, l); // hsl to rgb
             var col = _ts_rgb2hex("rgb(" + rgb[0] + "," + rgb[1] + "," + rgb[2] + ")"); // rgb to hex
@@ -2051,7 +2051,7 @@ function _ts_getPhyloColours(curVizObj) {
 
             // for each of the chain's descendants
             var prev_colour = col;
-            curVizObj.tsData.treeChains[cur_node].forEach(function(desc, desc_i) {
+            curVizObj.data.treeChains[cur_node].forEach(function(desc, desc_i) {
                 // if we're on the phantom root's branch and it's the first descendant
                 if (cur_node == curVizObj.tsGeneralConfig.phantomRoot && desc_i == 0) {
 
@@ -2070,14 +2070,14 @@ function _ts_getPhyloColours(curVizObj) {
             })
         }
     }
-    curVizObj.tsView.colour_assignment = colour_assignment;  
+    curVizObj.view.colour_assignment = colour_assignment;  
 
     // get the alpha colour assignment
     Object.keys(colour_assignment).forEach(function(key, key_idx) {
         alpha_colour_assignment[key] = 
             _ts_increase_brightness(colour_assignment[key], curVizObj.userConfig.alpha);
     });
-    curVizObj.tsView.alpha_colour_assignment = alpha_colour_assignment;
+    curVizObj.view.alpha_colour_assignment = alpha_colour_assignment;
 }
 
 // Check color brightness
@@ -2195,7 +2195,7 @@ function _ts_reformatMutations(curVizObj) {
     original_muts.forEach(function(mut) {
 
         // link id where mutation occurred
-        var link_id = "treeLink_source_" + curVizObj.tsData.direct_ancestors[mut.clone_id] + "_target_" +  mut.clone_id;
+        var link_id = "treeLink_source_" + curVizObj.data.direct_ancestors[mut.clone_id] + "_target_" +  mut.clone_id;
 
         // add this gene to the array
         var cur_mut = {
@@ -2223,7 +2223,7 @@ function _ts_reformatMutations(curVizObj) {
         muts_arr.push(cur_mut);
     });
 
-    curVizObj.tsData.mutations = muts_arr;
+    curVizObj.data.mutations = muts_arr;
 }
 
 // GENERAL FUNCTIONS

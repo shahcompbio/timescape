@@ -20,8 +20,7 @@ HTMLWidgets.widget({
 
   renderValue: function(el, x, instance) {
 
-    var curVizObj = {};
-    _run_timesweep(el.id, vizObj.cur_width, vizObj.cur_height, x, curVizObj);
+    _run_timesweep(el.id, vizObj.cur_width, vizObj.cur_height, x);
 
   },
 
