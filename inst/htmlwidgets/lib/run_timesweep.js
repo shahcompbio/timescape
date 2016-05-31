@@ -20,7 +20,6 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	    isPopOverVisible: false,
 	    button: false,
 	    gridsterBaseDimension: 120,
-	    switchView: true,
 	    panel_width: 30,
 	    fontSize: 11,
 	    circleR: 20,
@@ -479,12 +478,14 @@ function _run_timesweep(view_id, width, height, userConfig) {
 
 	// plot timesweep data
 	curVizObj.view.tsSVG
+		.append("g")
+		.attr("class", "tsPlotG traditional") // start with traditional plot
 	    .selectAll('.tsPlot')
 	    .data(curVizObj.data.bezier_paths, function(d) {
 	        return d.gtype;
 	    })
 	    .enter().append('path')
-	    .attr('class', function(d) { return 'tsPlot gtype_' + d.gtype; })
+	    .attr('class', function(d) { return 'tsPlot gtype_' + d.gtype; }) 
 	    .attr('d', function(d) { return d.path; })
 	    .attr('fill', function(d) { 
 	        return d.fill;
@@ -497,13 +498,12 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	            _tsPlotGtypeMouseover(d.gtype, 
 	            						curVizObj.view_id, 
 	            						curVizObj.view.colour_assignment, 
-	            						curVizObj.view.alpha_colour_assignment,
-	            						curVizObj.generalConfig.switchView);
+	            						curVizObj.view.alpha_colour_assignment);
 	        }
 	    })
 	    .on('mouseout', function(d) {
 	        if (!dim.selectOn && !dim.mutSelectOn) {
-	            _resetView(dim.switchView, curVizObj.view_id);
+	            _resetView(curVizObj.view_id);
 	        }
 	    });
 
@@ -752,8 +752,7 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	            _tsPlotGtypeMouseover(d.id, 
 	            						curVizObj.view_id, 
 	            						curVizObj.view.colour_assignment, 
-	            						curVizObj.view.alpha_colour_assignment,
-	            						curVizObj.generalConfig.switchView);
+	            						curVizObj.view.alpha_colour_assignment);
 	        }
 	    })
 	    .on('mouseout', function(d) {
@@ -778,7 +777,7 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	        }
 	        // we're not selecting nodes or mutations - mouseout as normal
 	        if (!dim.selectOn && !dim.mutSelectOn) {
-	            return _resetView(dim.switchView, curVizObj.view_id);
+	            return _resetView(curVizObj.view_id);
 	        }
 	    })
 	    .on("click", function(d) {
@@ -789,7 +788,7 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	            dim.nClickedNodes++; // increment the number of clicked nodes
 
 	            // reset view (get rid of any labels, etc.)
-	            _hideLabels(dim.switchView, curVizObj.view_id);
+	            _hideLabels(curVizObj.view_id);
 
 	            // get data for this clone
 	            var filtered_muts = 
@@ -975,7 +974,7 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	        .attr('fill-opacity', 0);
 
 	    // transition to tracks timesweep view
-	    if (dim.switchView) {
+	    if (d3.select("#" + curVizObj.view_id).select(".tsPlotG").classed("traditional")) {
 	        var sweeps = curVizObj.view.tsSVG
 	            .selectAll('.tsPlot')
 	            .data(curVizObj.data.tracks_bezier_paths, function(d) {
@@ -994,14 +993,18 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	            .duration(1000)
 	            .attrTween("d", _pathTween(curVizObj, "exit"))
 	            .remove();
+
+	        // switch class to "tracks"
+	        d3.select("#" + curVizObj.view_id).select(".tsPlotG").classed("traditional", false).classed("tracks", true);
 	    }
 	    // transition to traditional timesweep view
 	    else {
 	        var sweeps = curVizObj.view.tsSVG
+	        	.select(".tsPlotG")
 	            .selectAll('.tsPlot')
 	            .data(curVizObj.data.bezier_paths, function(d) {
 	                return d.gtype;
-	            })
+	            });
 
 	        sweeps
 	            .transition()
@@ -1011,7 +1014,7 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	        // add those genotypes that do not have cellular prevalence values, but are in the hierarchy
 	        sweeps
 	            .enter()
-	            .insert('path', '.tsPlot')
+	            .insert('path')
 	            .attr('class', function(d) { return 'tsPlot gtype_' + d.gtype; })
 	            .attr("d", _centreLine(curVizObj))
 	            .attr('fill', function(d) { 
@@ -1037,20 +1040,21 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	                    _tsPlotGtypeMouseover(d.gtype, 
 	            						curVizObj.view_id, 
 	            						curVizObj.view.colour_assignment, 
-	            						curVizObj.view.alpha_colour_assignment,
-	            						curVizObj.generalConfig.switchView);
+	            						curVizObj.view.alpha_colour_assignment);
 	                }
 	            })
 	            .on('mouseout', function(d) {
 	                if (!dim.selectOn && !dim.mutSelectOn) {
-	                    _resetView(dim.switchView, curVizObj.view_id);
+	                    _resetView(curVizObj.view_id);
 	                }
 	            })
 	            .transition()
 	            .duration(1000)
 	            .attrTween("d", _pathTween(curVizObj, "move"));
+
+	        // switch class to "traditional"
+	        d3.select("#" + curVizObj.view_id).select(".tsPlotG").classed("tracks", false).classed("traditional", true);
 	    }
-	    dim.switchView = !dim.switchView;
 	}
 
 	/* Create clonal prevalence labels with fill opacity 0
@@ -1209,7 +1213,7 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	        curTip.hide();
 	    })
 
-	    _resetView(dim.switchView, curVizObj.view_id);
+	    _resetView(curVizObj.view_id);
 	}
 
 	// TREE FUNCTIONS
@@ -3285,14 +3289,13 @@ function _run_timesweep(view_id, width, height, userConfig) {
 * @param {String} view_id -- id for current view
 * @param {Object} colour_assignment -- colour assignment for each genotype
 * @param {Object} alpha_colour_assignment -- alpha colour assignment for each genotype
-* @param {Boolean} switchView -- true/false for which view is currently on (traditional or tracks)
 */
-function _tsPlotGtypeMouseover(gtype, view_id, colour_assignment, alpha_colour_assignment, switchView) {
+function _tsPlotGtypeMouseover(gtype, view_id, colour_assignment, alpha_colour_assignment) {
 
     _shadeTimeSweep(view_id, colour_assignment, alpha_colour_assignment);
     _shadeLegend(view_id, colour_assignment, alpha_colour_assignment);
     _gtypeHighlight(gtype, view_id, colour_assignment, alpha_colour_assignment);
-    _showLabels(gtype, view_id, switchView);
+    _showLabels(gtype, view_id);
     // if this view is linked to single cell data view, highlight the genotype in that view
     if (typeof _mouseoverGroupAnnot == 'function') {
     	_mouseoverGroupAnnot(gtype, "black", view_id);
@@ -3371,13 +3374,12 @@ function _shadeLegend(view_id, colour_assignment, alpha_colour_assignment) {
 /* function to show labels for a particular genotype
 * @param {String} gtype -- the current genotype being moused over
 * @param {String} view_id -- id for the current view
-* @param {Boolean} switchView -- true/false for which view is currently on (traditional or tracks)
 */
-function _showLabels(gtype, view_id, switchView) {
+function _showLabels(gtype, view_id) {
     var curView = d3.select("#" + view_id);
 
     // traditional view
-    if (switchView) { 
+    if (d3.select("#" + view_id).select(".tsPlotG").classed("traditional")) { 
     	curView.selectAll(".label.gtype_" + gtype).attr("fill-opacity", 1)
     		.text(function(d) { return d.label_text; });
     	curView.selectAll(".labelCirc.gtype_" + gtype).attr("fill-opacity", 1);
@@ -3392,14 +3394,13 @@ function _showLabels(gtype, view_id, switchView) {
 }
 
 /* function to hide labels and label circles
-* @param {Boolean} switchView -- whether the view is on traditional or tracks
 * @param {String} view_id -- id for current view
 */
-function _hideLabels(switchView, view_id) {
+function _hideLabels(view_id) {
     var curView = d3.select("#" + view_id);
 
     // traditional view
-    if (switchView) { 
+    if (d3.select("#" + view_id).select(".tsPlotG").classed("traditional")) { 
     	curView.selectAll(".label").attr("fill-opacity", 0)
     		.text(function() { return ""; }); // text removed for purposes of svg download (otherwise will show up)
     	curView.selectAll(".labelCirc").attr("fill-opacity", 0);
@@ -3414,10 +3415,9 @@ function _hideLabels(switchView, view_id) {
 }
 
 /* function to reset the main timesweep view and legend
-* @param {Boolean} switchView -- whether the view is on traditional or tracks
 * @param {String} view_id -- id for current view
 */
-function _resetView(switchView, view_id) {
+function _resetView(view_id) {
     // reset colours in timesweep
     d3.select("#" + view_id).selectAll('.tsPlot')
         .attr('fill', function(d) { 
@@ -3441,7 +3441,7 @@ function _resetView(switchView, view_id) {
         .attr("stroke-opacity", 1);
 
     // hide labels
-    _hideLabels(switchView, view_id);
+    _hideLabels(view_id);
 
     // if linked to single cell data view
     if (typeof _mouseoutGroupAnnot == 'function') {
