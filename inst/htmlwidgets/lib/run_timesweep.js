@@ -878,12 +878,10 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	* @param {String} view_id -- id of current view
 	*/
 	function _tsMouseoutGenotype(view_id) {
-
-	    // activate all
 	    d3.select("#" + view_id).selectAll(".gtypeAnnot").classed("inactive", false);
 	    d3.select("#" + view_id).selectAll(".graph.node").classed("inactive", false);
 	    d3.select("#" + view_id).selectAll(".tree.node").classed("inactive", false);
-	    d3.select("#" + view_id).selectAll(".legendGroupRect").classed("inactive", false);
+	    d3.select("#" + view_id).selectAll(".legendGroupRect").classed("active", false);
 	    d3.select("#" + view_id).selectAll(".tsPlot").classed("inactive", false);
 	    d3.select("#" + view_id).selectAll(".legendTreeNode").classed("inactive", false);
 	}
@@ -893,12 +891,10 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	* @param {String} view_id -- id of current view
 	*/
 	function _tsHighlightGenotype(gtype, view_id) {
-
-	    // activate all with this genotype
 	    d3.select("#" + view_id).selectAll(".gtypeAnnot.gtype_" + gtype).classed("inactive", false);
 	    d3.select("#" + view_id).selectAll(".graph.node.gtype_" + gtype).classed("inactive", false);
 	    d3.select("#" + view_id).selectAll(".tree.node.gtype_" + gtype).classed("inactive", false);
-	    d3.select("#" + view_id).selectAll(".legendGroupRect.gtype_" + gtype).classed("inactive", false);
+	    d3.select("#" + view_id).selectAll(".legendGroupRect.gtype_" + gtype).classed("active", true);
 	    d3.select("#" + view_id).selectAll(".tsPlot.gtype_" + gtype).classed("inactive", false);
 	    d3.select("#" + view_id).selectAll(".legendTreeNode.gtype_" + gtype).classed("inactive", false);
 	}
@@ -910,7 +906,7 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	    d3.select("#" + view_id).selectAll(".gtypeAnnot").classed("inactive", true);
 	    d3.select("#" + view_id).selectAll(".graph.node").classed("inactive", true);
 	    d3.select("#" + view_id).selectAll(".tree.node").classed("inactive", true);
-	    d3.select("#" + view_id).selectAll(".legendGroupRect").classed("inactive", true);
+	    d3.select("#" + view_id).selectAll(".legendGroupRect").classed("active", false);
 	    d3.select("#" + view_id).selectAll(".tsPlot").classed("inactive", true);
 	    d3.select("#" + view_id).selectAll(".legendTreeNode").classed("inactive", true);
 	}
