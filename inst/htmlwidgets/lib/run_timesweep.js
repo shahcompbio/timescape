@@ -800,13 +800,8 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	                _makeMutationTable(curVizObj, curVizObj.view.mutationTableDIV, filtered_muts,
 	                    dim.mutationTableHeight); 
 
-	                // shade view & legend 
-	                _shadeTimeSweep(curVizObj.view_id, 
-		                    				curVizObj.view.colour_assignment, 
-		                    				curVizObj.view.alpha_colour_assignment);
-	                _shadeLegend(curVizObj.view_id, 
-		                    				curVizObj.view.colour_assignment, 
-		                    				curVizObj.view.alpha_colour_assignment);
+	                // inactivate all genotypes
+	                _tsInactivateGenotypes(curVizObj.view_id);
 	            }
 	            // otherwise
 	            else {
@@ -822,10 +817,7 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	            }
 
 	            // highlight this clone
-	            _gtypeHighlight(d.id, 
-	            				curVizObj.view_id, 
-                				curVizObj.view.colour_assignment, 
-                				curVizObj.view.alpha_colour_assignment);
+	            _tsHighlightGenotype(d.id, curVizObj.view_id);
 
 	            d3.event.stopPropagation();
 	        }
@@ -3291,90 +3283,6 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	}
 
 }
-
-
-/* function for mouseover of genotype in timesweep
-* @param {String} gtype -- the current genotype being moused over
-* @param {String} view_id -- id for current view
-* @param {Object} colour_assignment -- colour assignment for each genotype
-* @param {Object} alpha_colour_assignment -- alpha colour assignment for each genotype
-*/
-function _tsPlotGtypeMouseover(gtype, view_id, colour_assignment, alpha_colour_assignment) {
-
-    _shadeTimeSweep(view_id, colour_assignment, alpha_colour_assignment);
-    _shadeLegend(view_id, colour_assignment, alpha_colour_assignment);
-    _gtypeHighlight(gtype, view_id, colour_assignment, alpha_colour_assignment);
-    _showLabels(gtype, view_id);
-}
-
-
-/* function to highlight a particular genotype in the timesweep and legend
-* @param {String} gtype -- the current genotype being moused over
-* @param {String} view_id -- id for current view
-* @param {Object} colour_assignment -- colour assignment for each genotype
-* @param {Object} alpha_colour_assignment -- alpha colour assignment for each genotype
-*/
-function _gtypeHighlight(gtype, view_id, colour_assignment, alpha_colour_assignment) {
-
-    // highlight genotype in timesweep
-    d3.select("#" + view_id).select('.tsPlot.gtype_' + gtype)
-        .attr('fill', function(d) { 
-            return d.fill;
-        })
-        .attr('stroke', function(d) { 
-            return d.stroke;
-        });
-
-    // highlight genotype in legend
-    d3.select("#" + view_id).select('.legendTreeNode.gtype_' + gtype)
-        .attr('fill', function(d) { 
-            return d.fill;
-        })
-        .attr('stroke', function(d) { 
-            return d.stroke;
-        });
-}
-
-/* function to shade the timesweep view
-* @param {String} view_id -- id for current view
-* @param {Object} colour_assignment -- colour assignment for each genotype
-* @param {Object} alpha_colour_assignment -- alpha colour assignment for each genotype
-*/
-function _shadeTimeSweep(view_id, colour_assignment, alpha_colour_assignment) {
-    var brightness,
-        col;
-
-    // dim genotypes in the timesweep
-    d3.select("#" + view_id).selectAll('.tsPlot')
-        .attr('fill', function(d) { 
-            return d.fill_grey;
-        })
-        .attr('stroke', function(d) { 
-            return d.stroke_grey;
-        });
-}
-
-/* function to shade the legend
-* @param {String} view_id -- id for current view
-* @param {Object} colour_assignment -- colour assignment for each genotype
-* @param {Object} alpha_colour_assignment -- alpha colour assignment for each genotype
-*/
-function _shadeLegend(view_id, colour_assignment, alpha_colour_assignment) {
-
-    // dim links in legend
-    d3.select("#" + view_id).selectAll('.legendTreeLink')
-        .attr("stroke-opacity", 0.2);
-
-    // dim nodes in the legend
-    d3.select("#" + view_id).selectAll('.legendTreeNode')
-        .attr('fill', function(d) { 
-            return d.fill_grey;
-        })
-        .attr('stroke', function(d) { 
-            return d.stroke_grey;
-        });
-}
-
 
 /* function to show labels for a particular genotype
 * @param {String} gtype -- the current genotype being moused over
