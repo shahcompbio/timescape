@@ -713,12 +713,10 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	    .attr("class", function(d) { return "legendTreeNode gtype_" + d.id; })
 	    .attr("fill", function(d) {
 	    	d.fill = (d.id == dim.phantomRoot) ? "none" : alpha_colour_assignment[d.id];
-	    	d.fill_grey = (d.id == dim.phantomRoot) ? "none" : _getGreyscaleEquivalent(d.fill);
 	        return d.fill;
 	    })
 	    .attr('stroke', function(d) {
 	    	d.stroke = (d.id == dim.phantomRoot) ? "none" : colour_assignment[d.id];
-	    	d.stroke_grey = (d.id == dim.phantomRoot) ? "none" : _getGreyscaleEquivalent(d.stroke);
 	        return d.stroke;
 	    })
 	    .attr("id", function(d) { return d.sc_id; })
@@ -1021,26 +1019,16 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	        sweeps
 	            .enter()
 	            .insert('path')
-	            .attr('class', function(d) { return 'tsPlot gtype_' + d.gtype; })
-	            .attr("d", _centreLine(curVizObj))
-	            .attr('fill', function(d) { 
-	                // if we're selecting nodes, but we haven't clicked this one yet
+	            .attr('class', function(d) { 
+	            	// if we're selecting nodes, but we haven't clicked this one yet
 	                if ((dim.nClickedNodes > 0) && (_.uniq(dim.curCloneIDs).indexOf(d.id) == -1)) {
-	                        // greyscale
-	                        return d.fill_grey;
+	                	return 'tsPlot inactive gtype_' + d.gtype; 
 	                }
-	                // otherwise
-	                return d.fill;
-	            }) 
-	            .attr('stroke', function(d) { 
-	                // if we're selecting nodes, but we haven't clicked this one yet
-	                if ((dim.nClickedNodes > 0) && (_.uniq(dim.curCloneIDs).indexOf(d.id) == -1)) {
-	                        // greyscale
-	                        return d.stroke_grey;
-	                }
-	                // otherwise
-	                return d.stroke; 
+	            	return 'tsPlot gtype_' + d.gtype; 
 	            })
+	            .attr("d", _centreLine(curVizObj))
+	            .attr('fill', function(d) { return d.fill; }) 
+	            .attr('stroke', function(d) { return d.stroke; })
 	            .on('mouseover', function(d) {
 	                if (!dim.selectOn && !dim.mutSelectOn) {
 	                	_tsMouseoverGenotype(d.gtype, curVizObj.view_id);
@@ -2341,15 +2329,11 @@ function _run_timesweep(view_id, width, height, userConfig) {
 
 		curVizObj.data.bezier_paths.forEach(function(cur_path) {
 		    cur_path.fill = (cur_path['gtype'] == phantomRoot) ? "none" : alpha_colour_assignment[cur_path['gtype']];
-	        cur_path.fill_grey = (cur_path['gtype'] == phantomRoot) ? "none" : _getGreyscaleEquivalent(cur_path.fill);
 	        cur_path.stroke = (cur_path['gtype'] == phantomRoot) ? "none" : colour_assignment[cur_path['gtype']];
-	        cur_path.stroke_grey = (cur_path['gtype'] == phantomRoot) ? "none" : _getGreyscaleEquivalent(cur_path.stroke);	
 		})
 		curVizObj.data.tracks_bezier_paths.forEach(function(cur_path) {
 		    cur_path.fill = (cur_path['gtype'] == phantomRoot) ? "none" : alpha_colour_assignment[cur_path['gtype']];
-	        cur_path.fill_grey = (cur_path['gtype'] == phantomRoot) ? "none" : _getGreyscaleEquivalent(cur_path.fill);
 	        cur_path.stroke = (cur_path['gtype'] == phantomRoot) ? "none" : colour_assignment[cur_path['gtype']];
-	        cur_path.stroke_grey = (cur_path['gtype'] == phantomRoot) ? "none" : _getGreyscaleEquivalent(cur_path.stroke);	
 		})
 	}
 
@@ -2752,14 +2736,6 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	}
 
 	// COLOUR FUNCTIONS
-
-
-	/* function to get the greyscale equivalent of a particular colour
-	*/
-	function _getGreyscaleEquivalent(col) {
-	    brightness = Math.round(_get_brightness(col));
-	    return _rgb2hex("rgb(" + brightness + "," + brightness + "," + brightness + ")");
-	}
 
 	/* function to calculate colours based on phylogeny 
 	* @param {Object} curVizObj -- vizObj for the current view
