@@ -495,15 +495,14 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	    })
 	    .on('mouseover', function(d) {
 	        if (!dim.selectOn && !dim.mutSelectOn) {
-	            _tsPlotGtypeMouseover(d.gtype, 
-	            						curVizObj.view_id, 
-	            						curVizObj.view.colour_assignment, 
-	            						curVizObj.view.alpha_colour_assignment);
+	        	_tsMouseoverGenotype(d.gtype, curVizObj.view_id);
+	        	_showLabels(d.gtype, curVizObj.view_id);
 	        }
 	    })
 	    .on('mouseout', function(d) {
 	        if (!dim.selectOn && !dim.mutSelectOn) {
-	            _resetView(curVizObj.view_id);
+	        	_tsMouseoutGenotype(curVizObj.view_id);
+	        	_hideLabels(curVizObj.view_id);
 	        }
 	    });
 
@@ -690,13 +689,8 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	        // we're not selecting nodes or mutations
 	        if (!dim.selectOn && !dim.mutSelectOn) {
 
-	            // shade view & legend 
-	            _shadeTimeSweep(curVizObj.view_id, 
-		                    				curVizObj.view.colour_assignment, 
-		                    				curVizObj.view.alpha_colour_assignment);
-	            _shadeLegend(curVizObj.view_id, 
-		                    				curVizObj.view.colour_assignment, 
-		                    				curVizObj.view.alpha_colour_assignment);
+	            // inactivate all genotypes 
+	            _tsInactivateGenotypes(curVizObj.view_id);
 
 	            // highlight all elements downstream of link
 	            _propagatedEffects(curVizObj, d.link_id, curVizObj.link_ids, "downstream");
@@ -705,8 +699,7 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	    .on("mouseout", function() {
 	        // we're not selecting nodes or mutations
 	        if (!dim.selectOn && !dim.mutSelectOn) {
-	            // background click
-	            _backgroundClick(curVizObj);
+	            _tsMouseoutGenotype(curVizObj.view_id);
 	        }
 	    }); 
 
@@ -740,19 +733,13 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	        if (dim.nClickedNodes > 0 && d.id != dim.phantomRoot) {
 	            // highlight node in the legend
 	            d3.select(this)
-	                .attr('fill', function(d) { 
-	                    return alpha_colour_assignment[d.id];
-	                })
-	                .attr('stroke', function(d) { 
-	                    return colour_assignment[d.id];
-	                });
+	                .attr('fill', function(d) { return alpha_colour_assignment[d.id]; })
+	                .attr('stroke', function(d) { return colour_assignment[d.id]; });
 	        }
 	        // we're not selecting nodes or mutations - highlight genotype
 	        if (!dim.selectOn && !dim.mutSelectOn) {
-	            _tsPlotGtypeMouseover(d.id, 
-	            						curVizObj.view_id, 
-	            						curVizObj.view.colour_assignment, 
-	            						curVizObj.view.alpha_colour_assignment);
+	            _tsMouseoverGenotype(d.id, curVizObj.view_id);
+	            _showLabels(d.id, curVizObj.view_id);
 	        }
 	    })
 	    .on('mouseout', function(d) {
@@ -761,7 +748,7 @@ function _run_timesweep(view_id, width, height, userConfig) {
 
 	        // if we're selecting nodes, but we haven't clicked this one yet
 	        if ((dim.nClickedNodes > 0) && (_.uniq(dim.curCloneIDs).indexOf(d.id) == -1)) {
-	            // unhighlight this node in the legend
+	            // unhighlight this node in the legend TODO
 	            d3.select(this)
 	                .attr('fill', function(d) { 
 	                    col = alpha_colour_assignment[d.id];
@@ -777,7 +764,8 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	        }
 	        // we're not selecting nodes or mutations - mouseout as normal
 	        if (!dim.selectOn && !dim.mutSelectOn) {
-	            return _resetView(curVizObj.view_id);
+	        	_tsMouseoutGenotype(curVizObj.view_id);
+   	 			_hideLabels(curVizObj.view_id);
 	        }
 	    })
 	    .on("click", function(d) {
@@ -862,6 +850,59 @@ function _run_timesweep(view_id, width, height, userConfig) {
 
 	// d3 EFFECTS FUNCTIONS
 
+
+	/* function for genotype mouseover
+	* @param {String} gtype -- genotype to highlight
+	* @param {String} view_id -- id of current view
+	*/
+	function _tsMouseoverGenotype(gtype, view_id) {
+
+	    _tsInactivateGenotypes(view_id);
+	    _tsHighlightGenotype(gtype, view_id);
+	}
+
+	/* function for genotype mouseover
+	* @param {String} view_id -- id of current view
+	*/
+	function _tsMouseoutGenotype(view_id) {
+
+	    // activate all
+	    d3.select("#" + view_id).selectAll(".gtypeAnnot").classed("inactive", false);
+	    d3.select("#" + view_id).selectAll(".graph.node").classed("inactive", false);
+	    d3.select("#" + view_id).selectAll(".tree.node").classed("inactive", false);
+	    d3.select("#" + view_id).selectAll(".legendGroupRect").classed("inactive", false);
+	    d3.select("#" + view_id).selectAll(".tsPlot").classed("inactive", false);
+	    d3.select("#" + view_id).selectAll(".legendTreeNode").classed("inactive", false);
+	}
+
+	/* function to highlight a particular genotype
+	* @param {String} gtype -- genotype to highlight
+	* @param {String} view_id -- id of current view
+	*/
+	function _tsHighlightGenotype(gtype, view_id) {
+
+	    // activate all with this genotype
+	    d3.select("#" + view_id).selectAll(".gtypeAnnot.gtype_" + gtype).classed("inactive", false);
+	    d3.select("#" + view_id).selectAll(".graph.node.gtype_" + gtype).classed("inactive", false);
+	    d3.select("#" + view_id).selectAll(".tree.node.gtype_" + gtype).classed("inactive", false);
+	    d3.select("#" + view_id).selectAll(".legendGroupRect.gtype_" + gtype).classed("inactive", false);
+	    d3.select("#" + view_id).selectAll(".tsPlot.gtype_" + gtype).classed("inactive", false);
+	    d3.select("#" + view_id).selectAll(".legendTreeNode.gtype_" + gtype).classed("inactive", false);
+	}
+
+	/* function to inactivate all genotypes
+	* @param {String} view_id -- id of current view
+	*/
+	function _tsInactivateGenotypes(view_id) {
+	    d3.select("#" + view_id).selectAll(".gtypeAnnot").classed("inactive", true);
+	    d3.select("#" + view_id).selectAll(".graph.node").classed("inactive", true);
+	    d3.select("#" + view_id).selectAll(".tree.node").classed("inactive", true);
+	    d3.select("#" + view_id).selectAll(".legendGroupRect").classed("inactive", true);
+	    d3.select("#" + view_id).selectAll(".tsPlot").classed("inactive", true);
+	    d3.select("#" + view_id).selectAll(".legendTreeNode").classed("inactive", true);
+	}
+
+
 	/* recursive function to perform downstream or upstream effects on legend tree link
 	* @param {Object} curVizObj -- vizObj for the current view
 	* @param {String} link_id -- id for the link that's currently highlighted
@@ -887,37 +928,10 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	            .attr("stroke-opacity", 1);
 	    });
 
-	    // highlight nodes in the legend
-	    curVizObj.view.propagation.node_ids.forEach(function(node) {
-	        d3.select("#" + view_id)
-	            .select(".legendTreeNode.gtype_" + node)
-	            .attr("fill", function(d) {
-	            	return d.fill;
-	            })
-	            .attr('stroke', function(d) {
-	                return d.stroke;
-	            });
+    	// highlight the downstream genotypes in the single cell view
+    	curVizObj.view.propagation.node_ids.forEach(function(node) {
+	    	_tsHighlightGenotype(node, curVizObj.view_id);
 	    });
-
-	    // highlight genotypes in timesweep
-	    curVizObj.view.propagation.node_ids.forEach(function(node) {
-	        d3.select("#" + view_id)
-	            .select(".tsPlot.gtype_" + node)
-	            .attr('fill', function(d) { 
-	            	return d.fill;
-	            }) 
-	            .attr('stroke', function(d) { 
-	                return d.stroke; 
-	            });
-	    });
-
-	    // if linked to single cell data
-	    if (typeof _mouseoverGroupAnnot == 'function') {
-	    	curVizObj.view.propagation.node_ids.forEach(function(node) {
-		    	// highlight this genotype in the single cell view
-		    	_mouseoverGroupAnnot(node, "black", curVizObj.view_id);
-		    });
-	    }
 	};
 
 
@@ -1037,15 +1051,14 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	            })
 	            .on('mouseover', function(d) {
 	                if (!dim.selectOn && !dim.mutSelectOn) {
-	                    _tsPlotGtypeMouseover(d.gtype, 
-	            						curVizObj.view_id, 
-	            						curVizObj.view.colour_assignment, 
-	            						curVizObj.view.alpha_colour_assignment);
+	                	_tsMouseoverGenotype(d.gtype, curVizObj.view_id);
+	                	_showLabels(d.gtype, curVizObj.view_id);
 	                }
 	            })
 	            .on('mouseout', function(d) {
 	                if (!dim.selectOn && !dim.mutSelectOn) {
-	                    _resetView(curVizObj.view_id);
+	                    _tsMouseoutGenotype(curVizObj.view_id);
+   	 					_hideLabels(curVizObj.view_id);
 	                }
 	            })
 	            .transition()
@@ -1213,7 +1226,8 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	        curTip.hide();
 	    })
 
-	    _resetView(curVizObj.view_id);
+	    _tsMouseoutGenotype(curVizObj.view_id);
+   	 	_hideLabels(curVizObj.view_id);
 	}
 
 	// TREE FUNCTIONS
@@ -3163,13 +3177,8 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	    						d3.select("#" + view_id).selectAll(".legendTreeLink").attr("stroke", dim.treeLinkColour);
 				        	}
 
-			        		// shade main view & legend 
-		                    _shadeTimeSweep(curVizObj.view_id, 
-		                    				curVizObj.view.colour_assignment, 
-		                    				curVizObj.view.alpha_colour_assignment);
-	                    	_shadeLegend(curVizObj.view_id, 
-		                    				curVizObj.view.colour_assignment, 
-		                    				curVizObj.view.alpha_colour_assignment);
+			        		// inactivate genotypes
+		                    _tsInactivateGenotypes(curVizObj.view_id);
 
 	                    	// highlight this link 
 		                    d3.select("#" + view_id)
@@ -3296,10 +3305,6 @@ function _tsPlotGtypeMouseover(gtype, view_id, colour_assignment, alpha_colour_a
     _shadeLegend(view_id, colour_assignment, alpha_colour_assignment);
     _gtypeHighlight(gtype, view_id, colour_assignment, alpha_colour_assignment);
     _showLabels(gtype, view_id);
-    // if this view is linked to single cell data view, highlight the genotype in that view
-    if (typeof _mouseoverGroupAnnot == 'function') {
-    	_mouseoverGroupAnnot(gtype, "black", view_id);
-    }
 }
 
 
@@ -3413,40 +3418,3 @@ function _hideLabels(view_id) {
     	curView.selectAll(".sepLabelCirc").attr("fill-opacity", 0);
     }
 }
-
-/* function to reset the main timesweep view and legend
-* @param {String} view_id -- id for current view
-*/
-function _resetView(view_id) {
-    // reset colours in timesweep
-    d3.select("#" + view_id).selectAll('.tsPlot')
-        .attr('fill', function(d) { 
-            return d.fill;
-        })
-        .attr('stroke', function(d) { 
-            return d.stroke;
-        });
-
-    // reset node colours in legend
-    d3.select("#" + view_id).selectAll('.legendTreeNode')
-        .attr('fill', function(d) { 
-            return d.fill;
-        })
-        .attr('stroke', function(d) { 
-            return d.stroke;
-        });
-
-    // reset links in legend
-    d3.select("#" + view_id).selectAll('.legendTreeLink')
-        .attr("stroke-opacity", 1);
-
-    // hide labels
-    _hideLabels(view_id);
-
-    // if linked to single cell data view
-    if (typeof _mouseoutGroupAnnot == 'function') {
-    	_mouseoutGroupAnnot(view_id);
-    }
-
-}
-
