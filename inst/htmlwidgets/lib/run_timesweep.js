@@ -423,7 +423,16 @@ function _run_timesweep(view_id, width, height, userConfig) {
 
 
 	// get timepoints, prepend a "T0" timepoint to represent the timepoint before any data originated
-	var timepoints = _.uniq(_.pluck(curVizObj.userConfig.clonal_prev, "timepoint"));
+	var timepoints = _.uniq(_.pluck(curVizObj.userConfig.clonal_prev, "timepoint")).sort(function(a, b) {
+                                                                                          var regex = /(^[a-zA-Z]*)(\d*)$/;
+                                                                                          matchA = regex.exec(a);
+                                                                                          matchB = regex.exec(b); 
+
+                                                                                          if(matchA[1] === matchB[1]) {
+                                                                                            return matchA[2] > matchB[2];
+                                                                                          }
+                                                                                          return matchA[1] > matchB[1];
+                                                                                        });
 	timepoints.unshift("T0");
 	curVizObj.data.timepoints = timepoints;
 

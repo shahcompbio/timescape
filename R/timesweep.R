@@ -2,7 +2,7 @@
 #'
 #' \code{timesweep} generates patient clonal timesweeps.
 #'
-#' @param clonal_prev {Data Frame} Clonal prevalence.
+#' @param clonal_prev {Data Frame} Clonal prevalence. Note: timepoints will be alphanumerically sorted in the view.
 #'   Format: columns are (1) {String} "timepoint" - time point
 #'                       (2) {String} "clone_id" - clone id
 #'                       (3) {Number} "clonal_prev" - clonal prevalence.
