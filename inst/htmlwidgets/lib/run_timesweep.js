@@ -553,6 +553,27 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	        }
 	    });
 
+	// PLOT TIMEPOINT GUIDES
+
+
+	// plot time point guides
+	curVizObj.view.tsSVG
+		.append('g')
+		.attr("class", "tpGuidesG")
+		.selectAll(".tpGuide")
+		.data(curVizObj.data.timepoints)
+		.enter()
+	    .append('line')
+	    .attr('class', function(d) { return 'tpGuide tp_' + d; })
+	    .attr('x1', function(d,i) { return (i / (curVizObj.data.timepoints.length - 1)) * dim.tsSVGWidth; })
+	    .attr('x2', function(d,i) { return (i / (curVizObj.data.timepoints.length - 1)) * dim.tsSVGWidth; })
+	    .attr('y1', 0)
+	    .attr('y2', dim.tsSVGHeight)
+	    .attr('stroke', 'grey')
+	    .attr('stroke-width', '1.5px')
+	    .attr('stroke-opacity', 0)
+	    .style('pointer-events', 'none');
+
 	// PLOT AXES
 
 	// plot x-axis labels
@@ -577,25 +598,27 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	    })
 	    .on('mouseover', function(d, i) {
 	        if (!dim.selectOn) {
+	        	// view timepoint guide
+	        	d3.select("#" + curVizObj.view_id).selectAll(".tpGuide.tp_" + d).attr("stroke-opacity", 1);
 
-	            // plot time point guides
-	            curVizObj.view.tsSVG
-	                .append('line')
-	                .attr('class', function() { return 'tpGuide tp_' + d; })
-	                .attr('x1', function() { return (i / (curVizObj.data.timepoints.length - 1)) * dim.tsSVGWidth; })
-	                .attr('x2', function() { return (i / (curVizObj.data.timepoints.length - 1)) * dim.tsSVGWidth; })
-	                .attr('y1', 0)
-	                .attr('y2', dim.tsSVGHeight)
-	                .attr('stroke', 'grey')
-	                .attr('stroke-width', '1.5px')
-	                .style('pointer-events', 'none');
+	            // highlight those nodes with this timepoint in single cell vis
+	            if (typeof _mouseoverTp == 'function') {
+	            	_mouseoverTp(d, curVizObj.view_id);
+	            }
 	        }
 	    })
 	    .on('mouseout', function(d) {
 	        if (!dim.selectOn) {
-	            d3.select("#" + curVizObj.view_id).selectAll(".tpGuide.tp_" + d).remove();
+	            // hide timepoint guide
+	        	d3.select("#" + curVizObj.view_id).selectAll(".tpGuide.tp_" + d).attr("stroke-opacity", 0);
+
+	            // reset single cell vis
+	            if (typeof _mouseoutTp == 'function') {
+	            	_mouseoutTp(curVizObj.view_id);
+	            }
 	        }
-	    });
+	    })
+	    .style("cursor", "default");
 
 	// plot y-axis title
 	curVizObj.view.yAxisSVG
