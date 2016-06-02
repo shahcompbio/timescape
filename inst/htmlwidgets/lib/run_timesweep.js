@@ -35,8 +35,8 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	    topBarHighlight: "#C6C6C6"
 	};
 
-	vizObj["ts"] = {}; // vizObj for timesweep
-	var curVizObj = vizObj["ts"];
+	vizObj.ts = {}; // vizObj for timesweep
+	var curVizObj = vizObj.ts;
 	curVizObj.view_id = view_id;
 	curVizObj.data = {};
 	curVizObj.view = {};
@@ -593,7 +593,7 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	    .text(function(d) { 
 	        // get original label (spaces were replaced with underscores)
 	        var tp = (d == "T0") ? "T0" :
-	            _.findWhere(curVizObj.userConfig.timepoint_map, {"space_replaced_timepoint": d})["original_timepoint"];
+	            _.findWhere(curVizObj.userConfig.timepoint_map, {"space_replaced_timepoint": d}).original_timepoint;
 	        return tp;
 	    })
 	    .on('mouseover', function(d, i) {
@@ -747,7 +747,7 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	    .on('mouseover', function(d) {
 	        // show node genotype tooltip
 	        var clone_name = // get original sample name (spaces may have been replaced with underscores)
-	            _.findWhere(curVizObj.userConfig.clone_id_map, {"space_replaced_clone_id": d.id})["original_clone_id"];
+	            _.findWhere(curVizObj.userConfig.clone_id_map, {"space_replaced_clone_id": d.id}).original_clone_id;
 	        nodeTip.show("ID: " + clone_name);
 
 	        // if we're selecting nodes
@@ -804,13 +804,13 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	                _.filter(curVizObj.data.mutations, function(mut) { return mut.clone_id == d.id; });
 
 	            // if there's no data for this clone, add a row of "None"
-	            if (filtered_muts.length == 0) { 
+	            if (filtered_muts.length === 0) { 
 	                filtered_muts = [{}];
 	                dim.mutationColumns.forEach(function(col) {
 	                    filtered_muts[0][col.data] = (col.data == "empty") ? "" : "None";
 	                })
 	            }
-	            filtered_muts[0]["clone_id"] = d.id;
+	            filtered_muts[0].clone_id = d.id;
 
 	            // if it's the first clicked node
 	            if (dim.nClickedNodes == 1) {
@@ -1147,7 +1147,7 @@ function _run_timesweep(view_id, width, height, userConfig) {
             }) 
             .text(function(d) {
                 var cp = (Math.round(d.cp * 100) / 1);
-                if (cp == 0) {
+                if (cp === 0) {
                 	d.label_text = "< 0.01";
                     return ""; // text removed for purposes of svg download
                 }
@@ -1273,7 +1273,7 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	    for (var i = 0; i < curVizObj.data.treeEdges.length; i++) {
 	        var parent = _findNodeByName(nodesByName, curVizObj.data.treeEdges[i].source);
 	        var child = _findNodeByName(nodesByName, curVizObj.data.treeEdges[i].target);
-	        parent["children"].push(child);
+	        parent.children.push(child);
 	    }
 	    var root_tree = _findNodeByName(nodesByName, phantomRoot); 
 	    curVizObj.data.treeStructure = root_tree; 
@@ -1333,10 +1333,10 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	function _getDescendantIds(root, descendants) {
 	    var child;
 
-	    if (root["children"].length > 0) {
-	        for (var i = 0; i < root["children"].length; i++) {
-	            child = root["children"][i];
-	            descendants.push(child["id"]);
+	    if (root.children.length > 0) {
+	        for (var i = 0; i < root.children.length; i++) {
+	            child = root.children[i];
+	            descendants.push(child.id);
 	            _getDescendantIds(child, descendants);
 	        }
 	    }
@@ -1446,7 +1446,7 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	        pot_ancestor = treeAncestorsArr[gtype][i];
 
 	        // if this ancestor emerged here as well, increase the # ancestors for this genotype
-	        if (layout[tp][pot_ancestor] && layout[tp][pot_ancestor]["state"] == "emerges") {
+	        if (layout[tp][pot_ancestor] && layout[tp][pot_ancestor].state == "emerges") {
 	            ancestors.push(pot_ancestor);
 	        }
 	    }
@@ -1457,9 +1457,9 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	/* elbow function to draw phylogeny links 
 	*/
 	function _elbow(d) {
-	    return "M" + d.source.x + "," + d.source.y
-	        + "H" + (d.source.x + (d.target.x-d.source.x)/2)
-	        + "V" + d.target.y + "H" + d.target.x;
+	    return "M" + d.source.x + "," + d.source.y + 
+	    	"H" + (d.source.x + (d.target.x-d.source.x)/2) + 
+	    	"V" + d.target.y + "H" + d.target.x;
 	}
 
 	/*
@@ -1472,7 +1472,7 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	function _getLinearTreeSegments(curVizObj, curNode, chains, base) {
 
 	    // if it's a new base, create the base, with no descendants in its array yet
-	    if (base == "") {
+	    if (base === "") {
 	        base = curNode.id;
 	        chains[base] = [];
 	        curVizObj.data.treeChainRoots.push(curNode.id);
@@ -1508,15 +1508,15 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	    // for each time point, for each genotype, get cellular prevalence
 	    var cp_data_original = {};
 	    $.each(x.clonal_prev, function(idx, hit) { // for each hit (genotype/timepoint combination)
-	        cp_data_original[hit["timepoint"]] = cp_data_original[hit["timepoint"]] || {};
+	        cp_data_original[hit.timepoint] = cp_data_original[hit.timepoint] || {};
 	        // only note cellular prevalences not marked as zero
-	        if (parseFloat(hit["clonal_prev"]) != 0) {
-	            cp_data_original[hit["timepoint"]][hit["clone_id"]] = parseFloat(hit["clonal_prev"]); 
+	        if (parseFloat(hit.clonal_prev) !== 0) {
+	            cp_data_original[hit.timepoint][hit.clone_id] = parseFloat(hit.clonal_prev); 
 	        }
 	    });
 
 	    // create timepoint zero with 100% cellular prevalence for the root of the tree
-	    cp_data_original["T0"] = {};
+	    cp_data_original.T0 = {};
 	    curVizObj.data.cp_data_original = cp_data_original;
 
 	    // get normalized cp data (in cases where cp doesn't add to 1)
@@ -1744,7 +1744,7 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	    
 	    emerged = _getIntersection(gTypeAndDescendants, gTypes_curTP).length > 0 && 
 	        gTypes_prevTP && 
-	        _getIntersection(gTypeAndDescendants, gTypes_prevTP).length == 0; 
+	        _getIntersection(gTypeAndDescendants, gTypes_prevTP).length === 0; 
 
 	    // layout for this timepoint
 	    layout[tp] = layout[tp] || {};
@@ -1778,7 +1778,7 @@ function _run_timesweep(view_id, width, height, userConfig) {
 
 	        // mark disappearance state
 	        if (disappears) {
-	            layout[tp][gtype]["state"] = "disappears_stretched";
+	            layout[tp][gtype].state = "disappears_stretched";
 	        }
 	    }
 
@@ -1853,7 +1853,7 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	            // if this genotype existed at the prev time point, 
 	            // but neither it nor its descendants are currently present
 	            if (cp_data[prev_tp] && cp_data[prev_tp][gtype] && !cp_data[tp][gtype] && 
-	                _getIntersection(gTypeAndDescendants, gTypes_curTP).length == 0) {
+	                _getIntersection(gTypeAndDescendants, gTypes_curTP).length === 0) {
 	                _createStackElement(curVizObj, layout, tp, gtype, sHeight, sHeight, effective_cp, "disappears_stretched");
 	            }
 
@@ -1864,7 +1864,7 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	                if (!cp_data[tp][gtype] && (_getIntersection(curDescendants, gTypes_curTP).length > 0)) {
 
 	                    _createStackElement(curVizObj, layout, tp, gtype, sHeight, sHeight + width, effective_cp, "replaced");
-	                    midpoint = (layout[tp][gtype]["bottom"] + layout[tp][gtype]["top"])/2;
+	                    midpoint = (layout[tp][gtype].bottom + layout[tp][gtype].top)/2;
 
 	                }
 
@@ -1874,7 +1874,7 @@ function _run_timesweep(view_id, width, height, userConfig) {
 
 	                    // create it as present
 	                    _createStackElement(curVizObj, layout, tp, gtype, sHeight, sHeight + width, effective_cp, "present");
-	                    midpoint = (layout[tp][gtype]["bottom"] + layout[tp][gtype]["top"])/2;
+	                    midpoint = (layout[tp][gtype].bottom + layout[tp][gtype].top)/2;
 
 	                    // update stack height
 	                    sHeight += effective_cp;
@@ -1883,7 +1883,7 @@ function _run_timesweep(view_id, width, height, userConfig) {
 
 	                // if it EMERGED at the previous time point
 	                if (cp_data[prev_tp] &&
-	                    (_getIntersection(gTypeAndDescendants, gTypes_prevTP).length == 0) &&
+	                    (_getIntersection(gTypeAndDescendants, gTypes_prevTP).length === 0) &&
 	                    (gTypes_curTP && _getIntersection(gTypeAndDescendants, gTypes_curTP).length > 0)) {
 
 	                    // update its emergence y-value
@@ -1952,11 +1952,11 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	                    // set the stack height (from the top)
 	                    // if there's an ancestor 
 	                    if (layout[tp][cur_ancestor]) {
-	                        sHeight = (layout[tp][cur_ancestor]["top"] == layout[tp][cur_ancestor]["bottom"]) ?
+	                        sHeight = (layout[tp][cur_ancestor].top == layout[tp][cur_ancestor].bottom) ?
 	                            // if the ancestor has been replaced, set stack top as the first sibling's top value
-	                            layout[tp][sorted_siblings[0]]["top"] : 
+	                            layout[tp][sorted_siblings[0]].top : 
 	                            // otherwise, set the top as the ancestor's top value
-	                            layout[tp][cur_ancestor]["top"]; 
+	                            layout[tp][cur_ancestor].top; 
 	                    }
 	                    // no ancestor
 	                    else {
@@ -1972,21 +1972,21 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	                        // width of sibling
 	                        var cur_width = (layout[tp][sib]) ? 
 	                            // if the sibling (or its descendants) exist at this time point
-	                            layout[tp][sib]["top"] - layout[tp][sib]["bottom"] :
+	                            layout[tp][sib].top - layout[tp][sib].bottom :
 	                            // sibling doesn't exist at this tp, nor does any of its descendants
 	                            0; 
 
 	                        // if sibling exists, alter its layout at this timepoint
 	                        if (layout[tp][sib]) {
-	                            layout[tp][sib]["top"] = sHeight - cur_space;
-	                            layout[tp][sib]["bottom"] = sHeight - cur_width - cur_space;
+	                            layout[tp][sib].top = sHeight - cur_space;
+	                            layout[tp][sib].bottom = sHeight - cur_width - cur_space;
 	                        }
 
 	                        // if this sibling emerges at the previous time point, update its emergence y-coordinate
-	                        if (cp_data[prev_tp] && layout[prev_tp][sib] && layout[prev_tp][sib]["state"] == "emerges") {
-	                            midpoint = (layout[tp][sib]["top"] + layout[tp][sib]["bottom"])/2;
-	                            layout[prev_tp][sib]["top"] = midpoint;
-	                            layout[prev_tp][sib]["bottom"] = midpoint;
+	                        if (cp_data[prev_tp] && layout[prev_tp][sib] && layout[prev_tp][sib].state == "emerges") {
+	                            midpoint = (layout[tp][sib].top + layout[tp][sib].bottom)/2;
+	                            layout[prev_tp][sib].top = midpoint;
+	                            layout[prev_tp][sib].bottom = midpoint;
 	                        }
 
 	                        // add the current sibling's width to the stack height
@@ -1995,7 +1995,7 @@ function _run_timesweep(view_id, width, height, userConfig) {
 
 	                        // note the amount of space subtracted from ancestor's cellular prevalence
 	                        if (i == (sorted_present_sibs.length-1) && layout[tp][cur_ancestor]) {
-	                            layout[tp][cur_ancestor]["space"] = (i+1)*cur_space;
+	                            layout[tp][cur_ancestor].space = (i+1)*cur_space;
 	                        }
 	                    }
 	                }
@@ -2144,7 +2144,7 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	        $.each(layoutOrder_rev, function(gtype_idx, gtype) {
 
 	            // if the genotype is emerging at this time point
-	            if (layout[tp][gtype] && (layout[tp][gtype]["state"] == "emerges")) {
+	            if (layout[tp][gtype] && (layout[tp][gtype].state == "emerges")) {
 	                
 	                // get the ancestors that also emerge at this time point
 	                ancestors = _findEmergentAncestors(layout, treeAncestorsArr, gtype, tp);
@@ -2169,18 +2169,18 @@ function _run_timesweep(view_id, width, height, userConfig) {
 
 	            // set the number of partitions
 	            if (layout[tp][gtype]) {
-	                layout[tp][gtype]["nPartitions"] = nPartitions;
+	                layout[tp][gtype].nPartitions = nPartitions;
 	            }
 	            
 	            // if this genotype has not already been x-shifted and emerges at this time point
 	            if ((genotypes_xshifted.indexOf(gtype) == -1) && layout[tp][gtype] && 
-	                (layout[tp][gtype]["state"] == "emerges")) {
+	                (layout[tp][gtype].state == "emerges")) {
 
 	                // get the ancestors that also emerge at this time point
 	                ancestors = _findEmergentAncestors(layout, treeAncestorsArr, gtype, tp);
 
 	                // x-shift and x-partition for the current genotype (depends on how many of its ancestors emerge)
-	                layout[tp][gtype]["xShift"] = (ancestors.length+1) / nPartitions;
+	                layout[tp][gtype].xShift = (ancestors.length+1) / nPartitions;
 	                
 	                genotypes_xshifted.push(gtype);
 
@@ -2191,7 +2191,7 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	                    ancestors_of_ancestor = _findEmergentAncestors(layout, treeAncestorsArr, ancestors[i], tp);
 	                    
 	                    // x-shift and x-partition for the current ancestor (depends on how many of its ancestors emerge)
-	                    layout[tp][ancestors[i]]["xShift"] = (ancestors_of_ancestor.length+1) / nPartitions;
+	                    layout[tp][ancestors[i]].xShift = (ancestors_of_ancestor.length+1) / nPartitions;
 
 	                    genotypes_xshifted.push(ancestors[i]);
 	                }
@@ -2237,30 +2237,30 @@ function _run_timesweep(view_id, width, height, userConfig) {
 
 	                    // CENTRED view
 	                    if (curVizObj.userConfig.genotype_position == "centre") { 
-	                        label['tp'] = tp;
-	                        label['gtype'] = gtype;
-	                        label['cp'] = cp_data_original[tp][gtype];
-	                        label['middle'] = data.top - (data.cp/(2*(data.presentChildren+1)));
-	                        label['type'] = "traditional";
+	                        label.tp = tp;
+	                        label.gtype = gtype;
+	                        label.cp = cp_data_original[tp][gtype];
+	                        label.middle = data.top - (data.cp/(2*(data.presentChildren+1)));
+	                        label.type = "traditional";
 	                    }
 	                    // STACKED view
 	                    else if (curVizObj.userConfig.genotype_position == "stack") { 
-	                        label['tp'] = tp;
-	                        label['gtype'] = gtype;
-	                        label['cp'] = cp_data_original[tp][gtype];
-	                        label['middle'] = (2*data.bottom + data.effective_cp)/2; 
-	                        label['type'] = "traditional";
+	                        label.tp = tp;
+	                        label.gtype = gtype;
+	                        label.cp = cp_data_original[tp][gtype];
+	                        label.middle = (2*data.bottom + data.effective_cp)/2; 
+	                        label.type = "traditional";
 	                    }
 	                    // SPACED view
 	                    else if (curVizObj.userConfig.genotype_position == "space") { 
-	                        label['tp'] = tp;
-	                        label['gtype'] = gtype;
-	                        label['cp'] = cp_data_original[tp][gtype];
+	                        label.tp = tp;
+	                        label.gtype = gtype;
+	                        label.cp = cp_data_original[tp][gtype];
 	                        // if this genotype was split for spacing, how much CP has been taken up by the upper splits
-	                        label['middle'] = (data.space) ? 
+	                        label.middle = (data.space) ? 
 	                            (2*data.bottom + data.effective_cp - data.space)/2 : 
 	                            (2*data.bottom + data.effective_cp)/2;
-	                        label['type'] = "traditional";
+	                        label.type = "traditional";
 	                    }
 	                    
 	                    labels.push(label);
@@ -2289,24 +2289,24 @@ function _run_timesweep(view_id, width, height, userConfig) {
 
 	    // for each genotype
 	    for (var i = 0; i < tracks_paths.length; i++) {
-	        gtype = tracks_paths[i]["gtype"];
-	        midpoint = tracks_paths[i]["midpoint"];
-	        path = tracks_paths[i]["path"];
+	        gtype = tracks_paths[i].gtype;
+	        midpoint = tracks_paths[i].midpoint;
+	        path = tracks_paths[i].path;
 
 	        // for each point in the path
 	        for (var j = 0; j < path.length; j++) {
-	            tp = path[j]["tp"];
+	            tp = path[j].tp;
 
 	            if (tp != "T0") {
 
 	                // if the genotype exists at this time point (isn't emerging or disappearing / replaced)
 	                if (cp_data_original[tp][gtype]) {
 	                    label = {};
-	                    label['tp'] = tp;
-	                    label['cp'] = cp_data_original[tp][gtype];
-	                    label['middle'] = midpoint;
-	                    label['gtype'] = gtype;
-	                    label['type'] = "tracks";
+	                    label.tp = tp;
+	                    label.cp = cp_data_original[tp][gtype];
+	                    label.middle = midpoint;
+	                    label.gtype = gtype;
+	                    label.type = "tracks";
 	                    labels.push(label);
 	                }
 	            }
@@ -2347,12 +2347,12 @@ function _run_timesweep(view_id, width, height, userConfig) {
 			alpha_colour_assignment = curVizObj.view.alpha_colour_assignment;
 
 		curVizObj.data.bezier_paths.forEach(function(cur_path) {
-		    cur_path.fill = (cur_path['gtype'] == phantomRoot) ? "none" : alpha_colour_assignment[cur_path['gtype']];
-	        cur_path.stroke = (cur_path['gtype'] == phantomRoot) ? "none" : colour_assignment[cur_path['gtype']];
+		    cur_path.fill = (cur_path.gtype == phantomRoot) ? "none" : alpha_colour_assignment[cur_path.gtype];
+	        cur_path.stroke = (cur_path.gtype == phantomRoot) ? "none" : colour_assignment[cur_path.gtype];
 		})
 		curVizObj.data.tracks_bezier_paths.forEach(function(cur_path) {
-		    cur_path.fill = (cur_path['gtype'] == phantomRoot) ? "none" : alpha_colour_assignment[cur_path['gtype']];
-	        cur_path.stroke = (cur_path['gtype'] == phantomRoot) ? "none" : colour_assignment[cur_path['gtype']];
+		    cur_path.fill = (cur_path.gtype == phantomRoot) ? "none" : alpha_colour_assignment[cur_path.gtype];
+	        cur_path.stroke = (cur_path.gtype == phantomRoot) ? "none" : colour_assignment[cur_path.gtype];
 		})
 	}
 
@@ -2402,12 +2402,12 @@ function _run_timesweep(view_id, width, height, userConfig) {
 
 	            // if the genotype exists or emerges/disappears at this time point
 	            if (layout[tp][gtype]) {
-	                emerges = (layout[tp][gtype]["state"] == "emerges");
+	                emerges = (layout[tp][gtype].state == "emerges");
 	                nPartitions = (event_occurs) ?
-	                    layout[tp][gtype]["nPartitions"]*2 :
-	                    layout[tp][gtype]["nPartitions"];
+	                    layout[tp][gtype].nPartitions*2 :
+	                    layout[tp][gtype].nPartitions;
 	                next_tp = timepoints[idx+1];
-	                xShift_in_layout = (layout[tp][gtype]["xShift"]) ? layout[tp][gtype]["xShift"] : 0;
+	                xShift_in_layout = (layout[tp][gtype].xShift) ? layout[tp][gtype].xShift : 0;
 	                xShift = 
 	                    (event_occurs) ? 
 	                    0.5 + (xShift_in_layout/2) : 
@@ -2423,22 +2423,22 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	                if (emerges) {
 
 	                    // add a path point for the bottom of the genotype's interval at the current time point
-	                    cur_path["path"].push({ "x": xBottom, 
-	                                            "y": layout[tp][gtype]["bottom"],
+	                    cur_path.path.push({ "x": xBottom, 
+	                                            "y": layout[tp][gtype].bottom,
 	                                            "tp": tp });
 
 	                    // ... add a path point to expand the sweep such that its descendants can be contained within it
 	                    appear_xBottom = (idx + xShift + (1/nPartitions))/(timepoints.length-1);
-	                    cur_path["path"].push({ "x": appear_xBottom, 
-	                                        "y": layout[next_tp][gtype]["bottom"],
+	                    cur_path.path.push({ "x": appear_xBottom, 
+	                                        "y": layout[next_tp][gtype].bottom,
 	                                        "tp": tp }); // y-coordinate at next time point
 	                }   
 
 	                // ... NOT EMERGING at this time point
 	                else {
 	                    // add a path point for the bottom of the genotype's interval at the current time point
-	                    cur_path["path"].push({ "x": xBottom, 
-	                                            "y": layout[tp][gtype]["bottom"],
+	                    cur_path.path.push({ "x": xBottom, 
+	                                            "y": layout[tp][gtype].bottom,
 	                                            "tp": tp });
 
 	                    // if event occurs after this timepoint
@@ -2447,19 +2447,19 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	                        frac = perturbations[event_index].frac;
 
 	                        // get y proportion as halfway between this and the next time point
-	                        y_mid = (layout[next_tp][gtype]["bottom"] + layout[tp][gtype]["bottom"])/2;
+	                        y_mid = (layout[next_tp][gtype].bottom + layout[tp][gtype].bottom)/2;
 
 	                        // add a point in the middle
-	                        cur_path["path"].push({ "x": xBottom + mid_tp, // halfway between this and next tp
+	                        cur_path.path.push({ "x": xBottom + mid_tp, // halfway between this and next tp
 	                                                "y": (y_mid*frac) + ((1-frac)/2),
 	                                                "tp": "event" });
 	                    }
 
 	                    // if there are partitions after this timepoint, add a pathpoint at the first partition
-	                    if (next_tp && layout[next_tp][gtype] && layout[tp][gtype]["nPartitions"] > 1) {
+	                    if (next_tp && layout[next_tp][gtype] && layout[tp][gtype].nPartitions > 1) {
 	                        var next_xBottom = (idx + xShift + (1/nPartitions))/(timepoints.length-1);
-	                        cur_path["path"].push({ "x": next_xBottom, 
-	                                            "y": layout[next_tp][gtype]["bottom"],
+	                        cur_path.path.push({ "x": next_xBottom, 
+	                                            "y": layout[next_tp][gtype].bottom,
 	                                            "tp": tp });
 	                    }
 	                }                            
@@ -2475,12 +2475,12 @@ function _run_timesweep(view_id, width, height, userConfig) {
 
 	            // if the genotype exists or emerges/disappears at this time point
 	            if (layout[tp][gtype]) {
-	                emerges = (layout[tp][gtype]["state"] == "emerges");
+	                emerges = (layout[tp][gtype].state == "emerges");
 	                nPartitions = (event_occurs) ?
-	                    layout[tp][gtype]["nPartitions"]*2 :
-	                    layout[tp][gtype]["nPartitions"];
+	                    layout[tp][gtype].nPartitions*2 :
+	                    layout[tp][gtype].nPartitions;
 	                next_tp = timepoints_rev[idx-1];
-	                xShift_in_layout = (layout[tp][gtype]["xShift"]) ? layout[tp][gtype]["xShift"] : 0;
+	                xShift_in_layout = (layout[tp][gtype].xShift) ? layout[tp][gtype].xShift : 0;
 	                xShift = 
 	                    (event_occurs) ? 
 	                    0.5 + (xShift_in_layout/2) : 
@@ -2496,13 +2496,13 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	                if (emerges) {
 	                    // add a path point to bring forward the sweep such that its descendants can be contained w/in it
 	                    appear_xTop = ((timepoints.length-1) - idx + xShift + (1/nPartitions))/(timepoints.length-1);
-	                    cur_path["path"].push({ "x": appear_xTop, 
-	                                        "y": layout[next_tp][gtype]["top"],
+	                    cur_path.path.push({ "x": appear_xTop, 
+	                                        "y": layout[next_tp][gtype].top,
 	                                        "tp": tp }); // y-coordinate at next time point
 
 	                    // add a path point for the top of the genotype's interval at the current time point
-	                    cur_path["path"].push({ "x": xTop, 
-	                                            "y": layout[tp][gtype]["top"],
+	                    cur_path.path.push({ "x": xTop, 
+	                                            "y": layout[tp][gtype].top,
 	                                            "tp": tp });
 	                }
 
@@ -2511,10 +2511,10 @@ function _run_timesweep(view_id, width, height, userConfig) {
 
 
 	                    // if there are partitions after this timepoint, add a pathpoint at the first partition
-	                    if (next_tp && layout[next_tp][gtype] && layout[tp][gtype]["nPartitions"] > 1) {
+	                    if (next_tp && layout[next_tp][gtype] && layout[tp][gtype].nPartitions > 1) {
 	                        var next_xTop = ((timepoints.length-1) - idx + xShift + (1/nPartitions))/(timepoints.length-1);
-	                        cur_path["path"].push({ "x": next_xTop, 
-	                                            "y": layout[next_tp][gtype]["top"],
+	                        cur_path.path.push({ "x": next_xTop, 
+	                                            "y": layout[next_tp][gtype].top,
 	                                            "tp": tp });
 	                    }
 
@@ -2524,17 +2524,17 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	                        frac = perturbations[event_index].frac;
 
 	                        // get y proportion as halfway between this and the next time point
-	                        y_mid = (layout[next_tp][gtype]["top"] + layout[tp][gtype]["top"])/2;
+	                        y_mid = (layout[next_tp][gtype].top + layout[tp][gtype].top)/2;
 
 	                        // add a point in the middle
-	                        cur_path["path"].push({ "x": xTop + mid_tp, // halfway between this and next tp
+	                        cur_path.path.push({ "x": xTop + mid_tp, // halfway between this and next tp
 	                                                "y": (y_mid*frac) + ((1-frac)/2), 
 	                                                "tp": "event" });
 	                    }
 
 	                    // add a path point for the top of the genotype's interval at the current time point
-	                    cur_path["path"].push({ "x": xTop, 
-	                                            "y": layout[tp][gtype]["top"],
+	                    cur_path.path.push({ "x": xTop, 
+	                                            "y": layout[tp][gtype].top,
 	                                            "tp": tp });
 	                }   
 	            }
@@ -2605,9 +2605,9 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	                // xShift info
 	                entry_exit_options = ["disappears_stretched", "emerges", "replaced"];
 	                entry_exit = (layout[tp][gtype]) ? 
-	                    (entry_exit_options.indexOf(layout[tp][gtype]["state"]) != -1) : 
+	                    (entry_exit_options.indexOf(layout[tp][gtype].state) != -1) : 
 	                    false;
-	                xShift = (layout[tp][gtype] && layout[tp][gtype]["xShift"]) ? layout[tp][gtype]["xShift"] : 0;
+	                xShift = (layout[tp][gtype] && layout[tp][gtype].xShift) ? layout[tp][gtype].xShift : 0;
 
 	                if (entry_exit || genotype_cp[gtype][tp]) {
 	                    // add this genotype to the seen genotypes
@@ -2620,7 +2620,7 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	                    y = genotype_cp[gtype][tp] ? 
 	                        scaled_midpoint - (genotype_cp[gtype][tp] / denominator)/2 : 
 	                        scaled_midpoint;
-	                    cur_path["path"].push({ "x": x, "y": y, "tp": tp, "cp": genotype_cp[gtype][tp]});
+	                    cur_path.path.push({ "x": x, "y": y, "tp": tp, "cp": genotype_cp[gtype][tp]});
 	                }
 	            });
 
@@ -2630,9 +2630,9 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	                // xShift info
 	                entry_exit_options = ["disappears_stretched", "emerges", "replaced"];
 	                entry_exit = (layout[tp][gtype]) ? 
-	                    (entry_exit_options.indexOf(layout[tp][gtype]["state"]) != -1) : 
+	                    (entry_exit_options.indexOf(layout[tp][gtype].state) != -1) : 
 	                    false;
-	                xShift = (layout[tp][gtype] && layout[tp][gtype]["xShift"]) ? layout[tp][gtype]["xShift"] : 0;
+	                xShift = (layout[tp][gtype] && layout[tp][gtype].xShift) ? layout[tp][gtype].xShift : 0;
 
 	                // add the path point
 	                if (entry_exit || genotype_cp[gtype][tp]) {
@@ -2640,7 +2640,7 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	                    y = genotype_cp[gtype][tp] ? 
 	                        scaled_midpoint + (genotype_cp[gtype][tp] / denominator)/2 : 
 	                        scaled_midpoint;
-	                    cur_path["path"].push({ "x": x, "y": y, "tp": tp, "cp": genotype_cp[gtype][tp]});
+	                    cur_path.path.push({ "x": x, "y": y, "tp": tp, "cp": genotype_cp[gtype][tp]});
 	                }
 	            });
 	            
@@ -2728,7 +2728,7 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	    // for each genotype's path
 	    $.each(paths, function(path_idx, cur_path) { 
 
-	        path = cur_path['path'];
+	        path = cur_path.path;
 	        bezier_path = "";
 
 	        // for each point in the path, get its diagonal to the next point
@@ -2745,10 +2745,10 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	                .projection(function(d) { return [d.y, d.x] });
 
 	            // for this genotype, append the bezier curve connecting this point and the next 
-	            bezier_path = (i == 0) ? bezier_path + diagonal() : bezier_path + "L" + diagonal().substring(1);
+	            bezier_path = (i === 0) ? bezier_path + diagonal() : bezier_path + "L" + diagonal().substring(1);
 	        }
 
-	        bezier_paths.push({"gtype": cur_path['gtype'], "path": bezier_path});
+	        bezier_paths.push({"gtype": cur_path.gtype, "path": bezier_path});
 	    })
 
 	    return bezier_paths;
@@ -2802,7 +2802,7 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	            var prev_colour = col;
 	            curVizObj.data.treeChains[cur_node].forEach(function(desc, desc_i) {
 	                // if we're on the phantom root's branch and it's the first descendant
-	                if (cur_node == curVizObj.generalConfig.phantomRoot && desc_i == 0) {
+	                if (cur_node == curVizObj.generalConfig.phantomRoot && desc_i === 0) {
 
 	                    // do not decrease the brightness
 	                    colour_assignment[desc] = prev_colour;
@@ -2861,7 +2861,7 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	function _hslToRgb(h, s, l){
 	    var r, g, b;
 
-	    if(s == 0){
+	    if(s === 0){
 	        r = g = b = l; // achromatic
 	    }else{
 	        var hue2rgb = function hue2rgb(p, q, t){
@@ -2955,19 +2955,19 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	            "clone_id": mut.clone_id
 	        }
 	        if (mut.hasOwnProperty("gene_name")) {
-	            cur_mut["gene_name"] = mut.gene_name;
+	            cur_mut.gene_name = mut.gene_name;
 	        }
 	        if (mut.hasOwnProperty("effect")) {
-	            cur_mut["effect"] = mut.effect;
+	            cur_mut.effect = mut.effect;
 	        }
 	        if (mut.hasOwnProperty("impact")) {
-	            cur_mut["impact"] = mut.impact;
+	            cur_mut.impact = mut.impact;
 	        }
 	        if (mut.hasOwnProperty("nuc_change")) {
-	            cur_mut["nuc_change"] = mut.nuc_change;
+	            cur_mut.nuc_change = mut.nuc_change;
 	        }
 	        if (mut.hasOwnProperty("aa_change")) {
-	            cur_mut["aa_change"] = mut.aa_change;
+	            cur_mut.aa_change = mut.aa_change;
 	        }
 	        muts_arr.push(cur_mut);
 	    });
@@ -3072,10 +3072,10 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	        }
 	        else {
 	            if (typeof(a[secondKey] == "string")) {
-	                return (res == 0) ? (a[secondKey] > b[secondKey]) : res;
+	                return (res === 0) ? (a[secondKey] > b[secondKey]) : res;
 	            }
 	            else if (typeof(a[secondKey] == "number")) {
-	                return (res == 0) ? (a[secondKey] - b[secondKey]) : res;
+	                return (res === 0) ? (a[secondKey] - b[secondKey]) : res;
 	            }
 	            else {
 	                return res;
