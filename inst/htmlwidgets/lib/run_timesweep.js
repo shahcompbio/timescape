@@ -13,6 +13,7 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	    treeHeight: 100,
 	    treeWidth: 100,
 	    max_r: 7, // maximum radius for legend tree nodes
+	    min_r: 1.5, // minimum radius for legend tree nodes
 	    xAxisHeight: 30,
 	    yAxisWidth: 20,
 	    smallMargin: 5,
@@ -678,6 +679,7 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	var tree_height = curVizObj.data.tree_height;
 	dim.legendNode_r = (((dim.treeWidth-treePadding) - 7*tree_height)/tree_height)/2;
 	dim.legendNode_r = (dim.legendNode_r > dim.max_r) ? dim.max_r : dim.legendNode_r;
+	dim.legendNode_r = (dim.legendNode_r < dim.min_r) ? dim.min_r : dim.legendNode_r;
 
 	// get nodes and links
 	var root = $.extend({}, curVizObj.data.treeStructure), // copy tree into new variable
