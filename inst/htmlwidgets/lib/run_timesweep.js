@@ -53,7 +53,7 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	// configuration based on available data
 	dim.canvasSVGWidth = width;
 	dim.canvasSVGHeight = height - dim.topBarHeight;
-	dim.tsSVGHeight = (curVizObj.userConfig.mutations[0] == "NA") ? 
+	dim.tsSVGHeight = (!curVizObj.userConfig.mutations_provided) ? 
 	                    dim.canvasSVGHeight - dim.xAxisHeight - dim.smallMargin - dim.paddingGeneral*2:
 	                    250;
 	dim.tsSVGWidth = dim.canvasSVGWidth - dim.legendWidth - dim.yAxisWidth - dim.smallMargin - dim.paddingGeneral;
@@ -63,7 +63,7 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	dim.mutationTableWidth = dim.tsSVGWidth;
 
 	// adjust canvas SVG height if mutation table is present
-	dim.canvasSVGHeight -= (curVizObj.userConfig.mutations[0] == "NA") ? 
+	dim.canvasSVGHeight -= (!curVizObj.userConfig.mutations_provided) ? 
 	                        0 : 
 	                        dim.mutationTableHeight;
 
@@ -407,7 +407,7 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	_getTreeInfo(curVizObj);
 
 	// get mutation data in better format
-	if (curVizObj.userConfig.mutations[0] != "NA") {
+	if (curVizObj.userConfig.mutations_provided) {
 	    _reformatMutations(curVizObj);
 
 	    // get column names (depending on the available data, which columns will be shown)
@@ -805,7 +805,7 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	    })
 	    .on("click", function(d) {
 	        // if there are mutations and we're not selecting any of them
-	        if (curVizObj.userConfig.mutations[0] != "NA" && !dim.mutSelectOn) {
+	        if (curVizObj.userConfig.mutations_provided && !dim.mutSelectOn) {
 
 	            dim.selectOn = true;
 	            dim.nClickedNodes++; // increment the number of clicked nodes
