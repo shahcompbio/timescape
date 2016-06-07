@@ -42,6 +42,20 @@ td {
     word-wrap: break-word
 }
 
+/* to left-align column headers in mutation table */
+.sorting {
+  text-align: left
+}
+.sorting_asc {
+  text-align: left
+}
+.sorting_desc {
+  text-align: left
+}
+.sorting_disabled {
+  text-align: left
+}
+
 /* TOOLTIP */
 
 /* base */
