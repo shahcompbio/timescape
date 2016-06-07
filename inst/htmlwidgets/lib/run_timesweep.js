@@ -507,13 +507,13 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	        return d.stroke;
 	    })
 	    .on('mouseover', function(d) {
-	        if (!dim.selectOn && !dim.mutSelectOn) {
+	        if (!dim.selectOn && !dim.mutSelectOn && _checkForCnvTreeSelections(view_id)) {
 	        	_tsMouseoverGenotype(d.gtype, curVizObj.view_id);
 	        	_showLabels(d.gtype, curVizObj.view_id);
 	        }
 	    })
 	    .on('mouseout', function(d) {
-	        if (!dim.selectOn && !dim.mutSelectOn) {
+	        if (!dim.selectOn && !dim.mutSelectOn && _checkForCnvTreeSelections(view_id)) {
 	        	_tsMouseoutGenotype(curVizObj.view_id);
 	        	_hideLabels(curVizObj.view_id);
 	        }
@@ -539,7 +539,7 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	    .attr('font-size', '11px')
 	    .text(function(d) { return d.pert_name; })
 	    .on('mouseover', function(d) {
-	        if (!dim.selectOn) {
+	        if (!dim.selectOn && _checkForCnvTreeSelections(view_id)) {
 	            // plot guide
 	            curVizObj.view.tsSVG
 	                .append('line')
@@ -560,7 +560,7 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	        }
 	    })
 	    .on('mouseout', function(d) {
-	        if (!dim.selectOn) {
+	        if (!dim.selectOn && _checkForCnvTreeSelections(view_id)) {
 	            d3.select("#" + curVizObj.view_id)
 	                .selectAll(".pertGuide.pert_" + d.pert_name).remove();
 	        }
@@ -610,7 +610,7 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	        return tp;
 	    })
 	    .on('mouseover', function(d, i) {
-	        if (!dim.selectOn) {
+	        if (!dim.selectOn && _checkForCnvTreeSelections(view_id)) {
 	        	// view timepoint guide
 	        	d3.select("#" + curVizObj.view_id).selectAll(".tpGuide.tp_" + d).attr("stroke-opacity", 1);
 
@@ -621,7 +621,7 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	        }
 	    })
 	    .on('mouseout', function(d) {
-	        if (!dim.selectOn) {
+	        if (!dim.selectOn && _checkForCnvTreeSelections(view_id)) {
 	            // hide timepoint guide
 	        	d3.select("#" + curVizObj.view_id).selectAll(".tpGuide.tp_" + d).attr("stroke-opacity", 0);
 
@@ -724,7 +724,7 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	    .attr("d", _elbow)
 	    .on("mouseover", function(d) {
 	        // we're not selecting nodes or mutations
-	        if (!dim.selectOn && !dim.mutSelectOn) {
+	        if (!dim.selectOn && !dim.mutSelectOn && _checkForCnvTreeSelections(view_id)) {
 
 	            // inactivate all genotypes 
 	            _tsInactivateGenotypes(curVizObj.view_id);
@@ -735,7 +735,7 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	    })
 	    .on("mouseout", function() {
 	        // we're not selecting nodes or mutations
-	        if (!dim.selectOn && !dim.mutSelectOn) {
+	        if (!dim.selectOn && !dim.mutSelectOn && _checkForCnvTreeSelections(view_id)) {
 	            _tsMouseoutGenotype(curVizObj.view_id);
 	        }
 	    }); 
@@ -772,7 +772,7 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	                .attr('stroke', function(d) { return colour_assignment[d.id]; });
 	        }
 	        // we're not selecting nodes or mutations - highlight genotype
-	        if (!dim.selectOn && !dim.mutSelectOn) {
+	        if (!dim.selectOn && !dim.mutSelectOn && _checkForCnvTreeSelections(view_id)) {
 	            _tsMouseoverGenotype(d.id, curVizObj.view_id);
 	            _showLabels(d.id, curVizObj.view_id);
 	        }
@@ -798,7 +798,7 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	                });
 	        }
 	        // we're not selecting nodes or mutations - mouseout as normal
-	        if (!dim.selectOn && !dim.mutSelectOn) {
+	        if (!dim.selectOn && !dim.mutSelectOn && _checkForCnvTreeSelections(view_id)) {
 	        	_tsMouseoutGenotype(curVizObj.view_id);
    	 			_hideLabels(curVizObj.view_id);
 	        }
@@ -875,8 +875,14 @@ function _run_timesweep(view_id, width, height, userConfig) {
 
 	// ******** HELPER FUNCTIONS ******** //
 
-	// d3 EFFECTS FUNCTIONS
+	// D3 EFFECTS FUNCTIONS
 
+	/* function to check for single cell viewer selections
+	*/
+	function _checkForCnvTreeSelections(view_id) {
+		return (typeof _checkForSelections !== "function" || // if no cnvTree, return true
+        		(typeof _checkForSelections === "function" && _checkForSelections(curVizObj.view_id))); // if cnvTree, check for its selections
+	}
 
 	/* function for genotype mouseover
 	* @param {String} gtype -- genotype to highlight
@@ -1063,13 +1069,13 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	            .attr('fill', function(d) { return d.fill; }) 
 	            .attr('stroke', function(d) { return d.stroke; })
 	            .on('mouseover', function(d) {
-	                if (!dim.selectOn && !dim.mutSelectOn) {
+	                if (!dim.selectOn && !dim.mutSelectOn && _checkForCnvTreeSelections(view_id)) {
 	                	_tsMouseoverGenotype(d.gtype, curVizObj.view_id);
 	                	_showLabels(d.gtype, curVizObj.view_id);
 	                }
 	            })
 	            .on('mouseout', function(d) {
-	                if (!dim.selectOn && !dim.mutSelectOn) {
+	                if (!dim.selectOn && !dim.mutSelectOn && _checkForCnvTreeSelections(view_id)) {
 	                    _tsMouseoutGenotype(curVizObj.view_id);
    	 					_hideLabels(curVizObj.view_id);
 	                }
