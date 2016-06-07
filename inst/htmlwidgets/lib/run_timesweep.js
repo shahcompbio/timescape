@@ -3135,12 +3135,17 @@ function _run_timesweep(view_id, width, height, userConfig) {
 			    "scrollY":        table_height - 50, // - 50 for search bar, etc.
 		        "scrollCollapse": true,
 		        "paging":         false,
-		        "info": 		  false,
+		        "info": 		  true,
+		        "language": {
+		        	"info":           "Showing _TOTAL_ entries",
+		        	"infoEmpty":      "Showing 0 entries"
+		        },
 	       		"aaSorting": [] // disable initial sort
 		    });
 
 		    curVizObj.mutTableDef.resolve("Finished creating table setup.");
 		});	
+
 
 		// when mutation table is set up
 		curVizObj.mutTableDef.done(function() {
