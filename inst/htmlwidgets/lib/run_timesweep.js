@@ -764,7 +764,7 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	        // show node genotype tooltip
 	        var clone_name = // get original sample name (spaces may have been replaced with underscores)
 	            _.findWhere(curVizObj.userConfig.clone_id_map, {"space_replaced_clone_id": d.id}).original_clone_id;
-	        nodeTip.show("ID: " + clone_name);
+	        nodeTip.show("Clone: " + clone_name);
 
 	        // if we're selecting nodes
 	        if (dim.nClickedNodes > 0 && d.id != dim.phantomRoot) {
