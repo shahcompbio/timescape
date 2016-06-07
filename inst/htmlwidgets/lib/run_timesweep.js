@@ -318,42 +318,44 @@ function _run_timesweep(view_id, width, height, userConfig) {
 
 	    });
 
-	// reset button
-	topBarSVG.append("rect")
-	    .attr("class", "resetButton")
-	    .attr("x", width - 2*downloadButtonWidth - 2*resetButtonWidth)
-	    .attr("y", 0)
-	    .attr("width", resetButtonWidth)
-	    .attr("height", dim.topBarHeight)
-	    .attr("rx", 10)
-	    .attr("ry", 10)
-	    .attr("fill", dim.topBarColour)
-	    .on("mouseover", function() {
-	        d3.select(this).attr("fill", dim.topBarHighlight);
-	    })
-	    .on("mouseout", function() {
-	        d3.select(this).attr("fill", dim.topBarColour);
-	    })
-	    .on("click", function() {
-	        // background click
-	        _backgroundClick(curVizObj);
-	    });
-	topBarSVG.append("image")
-	    .attr("xlink:href", resetButton_base64)
-	    .attr("x", width - 2*downloadButtonWidth - 2*resetButtonWidth + (resetButtonWidth - resetButtonIconWidth)/2)
-	    .attr("y", 5)
-	    .attr("width", resetButtonIconWidth)
-	    .attr("height", resetButtonIconWidth)
-	    .on("mouseover", function() {
-	        d3.select("#" + view_id).select(".resetButton").attr("fill", dim.topBarHighlight);
-	    })
-	    .on("mouseout", function() {
-	        d3.select("#" + view_id).select(".resetButton").attr("fill", dim.topBarColour);
-	    })
-	    .on("click", function() {
-	        // background click
-	        _backgroundClick(curVizObj);
-	    });
+	// reset button (only if mutations are provided)
+	if (curVizObj.userConfig.mutations_provided) {
+		topBarSVG.append("rect")
+		    .attr("class", "resetButton")
+		    .attr("x", width - 2*downloadButtonWidth - 2*resetButtonWidth)
+		    .attr("y", 0)
+		    .attr("width", resetButtonWidth)
+		    .attr("height", dim.topBarHeight)
+		    .attr("rx", 10)
+		    .attr("ry", 10)
+		    .attr("fill", dim.topBarColour)
+		    .on("mouseover", function() {
+		        d3.select(this).attr("fill", dim.topBarHighlight);
+		    })
+		    .on("mouseout", function() {
+		        d3.select(this).attr("fill", dim.topBarColour);
+		    })
+		    .on("click", function() {
+		        // background click
+		        _backgroundClick(curVizObj);
+		    });
+		topBarSVG.append("image")
+		    .attr("xlink:href", resetButton_base64)
+		    .attr("x", width - 2*downloadButtonWidth - 2*resetButtonWidth + (resetButtonWidth - resetButtonIconWidth)/2)
+		    .attr("y", 5)
+		    .attr("width", resetButtonIconWidth)
+		    .attr("height", resetButtonIconWidth)
+		    .on("mouseover", function() {
+		        d3.select("#" + view_id).select(".resetButton").attr("fill", dim.topBarHighlight);
+		    })
+		    .on("mouseout", function() {
+		        d3.select("#" + view_id).select(".resetButton").attr("fill", dim.topBarColour);
+		    })
+		    .on("click", function() {
+		        // background click
+		        _backgroundClick(curVizObj);
+		    });
+	}
 
 	// OTHER SVGS
 
