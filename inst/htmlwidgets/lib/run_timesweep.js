@@ -33,7 +33,8 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	    treeLinkColour: "#D3D3D3",
 	    topBarHeight: 30, // height of top panel
 	    topBarColour: "#D9D9D9",
-	    topBarHighlight: "#C6C6C6"
+	    topBarHighlight: "#C6C6C6",
+	    viewTitle: "TIMESWEEP"
 	};
 
 	vizObj.ts = {}; // vizObj for timesweep
@@ -120,6 +121,17 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	    .attr("ry", 10)
 	    .attr("fill", dim.topBarColour);
 
+ 	// top panel title
+    topBarSVG.append("text")
+        .attr("x", 10)
+        .attr("y", dim.topBarHeight/2)
+        .attr("text-anchor", "start")
+        .attr("dy", "+0.35em")
+        .attr("font-family", "Arial")
+        .attr("fill", "white")
+        .attr("pointer-events","none")
+        .text(dim.viewTitle);
+
 	var downloadButtonWidth = 80; // width of the top panel download button
 	var resetButtonWidth = 42; // width of the top panel reset button
 
@@ -132,43 +144,6 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	var downloadButtonIconWidth = dim.topBarHeight - 10; // icon size for download button
 	var timesweepButtonIconWidth = 50; // icon size for timesweep button
 	var clonalTrajButtonIconWidth = 60; // icon size for timesweep button
-
-	// reset button
-	topBarSVG.append("rect")
-	    .attr("class", "resetButton")
-	    .attr("x", 0)
-	    .attr("y", 0)
-	    .attr("width", resetButtonWidth)
-	    .attr("height", dim.topBarHeight)
-	    .attr("rx", 10)
-	    .attr("ry", 10)
-	    .attr("fill", dim.topBarColour)
-	    .on("mouseover", function() {
-	        d3.select(this).attr("fill", dim.topBarHighlight);
-	    })
-	    .on("mouseout", function() {
-	        d3.select(this).attr("fill", dim.topBarColour);
-	    })
-	    .on("click", function() {
-	        // background click
-	        _backgroundClick(curVizObj);
-	    });
-	topBarSVG.append("image")
-	    .attr("xlink:href", resetButton_base64)
-	    .attr("x", (resetButtonWidth/2) - (resetButtonIconWidth/2))
-	    .attr("y", 5)
-	    .attr("width", resetButtonIconWidth)
-	    .attr("height", resetButtonIconWidth)
-	    .on("mouseover", function() {
-	        d3.select("#" + view_id).select(".resetButton").attr("fill", dim.topBarHighlight);
-	    })
-	    .on("mouseout", function() {
-	        d3.select("#" + view_id).select(".resetButton").attr("fill", dim.topBarColour);
-	    })
-	    .on("click", function() {
-	        // background click
-	        _backgroundClick(curVizObj);
-	    });
 
 	// SVG button
 	topBarSVG.append("rect")
@@ -341,6 +316,43 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	            .attr("opacity", 1)
 	            .attr("pointer-events", "auto");
 
+	    });
+
+	// reset button
+	topBarSVG.append("rect")
+	    .attr("class", "resetButton")
+	    .attr("x", width - 2*downloadButtonWidth - 2*resetButtonWidth)
+	    .attr("y", 0)
+	    .attr("width", resetButtonWidth)
+	    .attr("height", dim.topBarHeight)
+	    .attr("rx", 10)
+	    .attr("ry", 10)
+	    .attr("fill", dim.topBarColour)
+	    .on("mouseover", function() {
+	        d3.select(this).attr("fill", dim.topBarHighlight);
+	    })
+	    .on("mouseout", function() {
+	        d3.select(this).attr("fill", dim.topBarColour);
+	    })
+	    .on("click", function() {
+	        // background click
+	        _backgroundClick(curVizObj);
+	    });
+	topBarSVG.append("image")
+	    .attr("xlink:href", resetButton_base64)
+	    .attr("x", width - 2*downloadButtonWidth - 2*resetButtonWidth + (resetButtonWidth - resetButtonIconWidth)/2)
+	    .attr("y", 5)
+	    .attr("width", resetButtonIconWidth)
+	    .attr("height", resetButtonIconWidth)
+	    .on("mouseover", function() {
+	        d3.select("#" + view_id).select(".resetButton").attr("fill", dim.topBarHighlight);
+	    })
+	    .on("mouseout", function() {
+	        d3.select("#" + view_id).select(".resetButton").attr("fill", dim.topBarColour);
+	    })
+	    .on("click", function() {
+	        // background click
+	        _backgroundClick(curVizObj);
 	    });
 
 	// OTHER SVGS
