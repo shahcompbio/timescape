@@ -34,7 +34,8 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	    topBarHeight: 30, // height of top panel
 	    topBarColour: "#D9D9D9",
 	    topBarHighlight: "#C6C6C6",
-	    viewTitle: "TIMESWEEP"
+	    viewTitle: "TIMESWEEP",
+	    tpGuideOpacity: 0.4 // opacity for the white timepoint guide
 	};
 
 	vizObj.ts = {}; // vizObj for timesweep
@@ -574,9 +575,9 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	    .attr('x2', function(d,i) { return (i / (curVizObj.data.timepoints.length - 1)) * dim.tsSVGWidth; })
 	    .attr('y1', 0)
 	    .attr('y2', dim.tsSVGHeight)
-	    .attr('stroke', 'grey')
+	    .attr('stroke', 'white')
+	    .attr('stroke-opacity', dim.tpGuideOpacity)
 	    .attr('stroke-width', '1.5px')
-	    .attr('stroke-opacity', 0)
 	    .style('pointer-events', 'none');
 
 	// PLOT AXES
@@ -604,7 +605,9 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	    .on('mouseover', function(d, i) {
 	        if (!dim.selectOn && _checkForCnvTreeSelections(view_id)) {
 	        	// view timepoint guide
-	        	d3.select("#" + curVizObj.view_id).selectAll(".tpGuide.tp_" + d).attr("stroke-opacity", 1);
+	        	d3.select("#" + curVizObj.view_id).selectAll(".tpGuide.tp_" + d)
+	        		.attr("stroke", "black")
+	        		.attr("stroke-opacity", 1);
 
 	            // highlight those nodes with this timepoint in single cell vis
 	            if (typeof _mouseoverTp == 'function') {
@@ -615,7 +618,9 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	    .on('mouseout', function(d) {
 	        if (!dim.selectOn && _checkForCnvTreeSelections(view_id)) {
 	            // hide timepoint guide
-	        	d3.select("#" + curVizObj.view_id).selectAll(".tpGuide.tp_" + d).attr("stroke-opacity", 0);
+	        	d3.select("#" + curVizObj.view_id).selectAll(".tpGuide.tp_" + d)
+	        		.attr("stroke", "white")
+	        		.attr("stroke-opacity", dim.tpGuideOpacity);
 
 	            // reset single cell vis
 	            if (typeof _mouseoutTp == 'function') {
