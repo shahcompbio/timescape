@@ -9,18 +9,12 @@
 #' @param tree_edges {Data Frame} Tree edges of a rooted tree.
 #'   Format: columns are (1) {String} "source" - source node id
 #'                       (2) {String} "target" - target node id.
-#' @param mutations {Data Frame} (Optional) Mutations occurring at each clone.
+#' @param mutations {Data Frame} (Optional) Mutations occurring at each clone. Any additional field will be shown in the mutation table.
 #'   Format: columns are (1) {String} "chrom" - chromosome number
 #'                       (2) {Number} "coord" - coordinate of mutation on chromosome
 #'                       (3) {String} "clone_id" - clone id
 #'                       (4) {String} "timepoint" - time point
-#'                       (5) {Number} "VAF" - variant allele frequency of the mutation in the corresponding sample
-#'                       (6) {String} (Optional) "gene_name" - name of the affected gene (can be "" if none affected).
-#'                       (7) {String} (Optional) "effect" - effect of the mutation 
-#'                                                          (e.g. non-synonymous, upstream, etc.)
-#'                       (8) {String} (Optional) "impact" - impact of the mutation (e.g. low, moderate, high)
-#'                       (9) {String} (Optional) "nuc_change" - nucleotide change
-#'                       (10) {String} (Optional) "aa_change" - amino acid change.
+#'                       (5) {Number} "VAF" - variant allele frequency of the mutation in the corresponding sample. 
 #' @param clone_colours {Data Frame} (Optional) Clone ids and their corresponding colours 
 #'   Format: columns are (1) {String} "clone_id" - the clone ids
 #'                       (2) {String} "colour" - the corresponding Hex colour for each clone id.

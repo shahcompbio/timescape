@@ -412,30 +412,20 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	if (curVizObj.userConfig.mutations_provided) {
 	    _reformatMutations(curVizObj);
 
-	    // get column names (depending on the available data, which columns will be shown)
-	    dim.mutationColumns = [
-	                    { "data": "chrom", "title": "Chromosome", "defaultContent": "" },
-	                    { "data": "coord", "title": "Coordinate", "defaultContent": "" },
-	                    { "data": "empty", "title": "Clone", "bSortable": false, "defaultContent": "" }
-	                ];
-	    if (curVizObj.userConfig.mutations[0].hasOwnProperty("gene_name")) {
-	        dim.mutationColumns.push({ "data": "gene_name", "title": "Gene Name", "defaultContent": "" });
-	    }
-	    if (curVizObj.userConfig.mutations[0].hasOwnProperty("effect")) {
-	        dim.mutationColumns.push({ "data": "effect", "title": "Effect", "defaultContent": "" });
-	    }
-	    if (curVizObj.userConfig.mutations[0].hasOwnProperty("impact")) {
-	        dim.mutationColumns.push({ "data": "impact", "title": "Impact", "defaultContent": "" });
-	    } 
-	    if (curVizObj.userConfig.mutations[0].hasOwnProperty("nuc_change")) {
-	        dim.mutationColumns.push({ "data": "nuc_change", "title": "Nucleotide Change", "defaultContent": "" });
-	    } 
-	    if (curVizObj.userConfig.mutations[0].hasOwnProperty("aa_change")) {
-	        dim.mutationColumns.push({ "data": "aa_change", "title": "Amino Acid Change", "defaultContent": "" });
-	    } 
+		// get column names (depending on the available data, which columns will be shown)
+        dim.mutationColumns = [ { "data": "empty", "title": "Clone", "bSortable": false, "defaultContent": "" } ];
+        var columnNames = [];
+        Object.keys(curVizObj.userConfig.mutations[0]).forEach(function(key) {
+            var title = toTitleCase(key.replace(/_/g, ' ')).replace(/ Id$/g, ' ID'); // capitalize the whole word "ID"
+            var newColumn = { "data": key, "title": title, "defaultContent": "" };
+            if (key == "clone_id") { // make sure clone_id is inserted next to "empty", which will become the clone svg circle
+            	dim.mutationColumns.splice(1, 0, newColumn);
+            }
+            else {
+            	dim.mutationColumns.push(newColumn);
+            }
+        });
 	}
-
-
 
 	// get timepoints, prepend a "T0" timepoint to represent the timepoint before any data originated
 	var timepoints = _.uniq(_.pluck(curVizObj.userConfig.clonal_prev, "timepoint"));
@@ -2968,36 +2958,29 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	        // link id where mutation occurred
 	        var link_id = "treeLink_source_" + curVizObj.data.direct_ancestors[mut.clone_id] + "_target_" +  mut.clone_id;
 
-	        // add this gene to the array
+	        // add this mutation to the array
 	        var cur_mut = {
-	            "chrom": mut.chrom,
-	            "coord": mut.coord,
 	            "empty": "", // add an empty string for an empty column (clone column) that will contain an SVG
 	            "link_id": link_id,
-	            "clone_id": mut.clone_id
 	        }
-	        if (mut.hasOwnProperty("gene_name")) {
-	            cur_mut.gene_name = mut.gene_name;
-	        }
-	        if (mut.hasOwnProperty("effect")) {
-	            cur_mut.effect = mut.effect;
-	        }
-	        if (mut.hasOwnProperty("impact")) {
-	            cur_mut.impact = mut.impact;
-	        }
-	        if (mut.hasOwnProperty("nuc_change")) {
-	            cur_mut.nuc_change = mut.nuc_change;
-	        }
-	        if (mut.hasOwnProperty("aa_change")) {
-	            cur_mut.aa_change = mut.aa_change;
-	        }
-	        muts_arr.push(cur_mut);
+            Object.keys(mut).forEach(function(key) {
+                cur_mut[key] = mut[key];
+            })
+            muts_arr.push(cur_mut);
 	    });
 
 	    curVizObj.data.mutations = muts_arr;
 	}
 
 	// GENERAL FUNCTIONS
+
+	/* function to capitalize each word in a string
+	* From: http://stackoverflow.com/questions/4878756/javascript-how-to-capitalize-first-letter-of-each-word-like-a-2-word-city
+	*/
+	function toTitleCase(str)
+	{
+	    return str.replace(/\w\S*/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();});
+	}
 
 	/* function to get the intersection of two arrays
 	* @param {Array} array1 -- first array
