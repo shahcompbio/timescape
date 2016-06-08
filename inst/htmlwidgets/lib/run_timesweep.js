@@ -34,8 +34,7 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	    topBarHeight: 30, // height of top panel
 	    topBarColour: "#D9D9D9",
 	    topBarHighlight: "#C6C6C6",
-	    viewTitle: "TIMESWEEP",
-	    tpGuideOpacity: 0.4 // opacity for the white timepoint guide
+	    viewTitle: "TIMESWEEP"
 	};
 
 	vizObj.ts = {}; // vizObj for timesweep
@@ -576,7 +575,7 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	    .attr('y1', 0)
 	    .attr('y2', dim.tsSVGHeight)
 	    .attr('stroke', 'white')
-	    .attr('stroke-opacity', dim.tpGuideOpacity)
+	    .attr('stroke-opacity', 0.4)
 	    .attr('stroke-width', '1.5px')
 	    .style('pointer-events', 'none');
 
@@ -604,10 +603,8 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	    })
 	    .on('mouseover', function(d, i) {
 	        if (!dim.selectOn && _checkForCnvTreeSelections(view_id)) {
-	        	// view timepoint guide
-	        	d3.select("#" + curVizObj.view_id).selectAll(".tpGuide.tp_" + d)
-	        		.attr("stroke", "black")
-	        		.attr("stroke-opacity", 1);
+	        	// highlight timepoint guide
+	        	_hlTpGuide(view_id, d);
 
 	            // highlight those nodes with this timepoint in single cell vis
 	            if (typeof _mouseoverTp == 'function') {
@@ -618,9 +615,7 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	    .on('mouseout', function(d) {
 	        if (!dim.selectOn && _checkForCnvTreeSelections(view_id)) {
 	            // hide timepoint guide
-	        	d3.select("#" + curVizObj.view_id).selectAll(".tpGuide.tp_" + d)
-	        		.attr("stroke", "white")
-	        		.attr("stroke-opacity", dim.tpGuideOpacity);
+	        	_hideTpGuides(view_id);
 
 	            // reset single cell vis
 	            if (typeof _mouseoutTp == 'function') {
@@ -3335,4 +3330,23 @@ function _hideLabels(view_id) {
     		.text(function() { return ""; }); // text removed for purposes of svg download (otherwise will show up)
     	curView.selectAll(".sepLabelCirc").attr("fill-opacity", 0);
     }
+}
+
+/* function to highlight timepoint guide
+*/
+function _hlTpGuide(view_id, tp) {
+	// view timepoint guide
+	d3.select("#" + view_id).selectAll(".tpGuide.tp_" + tp)
+		.attr("stroke", "black")
+		.attr("stroke-opacity", 1);
+}
+
+/* function to hide timepoint guides
+*/
+function _hideTpGuides(view_id) {
+	// hide timepoint guides
+	d3.select("#" + view_id).selectAll(".tpGuide")
+		.attr("stroke", "white")
+		.attr("stroke-opacity", 0.4);
+
 }
