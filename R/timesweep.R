@@ -18,8 +18,9 @@
 #' @param clone_colours {Data Frame} (Optional) Clone ids and their corresponding colours 
 #'   Format: columns are (1) {String} "clone_id" - the clone ids
 #'                       (2) {String} "colour" - the corresponding Hex colour for each clone id.
-#' @param xaxis_title {String} (Optional) x-axis title. 
-#' @param yaxis_title {String} (Optional) y-axis title.
+#' @param xaxis_title {String} (Optional) x-axis title. Default is "Time Point".
+#' @param yaxis_title {String} (Optional) y-axis title. Default is "Clonal Prevalence".
+#' @param phylogeny_title {String} (Optional) Legend phylogeny title. Default is "Clonal Phylogeny".
 #' @param alpha {Number} (Optional) Alpha value for sweeps, range [0, 100].
 #' @param genotype_position {String} (Optional) How to position the genotypes from ["centre", "stack", "space"] 
 #'   "centre" -- genotypes are centred with respect to their ancestors
@@ -57,6 +58,7 @@ timesweep <- function(clonal_prev,
                       clone_colours = "NA", 
                       xaxis_title = "Time Point", 
                       yaxis_title = "Clonal Prevalence", 
+                      phylogeny_title = "Clonal Phylogeny",
                       alpha = 50, 
                       genotype_position = "stack", 
                       perturbations = "NA", 
@@ -72,6 +74,7 @@ timesweep <- function(clonal_prev,
                       clone_colours, 
                       xaxis_title, 
                       yaxis_title, 
+                      phylogeny_title,
                       alpha, 
                       genotype_position, 
                       perturbations, 
@@ -113,6 +116,7 @@ processUserData <- function(clonal_prev,
                       clone_colours, 
                       xaxis_title, 
                       yaxis_title, 
+                      phylogeny_title,
                       alpha, 
                       genotype_position, 
                       perturbations, 
@@ -177,8 +181,9 @@ processUserData <- function(clonal_prev,
     mutations = jsonlite::toJSON(mutation_info),
     mutation_prevalences = jsonlite::toJSON(mutation_prevalences),
     mutations_provided=mutations_provided, # whether or not mutations are provided
-    xaxis_title = xaxis_title,
-    yaxis_title = yaxis_title,
+    xaxis_title = as.character(xaxis_title),
+    yaxis_title = as.character(yaxis_title),
+    phylogeny_title = as.character(phylogeny_title),
     alpha = alpha,
     genotype_position = genotype_position,
     perturbations = jsonlite::toJSON(perturbations),

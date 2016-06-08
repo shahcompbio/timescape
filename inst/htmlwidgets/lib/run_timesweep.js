@@ -34,7 +34,8 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	    topBarHeight: 30, // height of top panel
 	    topBarColour: "#D9D9D9",
 	    topBarHighlight: "#C6C6C6",
-	    viewTitle: "TIMESWEEP"
+	    viewTitle: "TIMESWEEP",
+	    titleFontSize: 15
 	};
 
 	vizObj.ts = {}; // vizObj for timesweep
@@ -634,7 +635,7 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	    .attr('dy', '.35em')
 	    .attr('text-anchor', 'middle')
 	    .attr('font-family', 'Arial')
-	    .attr('font-size', '15px')
+	    .attr('font-size', dim.titleFontSize)
 	    .attr('font-weight', 'bold')
 	    .attr('transform', "translate(" + (dim.yAxisWidth/2) + ", " + (dim.tsSVGHeight/2) + ") rotate(-90)")
 	    .text(function() { 
@@ -649,7 +650,7 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	    .attr('y', 25)
 	    .attr('text-anchor', 'middle')
 	    .attr('font-family', 'Arial')
-	    .attr('font-size', '15px')
+	    .attr('font-size', dim.titleFontSize)
 	    .attr('font-weight', 'bold')
 	    .text(function() { 
 	        return curVizObj.userConfig.xaxis_title;
@@ -659,25 +660,29 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	// PLOT TREE GLYPH
 
 	// plot tree title
-	curVizObj.view.tsTree
-	    .append('text')
-	    .attr('class', 'treeTitle')
-	    .attr('x', 0)
-	    .attr('y', 0)
-	    .attr('dy', '.71em')
-	    .attr('text-anchor', 'left')
-	    .attr('font-family', 'Arial')
-	    .attr('font-size', '15px')
-	    .attr('font-weight', 'bold')
-	    .text('Phylogeny'); 
+	var treeTitle = curVizObj.userConfig.phylogeny_title.split(" ");
+	var treeTitleSpacing = 2; // spacing between title words 
+	treeTitle.forEach(function(word, word_i) {
+		curVizObj.view.tsTree
+		    .append('text')
+		    .attr('class', 'treeTitle')
+		    .attr('x', 0)
+		    .attr('y', word_i*(dim.titleFontSize + treeTitleSpacing))
+		    .attr('dy', '.71em')
+		    .attr('text-anchor', 'left')
+		    .attr('font-family', 'Arial')
+		    .attr('font-size', dim.titleFontSize)
+		    .attr('font-weight', 'bold')
+		    .text(word); 		
+	})
+
 
 	// d3 tree layout
 	var treeR = 4,
 	    treePadding = 10,
-	    treeTitleHeight = d3.select("#" + curVizObj.view_id)
-	                        .select('.treeTitle').node().getBBox().height,
+	    treeTitleHeight = treeTitle.length * (dim.titleFontSize + treeTitleSpacing),
 	    treeLayout = d3.layout.tree()           
-	        .size([dim.treeHeight - treePadding - treeTitleHeight, dim.treeWidth - treePadding]); 
+	        .size([dim.treeHeight - treePadding, dim.treeWidth - treePadding]); 
 
 	// get node radius for legend phylogeny (7 == # pixels between nodes)
 	var tree_height = curVizObj.data.tree_height;
