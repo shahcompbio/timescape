@@ -895,12 +895,14 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	* @param {String} view_id -- id of current view
 	*/
 	function _tsMouseoutGenotype(view_id) {
-	    d3.select("#" + view_id).selectAll(".gtypeAnnot").classed("inactive", false);
 	    d3.select("#" + view_id).selectAll(".graph.node").classed("inactive", false);
 	    d3.select("#" + view_id).selectAll(".tree.node").classed("inactive", false);
+	    d3.select("#" + view_id).selectAll(".graph.node").classed("active", false);
+	    d3.select("#" + view_id).selectAll(".tree.node").classed("active", false);
 	    d3.select("#" + view_id).selectAll(".legendGroupRect").classed("active", false);
 	    d3.select("#" + view_id).selectAll(".tsPlot").classed("inactive", false);
 	    d3.select("#" + view_id).selectAll(".legendTreeNode").classed("inactive", false);
+	    d3.select("#" + view_id).selectAll(".indic").attr("fill-opacity", 0);
 	}
 
 	/* function to highlight a particular genotype
@@ -908,7 +910,7 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	* @param {String} view_id -- id of current view
 	*/
 	function _tsHighlightGenotype(gtype, view_id) {
-	    d3.select("#" + view_id).selectAll(".gtypeAnnot.gtype_" + gtype).classed("inactive", false);
+	    d3.select("#" + view_id).selectAll(".indic.gtype_" + gtype).attr("fill-opacity", 1);
 	    d3.select("#" + view_id).selectAll(".graph.node.gtype_" + gtype).classed("inactive", false);
 	    d3.select("#" + view_id).selectAll(".tree.node.gtype_" + gtype).classed("inactive", false);
 	    d3.select("#" + view_id).selectAll(".legendGroupRect.gtype_" + gtype).classed("active", true);
@@ -920,7 +922,6 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	* @param {String} view_id -- id of current view
 	*/
 	function _tsInactivateGenotypes(view_id) {
-	    d3.select("#" + view_id).selectAll(".gtypeAnnot").classed("inactive", true);
 	    d3.select("#" + view_id).selectAll(".graph.node").classed("inactive", true);
 	    d3.select("#" + view_id).selectAll(".tree.node").classed("inactive", true);
 	    d3.select("#" + view_id).selectAll(".legendGroupRect").classed("active", false);
