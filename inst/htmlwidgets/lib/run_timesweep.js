@@ -1932,7 +1932,7 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	        ancestor_midpoint, // ancestor's midpoint for emergence
 	        direct_ancestors = curVizObj.data.direct_ancestors, // direct ancestor for each genotype
 	        direct_descendants = curVizObj.data.direct_descendants, // direct descendant for each genotype
-	        space = 8/curVizObj.generalConfig.height; // space between genotypes (in pixels) 
+	        space = 8/curVizObj.generalConfig.tsSVGHeight; // space between genotypes (in pixels) 
 
 	    // GET STACKED LAYOUT
 
