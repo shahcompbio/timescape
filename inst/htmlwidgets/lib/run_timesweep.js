@@ -34,7 +34,7 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	    topBarHeight: 30, // height of top panel
 	    topBarColour: "#D9D9D9",
 	    topBarHighlight: "#C6C6C6",
-	    viewTitle: "TIMESWEEP",
+	    viewTitle: "TIMESCAPE",
 	    titleFontSize: 15
 	};
 
