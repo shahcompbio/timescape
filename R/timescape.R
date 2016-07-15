@@ -1,4 +1,4 @@
-#' Timecapes
+#' Timecape
 #'
 #' \code{timescape} generates patient clonal timescapes.
 #'
