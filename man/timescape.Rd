@@ -25,7 +25,7 @@ Format: columns are (1) {String} "chrom" - chromosome number
                     (2) {Number} "coord" - coordinate of mutation on chromosome
                     (3) {String} "clone_id" - clone id
                     (4) {String} "timepoint" - time point
-                    (5) {Number} "VAF" - variant allele frequency of the mutation in the corresponding sample.}
+                    (5) {Number} "VAF" - variant allele frequency of the mutation in the corresponding timepoint.}
 
 \item{clone_colours}{{Data Frame} (Optional) Clone ids and their corresponding colours 
 Format: columns are (1) {String} "clone_id" - the clone ids
@@ -42,17 +42,19 @@ Format: columns are (1) {String} "clone_id" - the clone ids
 \item{genotype_position}{{String} (Optional) How to position the genotypes from ["centre", "stack", "space"] 
 "centre" -- genotypes are centred with respect to their ancestors
 "stack" -- genotypes are stacked such that no genotype is split at any time point
-"space" -- genotypes are stacked but with a bit of spacing at the top (emergence is clearer)}
+"space" -- genotypes are stacked but with a bit of spacing at the bottom}
 
 \item{perturbations}{{Data Frame} (Optional) Any perturbations that occurred between two time points, 
-and the fraction of total tumour content left.
+and the fraction of total tumour content remaining.
 Format: columns are (1) {String} "pert_name" - the perturbation name
                     (2) {String} "prev_tp" - the time point (as labelled in clonal prevalence data) 
                                              BEFORE perturbation
                     (3) {Number} "frac" - the fraction of total tumour content remaining at the 
                                           time of perturbation, range [0, 1].}
 
-\item{sort}{{Boolean} (Optional) Whether (TRUE) or not (FALSE) to vertically sort the genotypes by their emergence values (descending).}
+\item{sort}{{Boolean} (Optional) Whether (TRUE) or not (FALSE) to vertically sort the genotypes by their emergence values (descending). 
+Default is FALSE. 
+Note that genotype sorting will always retain the phylogenetic hierarchy, and this parameter will only affect the ordering of siblings.}
 
 \item{show_warnings}{{Boolean} (Optional) Whether or not to show any warnings. Default is TRUE.}
 
