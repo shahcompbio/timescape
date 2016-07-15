@@ -1,10 +1,10 @@
-/* function to run timesweep
+/* function to run timescape
 * @param {String} view_id -- id for this view
 * @param {Number} width -- width of the view
 * @param {Number} height -- height of the view
 * @param {Object} userConfig -- user configurations
 */
-function _run_timesweep(view_id, width, height, userConfig) {
+function _run_timescape(view_id, width, height, userConfig) {
 
 	// defaults
 	var defaults = {
@@ -38,7 +38,7 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	    titleFontSize: 15
 	};
 
-	vizObj.ts = {}; // vizObj for timesweep
+	vizObj.ts = {}; // vizObj for timescape
 	var curVizObj = vizObj.ts;
 	curVizObj.view_id = view_id;
 	curVizObj.data = {};
@@ -68,7 +68,7 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	                        0 : 
 	                        dim.mutationTableHeight;
 
-	console.log("timesweep curVizObj");
+	console.log("timescape curVizObj");
 	console.log(curVizObj);
 
 	// SET UP PAGE LAYOUT
@@ -138,13 +138,13 @@ function _run_timesweep(view_id, width, height, userConfig) {
 
 	var resetButton_base64 = "data:image/svg+xml;base64," + "PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4NCjwhLS0gR2VuZXJhdG9yOiBBZG9iZSBJbGx1c3RyYXRvciAxNC4wLjAsIFNWRyBFeHBvcnQgUGx1Zy1JbiAuIFNWRyBWZXJzaW9uOiA2LjAwIEJ1aWxkIDQzMzYzKSAgLS0+DQo8IURPQ1RZUEUgc3ZnIFBVQkxJQyAiLS8vVzNDLy9EVEQgU1ZHIDEuMS8vRU4iICJodHRwOi8vd3d3LnczLm9yZy9HcmFwaGljcy9TVkcvMS4xL0RURC9zdmcxMS5kdGQiPg0KPHN2ZyB2ZXJzaW9uPSIxLjEiIGlkPSJDYXBhXzEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHg9IjBweCIgeT0iMHB4Ig0KCSB3aWR0aD0iNTEycHgiIGhlaWdodD0iNTEycHgiIHZpZXdCb3g9IjAgMCA1MTIgNTEyIiBlbmFibGUtYmFja2dyb3VuZD0ibmV3IDAgMCA1MTIgNTEyIiB4bWw6c3BhY2U9InByZXNlcnZlIj4NCjxnPg0KCTxwYXRoIGZpbGw9IiNGRkZGRkYiIGQ9Ik00MzIuOTc1LDgwLjAzNGMtMjcuOTk4LTI3Ljk2My02MC45MjYtNDcuODYtOTYuMDM3LTU5Ljc2NHY3NS4xODkNCgkJYzE2LjkwNCw4LjQxNywzMi45MjgsMTkuMzY5LDQ2Ljk4LDMzLjQ1NmM3MC4xODgsNzAuMjI0LDcwLjE4OCwxODQuMzk3LDAsMjU0LjU4NGMtNzAuMTg5LDcwLjA4NC0xODQuMjkzLDcwLjA4NC0yNTQuNTg3LDANCgkJYy03MC4xMTctNzAuMjU4LTcwLjExNy0xODQuMzYxLDAtMjU0LjU4NGMwLjE3Ny0wLjIxMSwwLjc0LTAuNTYzLDAuOTg3LTAuODhoMC4wN2w3NC4yMTcsODEuNzMxTDIxNC41LDguNUw4LjkwNSwzLjM1Ng0KCQlsNzIuNDYxLDc1LjU4NmMtMC4yNDcsMC40MjItMC42MzQsMC44NDUtMC45NTEsMS4wOTJjLTk3LjMwNSw5Ny4yNy05Ny4zMDUsMjU1LjA3OSwwLDM1Mi4zNDkNCgkJYzk3LjQ0Niw5Ny4zNzUsMjU1LjE1LDk3LjM3NSwzNTIuNTYsMEM1MzAuMjA5LDMzNS4xMTMsNTMwLjMxNCwxNzcuMzA0LDQzMi45NzUsODAuMDM0eiIvPg0KPC9nPg0KPC9zdmc+DQo="
 	var downloadButton_base64 = "data:image/svg+xml;base64," + "PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4NCjwhLS0gR2VuZXJhdG9yOiBBZG9iZSBJbGx1c3RyYXRvciAxNC4wLjAsIFNWRyBFeHBvcnQgUGx1Zy1JbiAuIFNWRyBWZXJzaW9uOiA2LjAwIEJ1aWxkIDQzMzYzKSAgLS0+DQo8IURPQ1RZUEUgc3ZnIFBVQkxJQyAiLS8vVzNDLy9EVEQgU1ZHIDEuMS8vRU4iICJodHRwOi8vd3d3LnczLm9yZy9HcmFwaGljcy9TVkcvMS4xL0RURC9zdmcxMS5kdGQiPg0KPHN2ZyB2ZXJzaW9uPSIxLjEiIGlkPSJMYXllcl8xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB4PSIwcHgiIHk9IjBweCINCgkgd2lkdGg9IjUxMnB4IiBoZWlnaHQ9IjUxMnB4IiB2aWV3Qm94PSIwIDAgNTEyIDUxMiIgZW5hYmxlLWJhY2tncm91bmQ9Im5ldyAwIDAgNTEyIDUxMiIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSI+DQo8cG9seWdvbiBmaWxsPSIjRkZGRkZGIiBwb2ludHM9IjM1NC41LDMzMy41IDMzMy41LDMxMy41IDI3MS44MzUsMzY1LjU2NCAyNzEuODM1LDcuOTE3IDI0MC4xNjUsNy45MTcgMjQwLjE2NSwzNjUuNTY0IDE4MC41LDMxNC41IA0KCTE1Ny41LDMzNi41IDI1Niw0MjYuMTg4ICIvPg0KPHBvbHlnb24gZmlsbD0iI0ZGRkZGRiIgcG9pbnRzPSIyOC41LDQ3Mi40MTIgNDg5LjUsNDcyLjQxMiA0OTAuNSw1MDQuMDgyIDI3LjUsNTA0LjA4MiAiLz4NCjxwb2x5Z29uIGZpbGw9IiNGRkZGRkYiIHBvaW50cz0iMjYuNTgsMzY2LjQxMiA2My40NjcsMzY2LjQxMiA2My41NDcsNTAyLjUgMjYuNSw1MDIuNSAiLz4NCjxwb2x5Z29uIGZpbGw9IiNGRkZGRkYiIHBvaW50cz0iNDUyLjUzMywzNjUuNDEyIDQ4OS40MTksMzY1LjQxMiA0ODkuNSw1MDEuNSA0NTIuNDUzLDUwMS41ICIvPg0KPC9zdmc+DQo="
-	var timesweepButton_base64 = "data:image/svg+xml;base64," + "PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4NCjwhLS0gR2VuZXJhdG9yOiBBZG9iZSBJbGx1c3RyYXRvciAxNC4wLjAsIFNWRyBFeHBvcnQgUGx1Zy1JbiAuIFNWRyBWZXJzaW9uOiA2LjAwIEJ1aWxkIDQzMzYzKSAgLS0+DQo8IURPQ1RZUEUgc3ZnIFBVQkxJQyAiLS8vVzNDLy9EVEQgU1ZHIDEuMS8vRU4iICJodHRwOi8vd3d3LnczLm9yZy9HcmFwaGljcy9TVkcvMS4xL0RURC9zdmcxMS5kdGQiPg0KPHN2ZyB2ZXJzaW9uPSIxLjEiIGlkPSJMYXllcl8xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB4PSIwcHgiIHk9IjBweCINCgkgd2lkdGg9Ijg3MHB4IiBoZWlnaHQ9IjI4MHB4IiB2aWV3Qm94PSIwIDAgODcwIDI4MCIgZW5hYmxlLWJhY2tncm91bmQ9Im5ldyAwIDAgODcwIDI4MCIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSI+DQo8ZGVmcyAgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGh0bWwiPg0KCTxzdHlsZSAgdHlwZT0idGV4dC9jc3MiPg0KCQk8IVtDREFUQVtdXT4NCgk8L3N0eWxlPg0KPC9kZWZzPg0KPGRlZnMgIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hodG1sIj4NCgk8c3R5bGUgIHR5cGU9InRleHQvY3NzIj48L3N0eWxlPg0KPC9kZWZzPg0KPHBhdGggZmlsbD0iI0ZGRkZGRiIgc3Ryb2tlPSIjRkZGRkZGIiBkPSJNNjcuNSwxMzUuNDg3YzQ1LDAsNDUtMTI0Ljk4Nyw5MC0xMjQuOTg3bDAsMGM5MCwwLDkwLDAsMTgwLDBsMCwwYzE4MCwwLTg1LDAsOTUsMGwwLDANCgl2MjQ5Ljk3NWwwLDBjLTE4MCwwLDAsMC05NSwwbDAsMGMtOTAsMC05MCwwLTE4MCwwbDAsMEMxMTIuNSwyNjAuNDc1LDExMi41LDEzNS40ODcsNjcuNSwxMzUuNDg3Ii8+DQo8ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSg3NjAsMCkiPg0KPC9nPg0KPGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNzYwLDIwOCkiPg0KPC9nPg0KPC9zdmc+DQo="
+	var timescapeButton_base64 = "data:image/svg+xml;base64," + "PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4NCjwhLS0gR2VuZXJhdG9yOiBBZG9iZSBJbGx1c3RyYXRvciAxNC4wLjAsIFNWRyBFeHBvcnQgUGx1Zy1JbiAuIFNWRyBWZXJzaW9uOiA2LjAwIEJ1aWxkIDQzMzYzKSAgLS0+DQo8IURPQ1RZUEUgc3ZnIFBVQkxJQyAiLS8vVzNDLy9EVEQgU1ZHIDEuMS8vRU4iICJodHRwOi8vd3d3LnczLm9yZy9HcmFwaGljcy9TVkcvMS4xL0RURC9zdmcxMS5kdGQiPg0KPHN2ZyB2ZXJzaW9uPSIxLjEiIGlkPSJMYXllcl8xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB4PSIwcHgiIHk9IjBweCINCgkgd2lkdGg9Ijg3MHB4IiBoZWlnaHQ9IjI4MHB4IiB2aWV3Qm94PSIwIDAgODcwIDI4MCIgZW5hYmxlLWJhY2tncm91bmQ9Im5ldyAwIDAgODcwIDI4MCIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSI+DQo8ZGVmcyAgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGh0bWwiPg0KCTxzdHlsZSAgdHlwZT0idGV4dC9jc3MiPg0KCQk8IVtDREFUQVtdXT4NCgk8L3N0eWxlPg0KPC9kZWZzPg0KPGRlZnMgIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hodG1sIj4NCgk8c3R5bGUgIHR5cGU9InRleHQvY3NzIj48L3N0eWxlPg0KPC9kZWZzPg0KPHBhdGggZmlsbD0iI0ZGRkZGRiIgc3Ryb2tlPSIjRkZGRkZGIiBkPSJNNjcuNSwxMzUuNDg3YzQ1LDAsNDUtMTI0Ljk4Nyw5MC0xMjQuOTg3bDAsMGM5MCwwLDkwLDAsMTgwLDBsMCwwYzE4MCwwLTg1LDAsOTUsMGwwLDANCgl2MjQ5Ljk3NWwwLDBjLTE4MCwwLDAsMC05NSwwbDAsMGMtOTAsMC05MCwwLTE4MCwwbDAsMEMxMTIuNSwyNjAuNDc1LDExMi41LDEzNS40ODcsNjcuNSwxMzUuNDg3Ii8+DQo8ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSg3NjAsMCkiPg0KPC9nPg0KPGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNzYwLDIwOCkiPg0KPC9nPg0KPC9zdmc+DQo="
 	var clonalTrajButton_base64 = "data:image/svg+xml;base64," + "PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4NCjwhLS0gR2VuZXJhdG9yOiBBZG9iZSBJbGx1c3RyYXRvciAxNC4wLjAsIFNWRyBFeHBvcnQgUGx1Zy1JbiAuIFNWRyBWZXJzaW9uOiA2LjAwIEJ1aWxkIDQzMzYzKSAgLS0+DQo8IURPQ1RZUEUgc3ZnIFBVQkxJQyAiLS8vVzNDLy9EVEQgU1ZHIDEuMS8vRU4iICJodHRwOi8vd3d3LnczLm9yZy9HcmFwaGljcy9TVkcvMS4xL0RURC9zdmcxMS5kdGQiPg0KPHN2ZyB2ZXJzaW9uPSIxLjEiIGlkPSJMYXllcl8xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB4PSIwcHgiIHk9IjBweCINCgkgd2lkdGg9Ijk3MHB4IiBoZWlnaHQ9IjI4MHB4IiB2aWV3Qm94PSIwIDAgOTcwIDI4MCIgZW5hYmxlLWJhY2tncm91bmQ9Im5ldyAwIDAgOTcwIDI4MCIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSI+DQo8ZGVmcyAgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGh0bWwiPg0KCTxzdHlsZSAgdHlwZT0idGV4dC9jc3MiPg0KCQk8IVtDREFUQVtdXT4NCgk8L3N0eWxlPg0KPC9kZWZzPg0KPGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMjUsMCkiPg0KCTxwYXRoIGZpbGw9IiNGRkZGRkYiIHN0cm9rZT0iI0ZGRkZGRiIgZD0iTS0yMSw1MC41MjZjNzguNDE3LDAsNzguNDE3LDAsMTU2LjgzMywwbDAsMEMyOTIuNjY3LDUwLjUyNiwyOTIuNjY3LDAsNDQ5LjUsMGwwLDANCgkJdjEwMS4wNTRsMCwwYy0xNTYuODMzLDAtMTU2LjgzMy01MC41MjctMzEzLjY2Ny01MC41MjdsMCwwQzU3LjQxNyw1MC41MjYsNTcuNDE3LDUwLjUyNi0yMSw1MC41MjYiLz4NCgk8cGF0aCBmaWxsPSIjRkZGRkZGIiBzdHJva2U9IiNGRkZGRkYiIGQ9Ik0tMjEsMjA0LjM1MWM3OC40MTcsMCw3OC40MTctNzMuMjM4LDE1Ni44MzMtNzMuMjM4bDAsMA0KCQljMTU2LjgzMywwLDE1Ni44MzMsNzMuMDA4LDMxMy42NjcsNzMuMDA4bDAsMHYwLjQ1NWwwLDBjLTE1Ni44MzMsMC0xNTYuODMzLDczLjAxMi0zMTMuNjY3LDczLjAxMmwwLDANCgkJQzU3LjQxNywyNzcuNTg4LDU3LjQxNywyMDQuMzUxLTIxLDIwNC4zNTEiLz4NCjwvZz4NCjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDg2MCwwKSI+DQo8L2c+DQo8ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSg4NjAsMjA4KSI+DQo8L2c+DQo8L3N2Zz4NCg=="
 
 	var resetButtonIconWidth = dim.topBarHeight - 10; // icon size for reset button
 	var downloadButtonIconWidth = dim.topBarHeight - 10; // icon size for download button
-	var timesweepButtonIconWidth = 50; // icon size for timesweep button
-	var clonalTrajButtonIconWidth = 60; // icon size for timesweep button
+	var timescapeButtonIconWidth = 50; // icon size for timescape button
+	var clonalTrajButtonIconWidth = 60; // icon size for timescape button
 
 	// SVG button
 	topBarSVG.append("rect")
@@ -164,7 +164,7 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	    })
 	    .on("click", function() {
 	        // download the svg
-	        downloadSVG("timesweep_" + view_id);
+	        downloadSVG("timescape_" + view_id);
 	    });
 	topBarSVG.append("text")
 	    .attr("class", "svgButtonText")
@@ -190,7 +190,7 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	    })
 	    .on("click", function() {
 	        // download the svg
-	        downloadSVG("timesweep_" + view_id);
+	        downloadSVG("timescape_" + view_id);
 	    });
 
 	// PNG button
@@ -211,7 +211,7 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	    })
 	    .on("click", function(){
 	        // download the png
-	        _downloadPNG("timesweep_" + view_id, "timesweep_" + view_id + ".png");
+	        _downloadPNG("timescape_" + view_id, "timescape_" + view_id + ".png");
 	    });
 	topBarSVG.append("text")
 	    .attr("class", "pngButtonText")
@@ -237,10 +237,10 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	    })
 	    .on("click", function() {
 	        // download the png
-	        _downloadPNG("timesweep_" + view_id, "timesweep_" + view_id + ".png");
+	        _downloadPNG("timescape_" + view_id, "timescape_" + view_id + ".png");
 	    });
 
-	// TimeSweep button
+	// TimeScape button
 	topBarSVG.append("rect")
 	    .attr("class", "tsButton")
 	    .attr("x", width - downloadButtonWidth*2 - resetButtonWidth)
@@ -262,12 +262,12 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	        
 	    });
 	topBarSVG.append("image")
-	    .attr("class", "timesweepIcon")
-	    .attr("xlink:href", timesweepButton_base64)
+	    .attr("class", "timescapeIcon")
+	    .attr("xlink:href", timescapeButton_base64)
 	    .attr("x", width - 2*downloadButtonWidth - resetButtonWidth + 5)
 	    .attr("y", -10)
-	    .attr("width", timesweepButtonIconWidth)
-	    .attr("height", timesweepButtonIconWidth)
+	    .attr("width", timescapeButtonIconWidth)
+	    .attr("height", timescapeButtonIconWidth)
 	    .on("mouseover", function() {
 	        d3.select("#" + view_id).select(".tsButton").attr("fill", dim.topBarHighlight);
 	    })
@@ -312,8 +312,8 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	            .attr("opacity", 0)
 	            .attr("pointer-events", "none");
 
-	        // turn on timesweep icon opacity & pointer events
-	        d3.select("#" + view_id).select(".timesweepIcon")
+	        // turn on timescape icon opacity & pointer events
+	        d3.select("#" + view_id).select(".timescapeIcon")
 	            .attr("opacity", 1)
 	            .attr("pointer-events", "auto");
 
@@ -362,7 +362,7 @@ function _run_timesweep(view_id, width, height, userConfig) {
 
 	var canvasSVG = canvasDIV
 	    .append("svg:svg")  
-	    .attr("class", "timesweep_" + view_id)     
+	    .attr("class", "timescape_" + view_id)     
 	    .attr("x", 0)
 	    .attr("y", 0) 
 	    .attr("width", dim.canvasSVGWidth) 
@@ -392,7 +392,7 @@ function _run_timesweep(view_id, width, height, userConfig) {
 
 	var tsTree = canvasSVG
 	    .append("g") 
-	    .attr("class", "tsTreeSVG")// move the tree SVG in the x-direction past timesweep
+	    .attr("class", "tsTreeSVG")// move the tree SVG in the x-direction past timescape
 	    .attr("transform", "translate(" + (dim.yAxisWidth + dim.smallMargin + dim.tsSVGWidth + dim.paddingGeneral) + 
 	        "," + dim.paddingGeneral + ")");
 
@@ -443,7 +443,7 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	// convert time-centric cellular prevalence data into genotype-centric cellular prevalence data
 	_getGenotypeCPData(curVizObj);
 
-	// get the layout of the traditional timesweep
+	// get the layout of the traditional timescape
 	_getLayout(curVizObj);
 
 	// get paths for plotting
@@ -463,7 +463,7 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	    .html(function(d) {
 	        return "<span>" + d + "</span>";
 	    });  
-	d3.select("#" + view_id).select(".timesweep_" + view_id).call(nodeTip);
+	d3.select("#" + view_id).select(".timescape_" + view_id).call(nodeTip);
 
 	// get colour scheme
 	_getPhyloColours(curVizObj);
@@ -473,7 +473,7 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	// colour paths
 	_colourPaths(curVizObj);
 
-	// plot light grey timesweep background
+	// plot light grey timescape background
 	curVizObj.view.tsSVG
 	    .append("rect")
 	    .attr("x", 0)
@@ -482,7 +482,7 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	    .attr("width", dim.tsSVGWidth)
 	    .attr("fill", "#F7F7F7");
 
-	// plot timesweep data
+	// plot timescape data
 	curVizObj.view.tsSVG
 		.append("g")
 		.attr("class", "tsPlotG traditional") // start with traditional plot
@@ -500,13 +500,13 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	        return d.stroke;
 	    })
 	    .on('mouseover', function(d) {
-	        if (!dim.selectOn && !dim.mutSelectOn && _checkForCnvTreeSelections(view_id)) {
+	        if (!dim.selectOn && !dim.mutSelectOn && _checkForCellScapeSelections(view_id)) {
 	        	_tsMouseoverGenotype(d.gtype, curVizObj.view_id);
 	        	_showLabels(d.gtype, curVizObj.view_id);
 	        }
 	    })
 	    .on('mouseout', function(d) {
-	        if (!dim.selectOn && !dim.mutSelectOn && _checkForCnvTreeSelections(view_id)) {
+	        if (!dim.selectOn && !dim.mutSelectOn && _checkForCellScapeSelections(view_id)) {
 	        	_tsMouseoutGenotype(curVizObj.view_id);
 	        	_hideLabels(curVizObj.view_id);
 	        }
@@ -532,7 +532,7 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	    .attr('font-size', '11px')
 	    .text(function(d) { return d.pert_name; })
 	    .on('mouseover', function(d) {
-	        if (!dim.selectOn && _checkForCnvTreeSelections(view_id)) {
+	        if (!dim.selectOn && _checkForCellScapeSelections(view_id)) {
 	            // plot guide
 	            curVizObj.view.tsSVG
 	                .append('line')
@@ -553,7 +553,7 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	        }
 	    })
 	    .on('mouseout', function(d) {
-	        if (!dim.selectOn && _checkForCnvTreeSelections(view_id)) {
+	        if (!dim.selectOn && _checkForCellScapeSelections(view_id)) {
 	            d3.select("#" + curVizObj.view_id)
 	                .selectAll(".pertGuide.pert_" + d.pert_name).remove();
 	        }
@@ -603,7 +603,7 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	        return tp;
 	    })
 	    .on('mouseover', function(d, i) {
-	        if (!dim.selectOn && _checkForCnvTreeSelections(view_id)) {
+	        if (!dim.selectOn && _checkForCellScapeSelections(view_id)) {
 	        	// highlight timepoint guide
 	        	_hlTpGuide(view_id, d);
 
@@ -614,7 +614,7 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	        }
 	    })
 	    .on('mouseout', function(d) {
-	        if (!dim.selectOn && _checkForCnvTreeSelections(view_id)) {
+	        if (!dim.selectOn && _checkForCellScapeSelections(view_id)) {
 	            // hide timepoint guide
 	        	_hideTpGuides(view_id);
 
@@ -721,7 +721,7 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	    .attr("d", _elbow)
 	    .on("mouseover", function(d) {
 	        // we're not selecting nodes or mutations
-	        if (!dim.selectOn && !dim.mutSelectOn && _checkForCnvTreeSelections(view_id)) {
+	        if (!dim.selectOn && !dim.mutSelectOn && _checkForCellScapeSelections(view_id)) {
 
 	            // inactivate all genotypes 
 	            _tsInactivateGenotypes(curVizObj.view_id);
@@ -732,7 +732,7 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	    })
 	    .on("mouseout", function() {
 	        // we're not selecting nodes or mutations
-	        if (!dim.selectOn && !dim.mutSelectOn && _checkForCnvTreeSelections(view_id)) {
+	        if (!dim.selectOn && !dim.mutSelectOn && _checkForCellScapeSelections(view_id)) {
 	            _tsMouseoutGenotype(curVizObj.view_id);
 	        }
 	    }); 
@@ -769,7 +769,7 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	                .attr('stroke', function(d) { return colour_assignment[d.id]; });
 	        }
 	        // we're not selecting nodes or mutations - highlight genotype
-	        if (!dim.selectOn && !dim.mutSelectOn && _checkForCnvTreeSelections(view_id)) {
+	        if (!dim.selectOn && !dim.mutSelectOn && _checkForCellScapeSelections(view_id)) {
 	            _tsMouseoverGenotype(d.id, curVizObj.view_id);
 	            _showLabels(d.id, curVizObj.view_id);
 	        }
@@ -795,7 +795,7 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	                });
 	        }
 	        // we're not selecting nodes or mutations - mouseout as normal
-	        if (!dim.selectOn && !dim.mutSelectOn && _checkForCnvTreeSelections(view_id)) {
+	        if (!dim.selectOn && !dim.mutSelectOn && _checkForCellScapeSelections(view_id)) {
 	        	_tsMouseoutGenotype(curVizObj.view_id);
    	 			_hideLabels(curVizObj.view_id);
 	        }
@@ -876,9 +876,9 @@ function _run_timesweep(view_id, width, height, userConfig) {
 
 	/* function to check for single cell viewer selections
 	*/
-	function _checkForCnvTreeSelections(view_id) {
-		return (typeof _checkForSelections !== "function" || // if no cnvTree, return true
-        		(typeof _checkForSelections === "function" && _checkForSelections(curVizObj.view_id))); // if cnvTree, check for its selections
+	function _checkForCellScapeSelections(view_id) {
+		return (typeof _checkForSelections !== "function" || // if no cellScape, return true
+        		(typeof _checkForSelections === "function" && _checkForSelections(curVizObj.view_id))); // if cellScape, check for its selections
 	}
 
 	/* function for genotype mouseover
@@ -1014,7 +1014,7 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	    d3.select("#" + curVizObj.view_id).selectAll(".labelCirc, .sepLabelCirc")
 	        .attr('fill-opacity', 0);
 
-	    // transition to tracks timesweep view
+	    // transition to tracks timescape view
 	    if (d3.select("#" + curVizObj.view_id).select(".tsPlotG").classed("traditional")) {
 	        var sweeps = curVizObj.view.tsSVG
 	            .selectAll('.tsPlot')
@@ -1038,7 +1038,7 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	        // switch class to "tracks"
 	        d3.select("#" + curVizObj.view_id).select(".tsPlotG").classed("traditional", false).classed("tracks", true);
 	    }
-	    // transition to traditional timesweep view
+	    // transition to traditional timescape view
 	    else {
 	        var sweeps = curVizObj.view.tsSVG
 	        	.select(".tsPlotG")
@@ -1067,13 +1067,13 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	            .attr('fill', function(d) { return d.fill; }) 
 	            .attr('stroke', function(d) { return d.stroke; })
 	            .on('mouseover', function(d) {
-	                if (!dim.selectOn && !dim.mutSelectOn && _checkForCnvTreeSelections(view_id)) {
+	                if (!dim.selectOn && !dim.mutSelectOn && _checkForCellScapeSelections(view_id)) {
 	                	_tsMouseoverGenotype(d.gtype, curVizObj.view_id);
 	                	_showLabels(d.gtype, curVizObj.view_id);
 	                }
 	            })
 	            .on('mouseout', function(d) {
-	                if (!dim.selectOn && !dim.mutSelectOn && _checkForCnvTreeSelections(view_id)) {
+	                if (!dim.selectOn && !dim.mutSelectOn && _checkForCellScapeSelections(view_id)) {
 	                    _tsMouseoutGenotype(curVizObj.view_id);
    	 					_hideLabels(curVizObj.view_id);
 	                }
@@ -1625,7 +1625,7 @@ function _run_timesweep(view_id, width, height, userConfig) {
 
 	// LAYOUT FUNCTIONS
 
-	/* function to get the layout of the timesweep, different depending on whether user wants centred,
+	/* function to get the layout of the timescape, different depending on whether user wants centred,
 	* stacked or spaced view
 	* @param {Object} curVizObj
 	*/
@@ -1676,7 +1676,7 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	* stacking order of the genotypes
 	* -- ensures that the *later* children emerge, the *closer* they are to the top of the parent sweep
 	* @param {Object} dim -- general configurations of the visualization
-	* @param {Object} timesweep_data -- timesweep data
+	* @param {Object} timescape_data -- timescape data
 	* @param {Array} emergence_values -- values of genotype emergence
 	* @param {Array} emergence_tps -- timepoints of genotype emergence
 	* @param {Array} timepoints -- timepoints in dataset
@@ -1728,7 +1728,7 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	}
 
 	/*
-	* function to get the layout of the timesweep
+	* function to get the layout of the timescape
 	* -- ensures that the *later* children emerge, the *closer* they are to the top of the parent sweep
 	* @param {Object} curVizObj
 	* @param {Object} curNode -- current key in the tree
@@ -2049,7 +2049,7 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	    };
 	}
 
-	/* function to calculate effective cellular prevalence and width of each genotype in the timesweep
+	/* function to calculate effective cellular prevalence and width of each genotype in the timescape
 	*
 	* note: - effective cellular prevalence -- will correspond to the interval width in the stacked layout
 	*       - "effective" because: 
@@ -2220,7 +2220,7 @@ function _run_timesweep(view_id, width, height, userConfig) {
 
 	// LABELS FUNCTIONS
 
-	/* function to get cellular prevalence labels for each genotype at each time point, for traditional timesweep view
+	/* function to get cellular prevalence labels for each genotype at each time point, for traditional timescape view
 	* @param {Object} curVizObj
 	*/
 	function _getTraditionalCPLabels(curVizObj) {
@@ -2292,7 +2292,7 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	    return labels;
 	}
 
-	/* function to get cellular prevalence lables for each genotype at each time point, for tracks timesweep view
+	/* function to get cellular prevalence lables for each genotype at each time point, for tracks timescape view
 	* @param {Object} curVizObj
 	*/
 	function _getSeparateCPLabels(curVizObj) {
@@ -2375,7 +2375,7 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	}
 
 	/* function to convert genotype stacks at each time point into a list of moves for each genotype's d3 path object 
-	* (traditional timesweep view)
+	* (traditional timescape view)
 	* Note: the appearance timepoint is the time at which the genotype appears in the dataset
 	*       the emergence timepoint is the time at which the genotype must have emerged (appearance timepoint - 1)
 	* @param {Object} curVizObj
@@ -2566,7 +2566,7 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	}
 
 	/* function to convert genotype stacks at each time point into a list of moves for each genotype's d3 path object 
-	* (tracks timesweep view)
+	* (tracks timescape view)
 	* Note: the appearance timepoint is the time at which the genotype appears in the dataset
 	*       the emergence timepoint is the time at which the genotype must have emerged (appearance timepoint - 1)
 	* @param {Object} curVizObj
@@ -2610,7 +2610,7 @@ function _run_timesweep(view_id, width, height, userConfig) {
 
 	        if (Object.keys(largest_cps).indexOf(gtype) != -1) {
 
-	            // scaled midpoint for this genotype's timesweep band
+	            // scaled midpoint for this genotype's timescape band
 	            scaled_midpoint = (largest_cps[gtype] / denominator)/2 + sHeight;
 	            scaled_midpoint += ((seenGTypes.length)/(Object.keys(largest_cps).length+1)) * full_padding/denominator;
 
@@ -2674,12 +2674,12 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	}
 
 
-	/* function to calculate and return a path representing a horizontal line through the centre of the timesweep svg 
+	/* function to calculate and return a path representing a horizontal line through the centre of the timescape svg 
 	* @param {Object} curVizObj
 	*/
 	function _centreLine(curVizObj) {
-	    var tsSVGWidth = curVizObj.generalConfig.tsSVGWidth, // timesweep svg width
-	        tsSVGHeight = curVizObj.generalConfig.tsSVGHeight; // timesweep svg height
+	    var tsSVGWidth = curVizObj.generalConfig.tsSVGWidth, // timescape svg width
+	        tsSVGHeight = curVizObj.generalConfig.tsSVGHeight; // timescape svg height
 
 	    return "M 0 " + tsSVGHeight/2 + " L " + tsSVGWidth + " " + tsSVGHeight/2 + " L 0 " + tsSVGHeight/2;
 	}
@@ -2704,7 +2704,7 @@ function _run_timesweep(view_id, width, height, userConfig) {
 	            p0,
 	            p1;
 
-	        // for an exit situation, the path to move to is a line in the centre of the timesweep svg
+	        // for an exit situation, the path to move to is a line in the centre of the timescape svg
 	        dest_path = (type == "move") ? this.__data__.path : _centreLine(curVizObj); 
 	        path0 = this;
 	        path1 = path0.cloneNode();
@@ -2729,8 +2729,8 @@ function _run_timesweep(view_id, width, height, userConfig) {
 
 	/* function to convert straight paths for each genotype to bezier curve paths
 	* @param {Object} paths -- straight path for each genotype
-	* @param {Number} tsSVGWidth -- width of the timesweep svg
-	* @param {Number} tsSVGHeight -- height of the timesweep svg
+	* @param {Number} tsSVGWidth -- width of the timescape svg
+	* @param {Number} tsSVGHeight -- height of the timescape svg
 	*/
 	function _getBezierPaths(paths, tsSVGWidth, tsSVGHeight) {
 
@@ -3225,7 +3225,7 @@ function _run_timesweep(view_id, width, height, userConfig) {
 								  	curVizObj.vafTips.push(curTip);
 
 								  	// invoke the tip in the context of this visualization
-								  	d3.select("#" + view_id).select(".timesweep_" + view_id).call(curTip);
+								  	d3.select("#" + view_id).select(".timescape_" + view_id).call(curTip);
 
 								  	// show tooltip
 								  	var rounded_VAF = (Math.round(prev.VAF*100)/100).toFixed(2);

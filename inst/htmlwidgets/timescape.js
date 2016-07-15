@@ -1,6 +1,6 @@
 HTMLWidgets.widget({
 
-  name: 'timesweep',
+  name: 'timescape',
 
   type: 'output',
 
@@ -20,7 +20,7 @@ HTMLWidgets.widget({
 
   renderValue: function(el, x, instance) {
 
-    _run_timesweep(el.id, vizObj.cur_width, vizObj.cur_height, x, true);
+    _run_timescape(el.id, vizObj.cur_width, vizObj.cur_height, x, true);
 
   },
 

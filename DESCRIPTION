@@ -1,8 +1,8 @@
-Package: timesweep
-Title: Patient Clonal Timesweeps
+Package: timescape
+Title: Patient Clonal Timescapes
 Version: 0.0.4.9034
 Authors@R: person("Maia", "Smith", email = "maiaannesmith@gmail.com", role = c("aut", "cre"))
-Description: What the package does (one paragraph).
+Description: Visualizes clonal evolution over time.
 Depends:
     R (>= 3.2.2)
 Imports:

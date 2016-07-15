@@ -1,0 +1,89 @@
+
+.tsPlot.inactive {
+  fill: #E4E4E4;
+  stroke: #B7B7B7;
+}
+
+.legendTreeNode.inactive {
+  fill: #FFFFFF;
+  stroke: #D3D3D3;
+}
+
+.legendTreeNode.gtype_phantomRoot {
+  pointer-events: none;
+  fill-opacity: 0;
+  stroke-opacity: 0;
+}
+
+.geneTableDIV {
+    overflow: scroll;
+}
+
+td, tr, th {
+    font-family: Arial;
+}
+
+.dataTables_info {
+    font-family: Arial;    
+    color: '#9E9A9A';
+}
+label {
+    font-family: Arial;
+}
+
+.mutationTableDIV .dataTable thead th {
+    font-weight: normal;
+}
+table {
+    table-layout: fixed
+}
+
+td {
+    word-wrap: break-word
+}
+
+/* to left-align column headers in mutation table */
+.sorting {
+  text-align: left
+}
+.sorting_asc {
+  text-align: left
+}
+.sorting_desc {
+  text-align: left
+}
+.sorting_disabled {
+  text-align: left
+}
+
+/* TOOLTIP */
+
+/* base */
+.d3-tip {
+  line-height: 1;
+  font-family: Arial;
+  padding: 12px;
+  background: #7C7C7C;
+  color: #fff;
+  border-radius: 2px;
+}
+
+/* Creates a small triangle extender for the tooltip */
+.d3-tip:after {
+  box-sizing: border-box;
+  display: inline;
+  font-size: 10px;
+  width: 100%;
+  line-height: 1;
+  color: #7C7C7C;
+  content: "\25BC";
+  position: absolute;
+  text-align: center;
+}
+
+/* Style northward tooltips differently */
+.d3-tip.n:after {
+  margin: -1px 0 0 0;
+  top: 100%;
+  left: 0;
+}

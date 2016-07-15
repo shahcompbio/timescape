@@ -1,6 +1,6 @@
-#' Timesweeps
+#' Timecapes
 #'
-#' \code{timesweep} generates patient clonal timesweeps.
+#' \code{timescape} generates patient clonal timescapes.
 #'
 #' @param clonal_prev {Data Frame} Clonal prevalence. Note: timepoints will be alphanumerically sorted in the view.
 #'   Format: columns are (1) {String} "timepoint" - time point
@@ -39,7 +39,7 @@
 #' @param height {Number} (Optional) Height of the plot. Minimum height with and without mutations is 500 and 260, respectively. 
 #' @export
 #' @examples
-#' library("timesweep")
+#' library("timescape")
 #' clonal_prev <- data.frame( timepoint = c(rep("T1", 6), rep("T2", 6)), 
 #'                            clone_id = c("1","6","5","4","3","2","1","6","5","4","3","2"),
 #'                            clonal_prev = c("0.0205127","0.284957","0.637239","0.0477972","0.00404099","0.00545235",
@@ -51,8 +51,8 @@
 #' perturbations <- data.frame( pert_name = c("Chemo"), 
 #'                              prev_tp = c("T1"),
 #'                               frac = c(0.1))
-#' timesweep(clonal_prev = clonal_prev, tree_edges = tree_edges, clone_colours = clone_colours, perturbations = perturbations)
-timesweep <- function(clonal_prev, 
+#' timescape(clonal_prev = clonal_prev, tree_edges = tree_edges, clone_colours = clone_colours, perturbations = perturbations, height=400)
+timescape <- function(clonal_prev, 
                       tree_edges, 
                       mutations = "NA",
                       clone_colours = "NA", 
@@ -85,28 +85,28 @@ timesweep <- function(clonal_prev,
 
   # create widget
   htmlwidgets::createWidget(
-    name = "timesweep",
+    name = "timescape",
     x,
     width = width,
     height = height,
-    package = "timesweep"
+    package = "timescape"
   )
 }
 
 #' Widget output function for use in Shiny
 #'
 #' @export
-timesweepOutput <- function(outputId, width = "100%", height = "400px"){
-  htmlwidgets::shinyWidgetOutput(outputId, "timesweep", width, height, 
-                                 package = "timesweep")
+timescapeOutput <- function(outputId, width = "100%", height = "400px"){
+  htmlwidgets::shinyWidgetOutput(outputId, "timescape", width, height, 
+                                 package = "timescape")
 }
 
 #' Widget render function for use in Shiny
 #'
 #' @export
-renderTimesweep <- function(expr, env = parent.frame(), quoted = FALSE) {
+renderTimescape <- function(expr, env = parent.frame(), quoted = FALSE) {
   if (!quoted) { expr <- substitute(expr) } # force quoted
-  htmlwidgets::shinyRenderWidget(expr, timesweepOutput, env, quoted = TRUE)
+  htmlwidgets::shinyRenderWidget(expr, timescapeOutput, env, quoted = TRUE)
 }
 
 #' Function to process the user data

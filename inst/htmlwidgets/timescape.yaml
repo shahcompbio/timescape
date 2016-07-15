@@ -24,11 +24,11 @@ dependencies:
    src: "htmlwidgets/lib"
    script: jquery.dataTables.min.js
    stylesheet: jquery.dataTables.min.css
- - name: run_timesweep
+ - name: run_timescape
    version: 0.0.1
    src: "htmlwidgets/lib"
-   script: run_timesweep.js
-   stylesheet: timesweep.css
+   script: run_timescape.js
+   stylesheet: timescape.css
  - name: my_svg_crowbar
    version: 0.0.0
    src: "htmlwidgets/lib"
