@@ -2,7 +2,7 @@
 % Please edit documentation in R/timescape.R
 \name{timescape}
 \alias{timescape}
-\title{Timecape}
+\title{TimeScape}
 \usage{
 timescape(clonal_prev, tree_edges, mutations = "NA", clone_colours = "NA",
   xaxis_title = "Time Point", yaxis_title = "Clonal Prevalence",
