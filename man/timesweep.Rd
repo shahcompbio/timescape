@@ -6,11 +6,12 @@
 \usage{
 timesweep(clonal_prev, tree_edges, mutations = "NA", clone_colours = "NA",
   xaxis_title = "Time Point", yaxis_title = "Clonal Prevalence",
-  alpha = 50, genotype_position = "stack", perturbations = "NA",
-  sort = FALSE, width = 900, height = NULL)
+  phylogeny_title = "Clonal Phylogeny", alpha = 50,
+  genotype_position = "stack", perturbations = "NA", sort = FALSE,
+  show_warnings = TRUE, width = 900, height = NULL)
 }
 \arguments{
-\item{clonal_prev}{{Data Frame} Clonal prevalence.
+\item{clonal_prev}{{Data Frame} Clonal prevalence. Note: timepoints will be alphanumerically sorted in the view.
 Format: columns are (1) {String} "timepoint" - time point
                     (2) {String} "clone_id" - clone id
                     (3) {Number} "clonal_prev" - clonal prevalence.}
@@ -19,24 +20,22 @@ Format: columns are (1) {String} "timepoint" - time point
 Format: columns are (1) {String} "source" - source node id
                     (2) {String} "target" - target node id.}
 
-\item{mutations}{{Data Frame} (Optional) Mutations occurring at each clone.
+\item{mutations}{{Data Frame} (Optional) Mutations occurring at each clone. Any additional field will be shown in the mutation table.
 Format: columns are (1) {String} "chrom" - chromosome number
                     (2) {Number} "coord" - coordinate of mutation on chromosome
                     (3) {String} "clone_id" - clone id
                     (4) {String} "timepoint" - time point
-                    (5) {Number} "VAF" - variant allele frequency of the mutation in the corresponding sample
-                    (6) {String} (Optional) "gene_name" - name of the affected gene (can be "" if none affected).
-                    (7) {String} (Optional) "effect" - effect of the mutation 
-                                                       (e.g. non-synonymous, upstream, etc.)
-                    (8) {String} (Optional) "impact" - impact of the mutation (e.g. low, moderate, high).}
+                    (5) {Number} "VAF" - variant allele frequency of the mutation in the corresponding sample.}
 
 \item{clone_colours}{{Data Frame} (Optional) Clone ids and their corresponding colours 
 Format: columns are (1) {String} "clone_id" - the clone ids
                     (2) {String} "colour" - the corresponding Hex colour for each clone id.}
 
-\item{xaxis_title}{{String} (Optional) x-axis title.}
+\item{xaxis_title}{{String} (Optional) x-axis title. Default is "Time Point".}
 
-\item{yaxis_title}{{String} (Optional) y-axis title.}
+\item{yaxis_title}{{String} (Optional) y-axis title. Default is "Clonal Prevalence".}
+
+\item{phylogeny_title}{{String} (Optional) Legend phylogeny title. Default is "Clonal Phylogeny".}
 
 \item{alpha}{{Number} (Optional) Alpha value for sweeps, range [0, 100].}
 
@@ -54,6 +53,8 @@ Format: columns are (1) {String} "pert_name" - the perturbation name
                                           time of perturbation, range [0, 1].}
 
 \item{sort}{{Boolean} (Optional) Whether (TRUE) or not (FALSE) to vertically sort the genotypes by their emergence values (descending).}
+
+\item{show_warnings}{{Boolean} (Optional) Whether or not to show any warnings. Default is TRUE.}
 
 \item{width}{{Number} (Optional) Width of the plot. Minimum width is 450.}
 
