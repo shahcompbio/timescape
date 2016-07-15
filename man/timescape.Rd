@@ -65,17 +65,23 @@ Format: columns are (1) {String} "pert_name" - the perturbation name
 }
 \examples{
 library("timescape")
+
+# clonal prevalences
 clonal_prev <- data.frame( timepoint = c(rep("T1", 6), rep("T2", 6)), 
                            clone_id = c("1","6","5","4","3","2","1","6","5","4","3","2"),
                            clonal_prev = c("0.0205127","0.284957","0.637239","0.0477972","0.00404099","0.00545235",
                                            "0.0134362","0.00000150677","0.00000385311","0.000627522","0.551521","0.43441"))
+# genotype tree edges
 tree_edges <- data.frame(source = c("1","1","6","5","3"), 
                          target = c("3","6","5","4","2"))
+# clone colours
 clone_colours <- data.frame( clone_id = c("1","2","3","4","5","6"), 
                              colour = c("F8766D66", "B79F0066", "00BA3866", "00BFC466", "619CFF66", "F564E366"))
+# perturbations (chemotherapy)
 perturbations <- data.frame( pert_name = c("Chemo"), 
                              prev_tp = c("T1"),
                               frac = c(0.1))
+# run timescape
 timescape(clonal_prev = clonal_prev, tree_edges = tree_edges, clone_colours = clone_colours, perturbations = perturbations, height=400)
 }
 
