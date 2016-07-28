@@ -1771,7 +1771,7 @@ function _run_timescape(view_id, width, height, userConfig) {
 	    if (cur_cp || (_getIntersection(curDescendants, gTypes_curTP).length > 0) || disappears) {
 
 	        // if this genotype emerged at the previous time point
-	        if (emerged) {
+	        if (emerged && gtype != curVizObj.generalConfig.phantomRoot) {
 
 	            layout[prev_tp][gtype] = {
 	                "width": 0,
