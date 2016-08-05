@@ -328,6 +328,11 @@ checkTreeEdges <- function(tree_edges) {
       ") - tree must have only one root.",sep=""))
   }
 
+  # if an edge is found whose source and target are equal, throw an error
+  if (length(which(as.character(tree_edges$source) == as.character(tree_edges$target))) > 0) {
+    stop("One of the tree edges has a source as its own target. Remove this edge.")
+  }
+
   return(tree_edges)
 }
 
