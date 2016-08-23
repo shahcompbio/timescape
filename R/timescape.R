@@ -412,27 +412,8 @@ getMutationsData <- function(mutations, tree_edges, clonal_prev) {
     mutations$VAF <- as.numeric(as.character(mutations$VAF))
 
     # check for optional info, and ensure data of correct type
-    extra_columns <- vector()
-    if ("gene_name" %in% colnames(mutations)) {
-      extra_columns <- append(extra_columns, "gene_name")
-      mutations$gene_name <- as.character(mutations$gene_name)
-    }
-    if ("effect" %in% colnames(mutations)) {
-      extra_columns <- append(extra_columns, "effect")
-      mutations$effect <- as.character(mutations$effect)
-    }
-    if ("impact" %in% colnames(mutations)) {
-      extra_columns <- append(extra_columns, "impact")
-      mutations$impact <- as.character(mutations$impact)
-    }
-    if ("nuc_change" %in% colnames(mutations)) {
-      extra_columns <- append(extra_columns, "nuc_change")
-      mutations$nuc_change <- as.character(mutations$nuc_change)
-    }
-    if ("aa_change" %in% colnames(mutations)) {
-      extra_columns <- append(extra_columns, "aa_change")
-      mutations$aa_change <- as.character(mutations$aa_change)
-    }
+    extra_columns <- colnames(mutations)[which(!(colnames(mutations) %in% c("chrom", "coord", "clone_id", "timepoint", "VAF")))]
+    mutations <- data.frame(lapply(mutations, as.character), stringsAsFactors=FALSE)
 
     # check that all CLONE IDS in the mutations data are present in the tree data
     mutations_clone_ids <- unique(mutations$clone_id)
