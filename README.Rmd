@@ -17,3 +17,5 @@ example(timescape)
 And the following visualization will appear in your browser:
 
 ![](timescape_htmlwidget-2699.png)
+
+TimeScape was developed at the Shah Lab for Computational Cancer Biology at the BC Cancer Research Centre.
