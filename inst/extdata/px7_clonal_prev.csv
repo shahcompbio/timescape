@@ -1,0 +1,16 @@
+"timepoint","clone_id","clonal_prev"
+"Intraperitoneal diagnosis","A",0.373216643888889
+"Intraperitoneal diagnosis","B",0.00716678477777778
+"Intraperitoneal diagnosis","C",0.257066046888889
+"Intraperitoneal diagnosis","D",0.110664558888889
+"Intraperitoneal diagnosis","E",0.251885965555556
+"Brain metastasis","A",0.006572384
+"Brain metastasis","B",0.9921413085
+"Brain metastasis","C",0.0005942835
+"Brain metastasis","D",0.0003941405
+"Brain metastasis","E",0.0002978835
+"Intraperitoneal relapse","A",0.0076715625
+"Intraperitoneal relapse","B",0.001265568
+"Intraperitoneal relapse","C",0.173683007
+"Intraperitoneal relapse","D",0.816228826
+"Intraperitoneal relapse","E",0.001151036
