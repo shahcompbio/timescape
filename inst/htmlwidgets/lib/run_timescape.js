@@ -778,22 +778,6 @@ function _run_timescape(view_id, width, height, userConfig) {
 	        // hide node genotype
 	        nodeTip.hide();
 
-	        // if we're selecting nodes, but we haven't clicked this one yet
-	        if ((dim.nClickedNodes > 0) && (_.uniq(dim.curCloneIDs).indexOf(d.id) == -1)) {
-	            // unhighlight this node in the legend TODO
-	            d3.select(this)
-	                .attr('fill', function(d) { 
-	                    col = alpha_colour_assignment[d.id];
-	                    brightness = Math.round(_get_brightness(col));
-	                    return (d.id == dim.phantomRoot) ? 
-	                        "none" : _rgb2hex("rgb(" + brightness + "," + brightness + "," + brightness + ")");
-	                })
-	                .attr('stroke', function(d) { 
-	                    brightness = Math.round(_get_brightness(colour_assignment[d.id]));
-	                    return (d.id == dim.phantomRoot) ? 
-	                        "none" : _rgb2hex("rgb(" + brightness + "," + brightness + "," + brightness + ")");
-	                });
-	        }
 	        // we're not selecting nodes or mutations - mouseout as normal
 	        if (!dim.selectOn && !dim.mutSelectOn && _checkForCellScapeSelections(view_id)) {
 	        	_tsMouseoutGenotype(curVizObj.view_id);
