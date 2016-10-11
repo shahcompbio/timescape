@@ -260,7 +260,9 @@ function _run_timescape(view_id, width, height, userConfig) {
 	        // change view
 	        _sweepClick(curVizObj);
 	        
-	    });
+	    })
+	    .append("title")
+        .text("View Switch");
 	topBarSVG.append("image")
 	    .attr("class", "timescapeIcon")
 	    .attr("xlink:href", timescapeButton_base64)
@@ -288,7 +290,9 @@ function _run_timescape(view_id, width, height, userConfig) {
 	        d3.select("#" + view_id).select(".clonalTrajIcon")
 	            .attr("opacity", 1)
 	            .attr("pointer-events", "auto");
-	    });
+	    })
+	    .append("title")
+        .text("View Switch");
 	topBarSVG.append("image")
 	    .attr("class", "clonalTrajIcon")
 	    .attr("xlink:href", clonalTrajButton_base64)
@@ -317,7 +321,9 @@ function _run_timescape(view_id, width, height, userConfig) {
 	            .attr("opacity", 1)
 	            .attr("pointer-events", "auto");
 
-	    });
+	    })
+	    .append("title")
+        .text("View Switch");
 
 	// reset button (only if mutations are provided)
 	if (curVizObj.userConfig.mutations_provided) {
