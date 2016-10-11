@@ -63,7 +63,14 @@ Note that genotype sorting will always retain the phylogenetic hierarchy, and th
 \item{height}{{Number} (Optional) Height of the plot. Minimum height with and without mutations is 500 and 260, respectively.}
 }
 \description{
-\code{timescape} generates patient clonal timescapes.
+\code{timescape} is a tool for visualizing temporal clonal evolution data.
+}
+\details{
+Interactive components: \cr
+
+1. Mouseover any clone to view its (i) clone ID and (ii) clonal prevalence at each time point. \cr
+2. Click the view switch button to switch from the traditional timescape view to the clonal trajectory view, where each clone changes prevalence on its own track. \cr
+3. Click the download buttons to download a PNG or SVG of the view. \cr
 }
 \examples{
 library("timescape")

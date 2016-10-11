@@ -1,6 +1,12 @@
 #' TimeScape
 #'
-#' \code{timescape} generates patient clonal timescapes.
+#' \code{timescape} is a tool for visualizing temporal clonal evolution data.
+#'
+#' Interactive components: \cr
+#'
+#' 1. Mouseover any clone to view its (i) clone ID and (ii) clonal prevalence at each time point. \cr
+#' 2. Click the view switch button to switch from the traditional timescape view to the clonal trajectory view, where each clone changes prevalence on its own track. \cr
+#' 3. Click the download buttons to download a PNG or SVG of the view. \cr
 #'
 #' @param clonal_prev {Data Frame} Clonal prevalence. Note: timepoints will be alphanumerically sorted in the view.
 #'   Format: columns are (1) {String} "timepoint" - time point
