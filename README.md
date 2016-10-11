@@ -19,6 +19,10 @@ The second visualization is of the metastatic ovarian cancer patient 7 from McPh
 
 ![](px7_timescape.png)
 
+To view the documentation for TimeScape, type the following command in R:
+
+?timescape
+
 TimeScape was developed at the Shah Lab for Computational Cancer Biology at the BC Cancer Research Centre.
 
 References:
