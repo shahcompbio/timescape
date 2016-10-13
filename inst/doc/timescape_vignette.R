@@ -22,7 +22,7 @@ perturbations <- data.frame( pert_name = c("Chemotherapy"),
                              prev_tp = c("Diagnosis"),
                               frac = c(0.1))
 # run timescape
-timescape(clonal_prev = clonal_prev, tree_edges = tree_edges, perturbations = perturbations, mutations = mutations)
+timescape(clonal_prev = clonal_prev, tree_edges = tree_edges, perturbations = perturbations)
 
 ## ---- echo=FALSE---------------------------------------------------------
 # EXAMPLE 2 - Patient 7, McPherson and Roth et al., 2016
