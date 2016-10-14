@@ -6,8 +6,9 @@
 #  example(timescape) # to run example
 
 ## ---- echo=FALSE---------------------------------------------------------
-library(devtools)
-library(timescape)
+library(devtools)  
+install_bitbucket("MO_BCCRC/timescape")  
+library(timescape)  
 
 ## ---- echo=FALSE---------------------------------------------------------
 # EXAMPLE 1 - Acute myeloid leukemia patient, Ding et al., 2012
