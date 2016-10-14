@@ -12,4 +12,8 @@ checkAlpha(alpha)
 \description{
 check alpha value input is correct
 }
+\examples{
+checkAlpha(4)
+checkAlpha(100)
+}
 

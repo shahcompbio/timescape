@@ -8,6 +8,58 @@ processUserData(clonal_prev, tree_edges, mutations, clone_colours, xaxis_title,
   yaxis_title, phylogeny_title, alpha, genotype_position, perturbations, sort,
   show_warnings, width, height)
 }
+\arguments{
+\item{clonal_prev}{-- data frame of Clonal prevalence. Note: timepoints will be alphanumerically sorted in the view.
+Format: columns are (1) {String} "timepoint" - time point
+                    (2) {String} "clone_id" - clone id
+                    (3) {Number} "clonal_prev" - clonal prevalence.}
+
+\item{tree_edges}{-- data frame of Tree edges of a rooted tree.
+Format: columns are (1) {String} "source" - source node id
+                    (2) {String} "target" - target node id.}
+
+\item{mutations}{-- data frame (Optional) of Mutations occurring at each clone. Any additional field will be shown in the mutation table.
+Format: columns are (1) {String} "chrom" - chromosome number
+                    (2) {Number} "coord" - coordinate of mutation on chromosome
+                    (3) {String} "clone_id" - clone id
+                    (4) {String} "timepoint" - time point
+                    (5) {Number} "VAF" - variant allele frequency of the mutation in the corresponding timepoint.}
+
+\item{clone_colours}{-- data frame (Optional) of Clone ids and their corresponding colours 
+Format: columns are (1) {String} "clone_id" - the clone ids
+                    (2) {String} "colour" - the corresponding Hex colour for each clone id.}
+
+\item{xaxis_title}{-- String (Optional) of x-axis title. Default is "Time Point".}
+
+\item{yaxis_title}{-- String (Optional) of y-axis title. Default is "Clonal Prevalence".}
+
+\item{phylogeny_title}{-- String (Optional) of Legend phylogeny title. Default is "Clonal Phylogeny".}
+
+\item{alpha}{-- Number (Optional) of Alpha value for sweeps, range [0, 100].}
+
+\item{genotype_position}{-- String (Optional) of How to position the genotypes from ["centre", "stack", "space"] 
+"centre" -- genotypes are centred with respect to their ancestors
+"stack" -- genotypes are stacked such that no genotype is split at any time point
+"space" -- genotypes are stacked but with a bit of spacing at the bottom}
+
+\item{perturbations}{-- data frame (Optional) of any perturbations that occurred between two time points, 
+and the fraction of total tumour content remaining.
+Format: columns are (1) {String} "pert_name" - the perturbation name
+                    (2) {String} "prev_tp" - the time point (as labelled in clonal prevalence data) 
+                                             BEFORE perturbation
+                    (3) {Number} "frac" - the fraction of total tumour content remaining at the 
+                                          time of perturbation, range [0, 1].}
+
+\item{sort}{-- Boolean (Optional) of whether (TRUE) or not (FALSE) to vertically sort the genotypes by their emergence values (descending). 
+Default is FALSE. 
+Note that genotype sorting will always retain the phylogenetic hierarchy, and this parameter will only affect the ordering of siblings.}
+
+\item{show_warnings}{-- Boolean (Optional) of  Whether or not to show any warnings. Default is TRUE.}
+
+\item{width}{-- Number (Optional) of width of the plot. Minimum width is 450.}
+
+\item{height}{-- Number (Optional) of height of the plot. Minimum height with and without mutations is 500 and 260, respectively.}
+}
 \description{
 Function to process the user data
 }

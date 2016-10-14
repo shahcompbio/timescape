@@ -12,4 +12,7 @@ checkPerts(perturbations)
 \description{
 check perturbations parameter
 }
+\examples{
+checkPerts(data.frame(pert_name = c("New Drug"), prev_tp = c("Diagnosis"), frac = c(0.1)))
+}
 

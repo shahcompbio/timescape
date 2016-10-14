@@ -12,4 +12,7 @@ checkCloneColours(clone_colours)
 \description{
 check clone_colours parameter
 }
+\examples{
+checkCloneColours(data.frame(clone_id = c("1","2","3", "4"), colour = c("#beaed4", "#fdc086", "#beaed4", "#beaed4")))
+}
 

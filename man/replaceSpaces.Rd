@@ -23,4 +23,11 @@ replaceSpaces(clonal_prev, tree_edges, clone_colours, mutation_info, mutations,
 \description{
 function to replace spaces with underscores in all data frames & keep maps of original names to space-replaced names
 }
+\examples{
+replaceSpaces(mutations = data.frame(chrom = c("11"), coord = c(104043), VAF = c(0.1), clone_id=c(1), timepoint=c("Relapse")), 
+tree_edges = data.frame(source = c("1","1","2","2","5","6"), target=c("2","5","3","4","6","7")), 
+clonal_prev = data.frame(timepoint = c(rep("Diagnosis", 6), rep("Relapse", 1)), clone_id = c("1","2","3","4","5","6","7"), clonal_prev = c("0.12","0.12","0.18","0.13","0.009","0.061","1")),
+mutation_prevalences = list("X:6154028" = data.frame(timepoint = c("Diagnosis"), VAF = c(0.5557))), mutation_info=data.frame(clone_id=c(1)),
+clone_colours = data.frame(clone_id = c("1","2","3", "4"), colour = c("#beaed4", "#fdc086", "#beaed4", "#beaed4")))
+}
 

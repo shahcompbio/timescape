@@ -12,4 +12,7 @@ checkClonalPrev(clonal_prev)
 \description{
 check clonal_prev parameter data
 }
+\examples{
+checkClonalPrev(data.frame(timepoint=c(1), clone_id=c(2), clonal_prev=c(0.1)))
+}
 

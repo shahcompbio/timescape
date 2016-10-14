@@ -12,4 +12,7 @@ checkTreeEdges(tree_edges)
 \description{
 check tree_edges parameter data
 }
+\examples{
+checkTreeEdges(data.frame(source = c("1","1","2","2","5","6"), target=c("2","5","3","4","6","7")))
+}
 

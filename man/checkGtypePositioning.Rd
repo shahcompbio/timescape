@@ -12,4 +12,7 @@ checkGtypePositioning(genotype_position)
 \description{
 check genotype_position parameter
 }
+\examples{
+checkGtypePositioning("centre")
+}
 

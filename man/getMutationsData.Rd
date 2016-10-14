@@ -16,4 +16,9 @@ getMutationsData(mutations, tree_edges, clonal_prev)
 \description{
 get mutation data
 }
+\examples{
+getMutationsData(data.frame(chrom = c("11"), coord = c(104043), VAF = c(0.1), clone_id=c(1), timepoint=c("Relapse")), 
+data.frame(source = c("1","1","2","2","5","6"), target=c("2","5","3","4","6","7")), 
+data.frame(timepoint = c(rep("Diagnosis", 6), rep("Relapse", 1)), clone_id = c("1","2","3","4","5","6","7"), clonal_prev = c("0.12","0.12","0.18","0.13","0.009","0.061","1")))
+}
 

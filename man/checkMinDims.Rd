@@ -16,4 +16,7 @@ checkMinDims(mutations, height, width)
 \description{
 Function to check minimum dimensions
 }
+\examples{
+checkMinDims(data.frame(chr = c("11"), coord = c(104043), VAF = c(0.1)), "700px", "700px")
+}
 

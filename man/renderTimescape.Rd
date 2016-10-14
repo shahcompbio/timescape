@@ -6,6 +6,13 @@
 \usage{
 renderTimescape(expr, env = parent.frame(), quoted = FALSE)
 }
+\arguments{
+\item{expr}{-- expression for Shiny}
+
+\item{env}{-- environment for Shiny}
+
+\item{quoted}{-- default is FALSE}
+}
 \description{
 Widget render function for use in Shiny
 }
