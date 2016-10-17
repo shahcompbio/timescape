@@ -1868,8 +1868,16 @@ function _run_timescape(view_id, width, height, userConfig) {
 	            // NON-DISAPPEARING LINEAGE
 	            else {
 
+	            	// if this genotype has already been REPLACED by any descendant at a PREVIOUS time point
+	                if (cp_data[prev_tp] && !cp_data[tp][gtype] && !cp_data[prev_tp][gtype] && (_getIntersection(curDescendants, gTypes_curTP).length > 0)) {
+
+	                    _createStackElement(curVizObj, layout, tp, gtype, sHeight, sHeight + width, effective_cp, "already_replaced");
+	                    midpoint = (layout[tp][gtype].bottom + layout[tp][gtype].top)/2;
+
+	                }
+
 	                // if this genotype is REPLACED by any descendant at this time point
-	                if (!cp_data[tp][gtype] && (_getIntersection(curDescendants, gTypes_curTP).length > 0)) {
+	                else if (!cp_data[tp][gtype] && (_getIntersection(curDescendants, gTypes_curTP).length > 0)) {
 
 	                    _createStackElement(curVizObj, layout, tp, gtype, sHeight, sHeight + width, effective_cp, "replaced");
 	                    midpoint = (layout[tp][gtype].bottom + layout[tp][gtype].top)/2;
