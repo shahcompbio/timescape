@@ -2188,6 +2188,12 @@ function _run_timescape(view_id, width, height, userConfig) {
 	                layout[tp][gtype].nPartitions = nPartitions;
 	            }
 	            
+	            // if this genotype has not already been x-shifted and is REPLACED at this time point
+	            if ((genotypes_xshifted.indexOf(gtype) == -1) && layout[tp][gtype] && 
+	                (["replaced", "disappears_stretched"].indexOf(layout[tp][gtype].state) != -1)) {
+	            	layout[tp][gtype].xShift = -0.5;
+	            }
+
 	            // if this genotype has not already been x-shifted and emerges at this time point
 	            if ((genotypes_xshifted.indexOf(gtype) == -1) && layout[tp][gtype] && 
 	                (layout[tp][gtype].state == "emerges")) {
