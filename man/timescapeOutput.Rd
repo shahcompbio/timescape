@@ -13,6 +13,9 @@ timescapeOutput(outputId, width = "100\%", height = "400px")
 
 \item{height}{-- height of output}
 }
+\value{
+None
+}
 \description{
 Widget output function for use in Shiny
 }

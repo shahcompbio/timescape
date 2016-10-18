@@ -9,6 +9,9 @@ checkAlpha(alpha)
 \arguments{
 \item{alpha}{-- alpha provided by user}
 }
+\value{
+None
+}
 \description{
 check alpha value input is correct
 }

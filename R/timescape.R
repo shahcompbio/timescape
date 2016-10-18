@@ -47,7 +47,6 @@
 #' @param height {Number} (Optional) Height of the plot. Minimum height with and without mutations is 500 and 260, respectively. 
 #' @export
 #' @examples
-#' library("timescape")
 #'
 #' # EXAMPLE 1 - Acute myeloid leukemia patient, Ding et al., 2012
 #'
@@ -76,6 +75,7 @@
 #'                             colour = c("d0ced0", "2CD0AB", "FFD94B", "FD8EE5", "F8766D"))
 #' # run timescape
 #' timescape(clonal_prev = clonal_prev, tree_edges = tree_edges, clone_colours = clone_colours, height=260, alpha=15)
+#' @return None
 timescape <- function(clonal_prev, 
                       tree_edges, 
                       mutations = "NA",
@@ -126,6 +126,7 @@ timescape <- function(clonal_prev,
 #' timescapeOutput(1, '100%', '300px')
 #' timescapeOutput(1, '80%', '300px')
 #' @export
+#' @return None
 timescapeOutput <- function(outputId, width = "100%", height = "400px"){
   htmlwidgets::shinyWidgetOutput(outputId, "timescape", width, height, 
                                  package = "timescape")
@@ -137,6 +138,7 @@ timescapeOutput <- function(outputId, width = "100%", height = "400px"){
 #' @param env -- environment for Shiny
 #' @param quoted -- default is FALSE 
 #' @export
+#' @return None
 renderTimescape <- function(expr, env = parent.frame(), quoted = FALSE) {
   if (!quoted) { expr <- substitute(expr) } # force quoted
   htmlwidgets::shinyRenderWidget(expr, timescapeOutput, env, quoted = TRUE)
@@ -181,6 +183,7 @@ renderTimescape <- function(expr, env = parent.frame(), quoted = FALSE) {
 #' @param width -- Number (Optional) of width of the plot. Minimum width is 450.
 #' @param height -- Number (Optional) of height of the plot. Minimum height with and without mutations is 500 and 260, respectively. 
 #' @export
+#' @return Returns the ready list of user input data for htmlwidget
 processUserData <- function(clonal_prev, 
                       tree_edges, 
                       mutations,
@@ -274,6 +277,7 @@ processUserData <- function(clonal_prev,
 #' @examples
 #' checkMinDims(data.frame(chr = c("11"), coord = c(104043), VAF = c(0.1)), "700px", "700px")
 #' @export
+#' @return None
 checkMinDims <- function(mutations, height, width) {
 
   # set height if not set by user
@@ -314,6 +318,7 @@ checkMinDims <- function(mutations, height, width) {
 #' checkRequiredInputs(data.frame(timepoint = c(rep("Diagnosis", 6), rep("Relapse", 1)), clone_id = c("1","2","3","4","5","6","7"), clonal_prev = c("0.12","0.12","0.18","0.13","0.009","0.061","1")), 
 #' data.frame(source = c("1","1","2","2","5","6"), target=c("2","5","3","4","6","7")))
 #' @export
+#' @return None
 checkRequiredInputs <- function(clonal_prev, tree_edges) {
 
   if (missing(clonal_prev)) {
@@ -331,6 +336,7 @@ checkRequiredInputs <- function(clonal_prev, tree_edges) {
 #' checkAlpha(4)
 #' checkAlpha(100)
 #' @export
+#' @return None
 checkAlpha <- function(alpha) {
   if (!is.numeric(alpha)) {
     stop("Alpha value must be numeric.")
@@ -347,6 +353,7 @@ checkAlpha <- function(alpha) {
 #' @examples
 #' checkClonalPrev(data.frame(timepoint=c(1), clone_id=c(2), clonal_prev=c(0.1)))
 #' @export
+#' @return Clonal prevalence data after checkint it for column names and content types
 checkClonalPrev <- function(clonal_prev) {
 
   # ensure column names are correct
@@ -371,6 +378,7 @@ checkClonalPrev <- function(clonal_prev) {
 #' @examples
 #' checkTreeEdges(data.frame(source = c("1","1","2","2","5","6"), target=c("2","5","3","4","6","7")))
 #' @export
+#' @return Tree edges data after checkint it for column names and content types
 checkTreeEdges <- function(tree_edges) {
 
   # ensure column names are correct
@@ -418,6 +426,7 @@ checkTreeEdges <- function(tree_edges) {
 #' @examples
 #' checkGtypePositioning("centre")
 #' @export
+#' @return None
 checkGtypePositioning <- function(genotype_position) {
   if (!(genotype_position %in% c("stack", "centre", "space"))) {
     stop("Genotype position must be one of c(\"stack\", \"centre\", \"space\")")
@@ -430,6 +439,7 @@ checkGtypePositioning <- function(genotype_position) {
 #' @examples
 #' checkCloneColours(data.frame(clone_id = c("1","2","3", "4"), colour = c("#beaed4", "#fdc086", "#beaed4", "#beaed4")))
 #' @export
+#' @return None
 checkCloneColours <- function(clone_colours) {
   if (is.data.frame(clone_colours)) {
 
@@ -448,6 +458,7 @@ checkCloneColours <- function(clone_colours) {
 #' @examples
 #' checkPerts(data.frame(pert_name = c("New Drug"), prev_tp = c("Diagnosis"), frac = c(0.1)))
 #' @export
+#' @return Perturbations after checking them for content types and column names
 checkPerts <- function(perturbations) {
 
   if (is.data.frame(perturbations)) {
@@ -479,6 +490,7 @@ checkPerts <- function(perturbations) {
 #' data.frame(source = c("1","1","2","2","5","6"), target=c("2","5","3","4","6","7")), 
 #' data.frame(timepoint = c(rep("Diagnosis", 6), rep("Relapse", 1)), clone_id = c("1","2","3","4","5","6","7"), clonal_prev = c("0.12","0.12","0.18","0.13","0.009","0.061","1")))
 #' @export
+#' @return List of mutation information and mutation prevalences
 getMutationsData <- function(mutations, tree_edges, clonal_prev) {
 
   if (is.data.frame(mutations)) {
@@ -592,6 +604,7 @@ getMutationsData <- function(mutations, tree_edges, clonal_prev) {
 #' clonal_prev = data.frame(timepoint = c(rep("Diagnosis", 6), rep("Relapse", 1)), clone_id = c("1","2","3","4","5","6","7"), clonal_prev = c("0.12","0.12","0.18","0.13","0.009","0.061","1")),
 #' mutation_prevalences = list("X:6154028" = data.frame(timepoint = c("Diagnosis"), VAF = c(0.5557))), mutation_info=data.frame(clone_id=c(1)),
 #' clone_colours = data.frame(clone_id = c("1","2","3", "4"), colour = c("#beaed4", "#fdc086", "#beaed4", "#beaed4")))
+#' @return List of data frames with spaces replaced
 replaceSpaces <- function(clonal_prev, tree_edges, clone_colours, mutation_info, mutations, mutation_prevalences) {
 
   # create map of original sample ids to space-replaced sample ids

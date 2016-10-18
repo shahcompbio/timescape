@@ -62,6 +62,9 @@ Note that genotype sorting will always retain the phylogenetic hierarchy, and th
 
 \item{height}{{Number} (Optional) Height of the plot. Minimum height with and without mutations is 500 and 260, respectively.}
 }
+\value{
+None
+}
 \description{
 \code{timescape} is a tool for visualizing temporal clonal evolution data.
 }
@@ -73,7 +76,6 @@ Interactive components: \cr
 3. Click the download buttons to download a PNG or SVG of the view. \cr
 }
 \examples{
-library("timescape")
 
 # EXAMPLE 1 - Acute myeloid leukemia patient, Ding et al., 2012
 

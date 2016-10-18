@@ -13,6 +13,9 @@ getMutationsData(mutations, tree_edges, clonal_prev)
 
 \item{clonal_prev}{-- clonal prevalence data from user}
 }
+\value{
+List of mutation information and mutation prevalences
+}
 \description{
 get mutation data
 }

@@ -13,6 +13,9 @@ checkMinDims(mutations, height, width)
 
 \item{width}{-- width provided by user}
 }
+\value{
+None
+}
 \description{
 Function to check minimum dimensions
 }

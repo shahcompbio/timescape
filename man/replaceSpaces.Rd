@@ -20,6 +20,9 @@ replaceSpaces(clonal_prev, tree_edges, clone_colours, mutation_info, mutations,
 
 \item{mutation_prevalences}{-- mutation_prevalences data from user}
 }
+\value{
+List of data frames with spaces replaced
+}
 \description{
 function to replace spaces with underscores in all data frames & keep maps of original names to space-replaced names
 }

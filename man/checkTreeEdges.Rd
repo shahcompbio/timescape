@@ -9,6 +9,9 @@ checkTreeEdges(tree_edges)
 \arguments{
 \item{tree_edges}{-- tree edges provided by user}
 }
+\value{
+Tree edges data after checkint it for column names and content types
+}
 \description{
 check tree_edges parameter data
 }

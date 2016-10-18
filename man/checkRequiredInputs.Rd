@@ -11,6 +11,9 @@ checkRequiredInputs(clonal_prev, tree_edges)
 
 \item{tree_edges}{-- tree_edges provided by user}
 }
+\value{
+None
+}
 \description{
 Function to check required inputs are present
 }

@@ -9,6 +9,9 @@ checkPerts(perturbations)
 \arguments{
 \item{perturbations}{-- perturbations provided by user}
 }
+\value{
+Perturbations after checking them for content types and column names
+}
 \description{
 check perturbations parameter
 }

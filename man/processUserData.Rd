@@ -60,6 +60,9 @@ Note that genotype sorting will always retain the phylogenetic hierarchy, and th
 
 \item{height}{-- Number (Optional) of height of the plot. Minimum height with and without mutations is 500 and 260, respectively.}
 }
+\value{
+Returns the ready list of user input data for htmlwidget
+}
 \description{
 Function to process the user data
 }

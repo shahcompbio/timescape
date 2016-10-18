@@ -9,6 +9,9 @@ checkCloneColours(clone_colours)
 \arguments{
 \item{clone_colours}{-- clone_colours provided by user}
 }
+\value{
+None
+}
 \description{
 check clone_colours parameter
 }

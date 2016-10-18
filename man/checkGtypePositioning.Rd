@@ -9,6 +9,9 @@ checkGtypePositioning(genotype_position)
 \arguments{
 \item{genotype_position}{-- genotype_position provided by user}
 }
+\value{
+None
+}
 \description{
 check genotype_position parameter
 }

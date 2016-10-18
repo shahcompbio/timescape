@@ -13,6 +13,9 @@ renderTimescape(expr, env = parent.frame(), quoted = FALSE)
 
 \item{quoted}{-- default is FALSE}
 }
+\value{
+None
+}
 \description{
 Widget render function for use in Shiny
 }

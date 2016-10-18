@@ -9,6 +9,9 @@ checkClonalPrev(clonal_prev)
 \arguments{
 \item{clonal_prev}{-- clonal prevalence provided by user}
 }
+\value{
+Clonal prevalence data after checkint it for column names and content types
+}
 \description{
 check clonal_prev parameter data
 }

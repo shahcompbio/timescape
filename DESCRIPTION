@@ -1,14 +1,16 @@
 Package: timescape
 Title: Patient Clonal Timescapes
-Version: 0.99.2
+Version: 0.99.3
 Authors@R: person("Maia", "Smith", email = "maiaannesmith@gmail.com", role = c("aut", "cre"))
 Description: Visualizes clonal evolution over time
 Depends:
-    R (>= 3.2.2)
+    R (>= 3.3)
 Imports:
     htmlwidgets (>= 0.5),
     jsonlite (>= 0.9.19),
-	stringr (>= 1.0.0)
+    stringr (>= 1.0.0),
+    dplyr (>= 0.4.3),
+    gtools (>= 3.5.0)
 biocViews: Visualization
 License: GPL-3
 LazyData: true
