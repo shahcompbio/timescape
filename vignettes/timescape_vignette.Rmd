@@ -9,27 +9,32 @@ vignette: >
 
 TimeScape is a visualization tool for temporal clonal evolution.
 
-To run TimeScape, type the following commands in R:
+# Installation 
+
+To install TimeScape, type the following commands in R:
 
 ```{r, eval=FALSE}
-install.packages("devtools") # if not already installed  
-library(devtools)  
-install_bitbucket("MO_BCCRC/timescape")  
-library(timescape)  
-example(timescape) # to run example
+# try http:// if https:// URLs are not supported
+source("https://bioconductor.org/biocLite.R")
+biocLite("timescape")
 ```
 
-And the following visualizations will appear in your browser (optimized for Chrome):
+# Examples 
+
+Run the examples by: 
+
+```{r, eval=FALSE}
+example("timescape")
+```
+
+The following visualizations will appear in your browser (optimized for Chrome):
 
 The first visualization is of the acute myeloid leukemia patient from Ding et al., 2012.
 The second visualization is of the metastatic ovarian cancer patient 7 from McPherson and Roth et al., 2016.
 
-<br>
-<br>
-
 ```{r, echo=FALSE}
 library(devtools)  
-install_bitbucket("MO_BCCRC/timescape")  
+#install_bitbucket("shahlabbcca/timescape")  
 library(timescape)  
 ```
 ```{r, echo=FALSE}
@@ -67,10 +72,133 @@ clone_colours <- data.frame(clone_id = c("A","B","C","D","E"),
 timescape(clonal_prev = clonal_prev, tree_edges = tree_edges, clone_colours = clone_colours, height=260, alpha=15)
 ```
 
+# Required parameters 
 
-<br>
-<br>
-<br>
+The required parameters for TimeScape is structure as follows:
+
+$clonal\_prev$ is a data frame consisting of clonal prevalences for each clone at each time point. The columns in this data frame are:
+
+1. character() $timepoint$ - time point
+2. character() $clone\_id$ - clone id
+3. numeric() $clonal\_prev$ - clonal prevalence.
+
+$tree\_edges$ is a data frame describing the edges of a rooted clonal phylogeny. The columns in this data frame are:
+
+1. character() $source$ - source node id
+2. character() $target$ - target node id.
+
+$mutations$ is a data frame consisting of the mutations originating in each clone. The columns in this data frame are:
+
+1. character() $chrom$ - chromosome number
+2. numeric() $coord$ - coordinate of mutation on chromosome
+3. character() $clone\_id$ - clone id
+4. character() $timepoint$ - time point
+5. numeric() $VAF$ - variant allele frequency of the mutation in the corresponding timepoint. 
+
+# Optional parameters 
+
+## Clone colours 
+
+Clone colours may be changed using the $clone\_colours$ parameter, for instance, compare the default colours :
+
+```{r, echo=FALSE}
+
+# run timescape
+timescape(clonal_prev = clonal_prev, tree_edges = tree_edges, height=260, alpha=15)
+```
+
+with specified custom colours:
+
+```{r, echo=FALSE}
+# clone colours
+clone_colours <- data.frame(clone_id = c("A","B","C","D","E"), 
+                            colour = c("#e41a1c", "#377eb8", "#4daf4a", "#984ea3", "#ff7f00"))
+# run timescape
+timescape(clonal_prev = clonal_prev, tree_edges = tree_edges, clone_colours = clone_colours, height=260, alpha=15)
+```
+
+## Alpha value
+
+The alpha value of each colour may be tweaked in the $alpha$ parameter (a numeric value between [0, 100]). Compare alpha of 10: 
+```{r, echo=FALSE}
+# run timescape
+timescape(clonal_prev = clonal_prev, tree_edges = tree_edges, height=260, alpha=10)
+```
+
+with the alpha value of 90:
+```{r, echo=FALSE}
+# run timescape
+timescape(clonal_prev = clonal_prev, tree_edges = tree_edges, height=260, alpha=90)
+```
+
+## Titles 
+
+The x-axis, y-axis and phylogeny titles may be changed using the $xaxis\_title$, $yaxis\_title$ and $phylogeny\_title$ parameters, which take in a character string.
+
+Here are some custom titles:
+```{r, echo=FALSE}
+# run timescape
+timescape(clonal_prev = clonal_prev, tree_edges = tree_edges, height=260, alpha=15, xaxis_title="My X Axis", yaxis_title="My Y Axis", phylogeny_title="My Phylogeny")
+```
+
+## Genotype position
+
+The position of each genotype with respect to its ancestor can be altered. The “stack” layout is the default layout. It stacks genotypes one on top of another to clearly display genotype prevalences at each time point. The “space” layout uses the same stacking method while maintaining (where possible) a minimum amount of space between each genotype. The “centre” layout centers genotypes with respect to their ancestors. Here we'll see an example of each:
+
+### Stacked
+```{r, echo=FALSE}
+# run timescape
+timescape(clonal_prev = clonal_prev, tree_edges = tree_edges, height=260, alpha=15, genotype_position="stack")
+```
+
+### Spaced
+```{r, echo=FALSE}
+# run timescape
+timescape(clonal_prev = clonal_prev, tree_edges = tree_edges, height=260, alpha=15, genotype_position="space")
+```
+
+### Centered
+```{r, echo=FALSE}
+# run timescape
+timescape(clonal_prev = clonal_prev, tree_edges = tree_edges, height=260, alpha=15, genotype_position="centre")
+```
+
+## Perturbations
+
+Perturbations may be added to the TimeScape using the $perturbations$ parameter, which is a data frame consisting of the following columns:
+
+1. character() $pert_name$ - the perturbation name
+2. character() $prev_tp$ - the time point (as labelled in clonal prevalence data) BEFORE perturbation
+3. numeric() $frac$ - the fraction of total tumour content remaining at the time of perturbation, range [0, 1].
+
+### Without perturbation
+
+```{r, echo=FALSE}
+# EXAMPLE 1 - Acute myeloid leukemia patient, Ding et al., 2012
+# genotype tree edges
+tree_edges <- read.csv(system.file("extdata", "AML_tree_edges.csv", package = "timescape"))
+# clonal prevalences
+clonal_prev <- read.csv(system.file("extdata", "AML_clonal_prev.csv", package = "timescape"))
+# targeted mutations
+mutations <- read.csv(system.file("extdata", "AML_mutations.csv", package = "timescape"))
+
+# run timescape
+timescape(clonal_prev = clonal_prev, tree_edges = tree_edges)
+```
+
+### With perturbation (reduces the tumour to 10% of its original size)
+
+```{r, echo=FALSE}
+# perturbations
+perturbations <- data.frame( pert_name = c("Chemotherapy"), 
+                             prev_tp = c("Diagnosis"),
+                              frac = c(0.1))
+# run timescape
+timescape(clonal_prev = clonal_prev, tree_edges = tree_edges, perturbations = perturbations)
+```
+
+# Documentation 
+
 To view the documentation for TimeScape, type the following command in R:
 
 ```{r, eval=FALSE}

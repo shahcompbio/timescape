@@ -8,43 +8,43 @@
 #' 2. Click the view switch button to switch from the traditional timescape view to the clonal trajectory view, where each clone changes prevalence on its own track. \cr
 #' 3. Click the download buttons to download a PNG or SVG of the view. \cr
 #'
-#' @param clonal_prev {Data Frame} Clonal prevalence. Note: timepoints will be alphanumerically sorted in the view.
-#'   Format: columns are (1) {String} "timepoint" - time point
-#'                       (2) {String} "clone_id" - clone id
-#'                       (3) {Number} "clonal_prev" - clonal prevalence.
-#' @param tree_edges {Data Frame} Tree edges of a rooted tree.
-#'   Format: columns are (1) {String} "source" - source node id
-#'                       (2) {String} "target" - target node id.
-#' @param mutations {Data Frame} (Optional) Mutations occurring at each clone. Any additional field will be shown in the mutation table.
-#'   Format: columns are (1) {String} "chrom" - chromosome number
-#'                       (2) {Number} "coord" - coordinate of mutation on chromosome
-#'                       (3) {String} "clone_id" - clone id
-#'                       (4) {String} "timepoint" - time point
-#'                       (5) {Number} "VAF" - variant allele frequency of the mutation in the corresponding timepoint. 
-#' @param clone_colours {Data Frame} (Optional) Clone ids and their corresponding colours 
-#'   Format: columns are (1) {String} "clone_id" - the clone ids
-#'                       (2) {String} "colour" - the corresponding Hex colour for each clone id.
-#' @param xaxis_title {String} (Optional) x-axis title. Default is "Time Point".
-#' @param yaxis_title {String} (Optional) y-axis title. Default is "Clonal Prevalence".
-#' @param phylogeny_title {String} (Optional) Legend phylogeny title. Default is "Clonal Phylogeny".
-#' @param alpha {Number} (Optional) Alpha value for sweeps, range [0, 100].
-#' @param genotype_position {String} (Optional) How to position the genotypes from ["centre", "stack", "space"] 
+#' @param clonal_prev (Data Frame) Clonal prevalence. Note: timepoints will be alphanumerically sorted in the view.
+#'   Format: columns are (1) character() "timepoint" - time point
+#'                       (2) character() "clone_id" - clone id
+#'                       (3) numeric() "clonal_prev" - clonal prevalence.
+#' @param tree_edges (Data Frame) Tree edges of a rooted tree.
+#'   Format: columns are (1) character() "source" - source node id
+#'                       (2) character() "target" - target node id.
+#' @param mutations (Data Frame) (Optional) Mutations occurring at each clone. Any additional field will be shown in the mutation table.
+#'   Format: columns are (1) character() "chrom" - chromosome number
+#'                       (2) numeric() "coord" - coordinate of mutation on chromosome
+#'                       (3) character() "clone_id" - clone id
+#'                       (4) character() "timepoint" - time point
+#'                       (5) numeric() "VAF" - variant allele frequency of the mutation in the corresponding timepoint. 
+#' @param clone_colours (Data Frame) (Optional) Clone ids and their corresponding colours 
+#'   Format: columns are (1) character() "clone_id" - the clone ids
+#'                       (2) character() "colour" - the corresponding Hex colour for each clone id.
+#' @param xaxis_title character() (Optional) x-axis title. Default is "Time Point".
+#' @param yaxis_title character() (Optional) y-axis title. Default is "Clonal Prevalence".
+#' @param phylogeny_title character() (Optional) Legend phylogeny title. Default is "Clonal Phylogeny".
+#' @param alpha numeric() (Optional) Alpha value for sweeps, range [0, 100].
+#' @param genotype_position character() (Optional) How to position the genotypes from ["centre", "stack", "space"] 
 #'   "centre" -- genotypes are centred with respect to their ancestors
 #'   "stack" -- genotypes are stacked such that no genotype is split at any time point
 #'   "space" -- genotypes are stacked but with a bit of spacing at the bottom
-#' @param perturbations {Data Frame} (Optional) Any perturbations that occurred between two time points, 
+#' @param perturbations (Data Frame) (Optional) Any perturbations that occurred between two time points, 
 #'   and the fraction of total tumour content remaining.
-#'   Format: columns are (1) {String} "pert_name" - the perturbation name
-#'                       (2) {String} "prev_tp" - the time point (as labelled in clonal prevalence data) 
+#'   Format: columns are (1) character() "pert_name" - the perturbation name
+#'                       (2) character() "prev_tp" - the time point (as labelled in clonal prevalence data) 
 #'                                                BEFORE perturbation
-#'                       (3) {Number} "frac" - the fraction of total tumour content remaining at the 
+#'                       (3) numeric() "frac" - the fraction of total tumour content remaining at the 
 #'                                             time of perturbation, range [0, 1].
-#' @param sort {Boolean} (Optional) Whether (TRUE) or not (FALSE) to vertically sort the genotypes by their emergence values (descending). 
+#' @param sort logical() (Optional) Whether (TRUE) or not (FALSE) to vertically sort the genotypes by their emergence values (descending). 
 #'                       Default is FALSE. 
 #'                       Note that genotype sorting will always retain the phylogenetic hierarchy, and this parameter will only affect the ordering of siblings.
-#' @param show_warnings {Boolean} (Optional) Whether or not to show any warnings. Default is TRUE.
-#' @param width {Number} (Optional) Width of the plot. Minimum width is 450.
-#' @param height {Number} (Optional) Height of the plot. Minimum height with and without mutations is 500 and 260, respectively. 
+#' @param show_warnings logical() (Optional) Whether or not to show any warnings. Default is TRUE.
+#' @param width numeric() (Optional) Width of the plot. Minimum width is 450.
+#' @param height numeric() (Optional) Height of the plot. Minimum height with and without mutations is 500 and 260, respectively. 
 #' @export
 #' @examples
 #'
@@ -146,21 +146,21 @@ renderTimescape <- function(expr, env = parent.frame(), quoted = FALSE) {
 
 #' Function to process the user data
 #' @param clonal_prev -- data frame of Clonal prevalence. Note: timepoints will be alphanumerically sorted in the view.
-#'   Format: columns are (1) {String} "timepoint" - time point
-#'                       (2) {String} "clone_id" - clone id
-#'                       (3) {Number} "clonal_prev" - clonal prevalence.
+#'   Format: columns are (1) character() "timepoint" - time point
+#'                       (2) character() "clone_id" - clone id
+#'                       (3) numeric() "clonal_prev" - clonal prevalence.
 #' @param tree_edges -- data frame of Tree edges of a rooted tree.
-#'   Format: columns are (1) {String} "source" - source node id
-#'                       (2) {String} "target" - target node id.
+#'   Format: columns are (1) character() "source" - source node id
+#'                       (2) character() "target" - target node id.
 #' @param mutations -- data frame (Optional) of Mutations occurring at each clone. Any additional field will be shown in the mutation table.
-#'   Format: columns are (1) {String} "chrom" - chromosome number
-#'                       (2) {Number} "coord" - coordinate of mutation on chromosome
-#'                       (3) {String} "clone_id" - clone id
-#'                       (4) {String} "timepoint" - time point
-#'                       (5) {Number} "VAF" - variant allele frequency of the mutation in the corresponding timepoint. 
+#'   Format: columns are (1) character() "chrom" - chromosome number
+#'                       (2) numeric() "coord" - coordinate of mutation on chromosome
+#'                       (3) character() "clone_id" - clone id
+#'                       (4) character() "timepoint" - time point
+#'                       (5) numeric() "VAF" - variant allele frequency of the mutation in the corresponding timepoint. 
 #' @param clone_colours -- data frame (Optional) of Clone ids and their corresponding colours 
-#'   Format: columns are (1) {String} "clone_id" - the clone ids
-#'                       (2) {String} "colour" - the corresponding Hex colour for each clone id.
+#'   Format: columns are (1) character() "clone_id" - the clone ids
+#'                       (2) character() "colour" - the corresponding Hex colour for each clone id.
 #' @param xaxis_title -- String (Optional) of x-axis title. Default is "Time Point".
 #' @param yaxis_title -- String (Optional) of y-axis title. Default is "Clonal Prevalence".
 #' @param phylogeny_title -- String (Optional) of Legend phylogeny title. Default is "Clonal Phylogeny".
@@ -171,10 +171,10 @@ renderTimescape <- function(expr, env = parent.frame(), quoted = FALSE) {
 #'   "space" -- genotypes are stacked but with a bit of spacing at the bottom
 #' @param perturbations -- data frame (Optional) of any perturbations that occurred between two time points, 
 #'   and the fraction of total tumour content remaining.
-#'   Format: columns are (1) {String} "pert_name" - the perturbation name
-#'                       (2) {String} "prev_tp" - the time point (as labelled in clonal prevalence data) 
+#'   Format: columns are (1) character() "pert_name" - the perturbation name
+#'                       (2) character() "prev_tp" - the time point (as labelled in clonal prevalence data) 
 #'                                                BEFORE perturbation
-#'                       (3) {Number} "frac" - the fraction of total tumour content remaining at the 
+#'                       (3) numeric() "frac" - the fraction of total tumour content remaining at the 
 #'                                             time of perturbation, range [0, 1].
 #' @param sort -- Boolean (Optional) of whether (TRUE) or not (FALSE) to vertically sort the genotypes by their emergence values (descending). 
 #'                       Default is FALSE. 
@@ -183,6 +183,7 @@ renderTimescape <- function(expr, env = parent.frame(), quoted = FALSE) {
 #' @param width -- Number (Optional) of width of the plot. Minimum width is 450.
 #' @param height -- Number (Optional) of height of the plot. Minimum height with and without mutations is 500 and 260, respectively. 
 #' @export
+#' @rdname helpers
 #' @return Returns the ready list of user input data for htmlwidget
 processUserData <- function(clonal_prev, 
                       tree_edges, 
@@ -277,6 +278,7 @@ processUserData <- function(clonal_prev,
 #' @examples
 #' checkMinDims(data.frame(chr = c("11"), coord = c(104043), VAF = c(0.1)), "700px", "700px")
 #' @export
+#' @rdname helpers
 #' @return None
 checkMinDims <- function(mutations, height, width) {
 
@@ -300,12 +302,13 @@ checkMinDims <- function(mutations, height, width) {
   }
 
   if (height < min_height) {
-    stop(paste("Height must be greater than or equal to ", min_height, "px.", sep=""))
+    stop("Height must be greater than or equal to ", min_height, "px.")
   }
   if (width < min_width) {
-    stop(paste("Width must be greater than or equal to ", min_width, "px.", sep=""))
+    stop("Width must be greater than or equal to ", min_width, "px.")
   }
 }
+
 
 
 #' Function to check required inputs are present
@@ -318,6 +321,7 @@ checkMinDims <- function(mutations, height, width) {
 #' checkRequiredInputs(data.frame(timepoint = c(rep("Diagnosis", 6), rep("Relapse", 1)), clone_id = c("1","2","3","4","5","6","7"), clonal_prev = c("0.12","0.12","0.18","0.13","0.009","0.061","1")), 
 #' data.frame(source = c("1","1","2","2","5","6"), target=c("2","5","3","4","6","7")))
 #' @export
+#' @rdname helpers
 #' @return None
 checkRequiredInputs <- function(clonal_prev, tree_edges) {
 
@@ -336,6 +340,7 @@ checkRequiredInputs <- function(clonal_prev, tree_edges) {
 #' checkAlpha(4)
 #' checkAlpha(100)
 #' @export
+#' @rdname helpers
 #' @return None
 checkAlpha <- function(alpha) {
   if (!is.numeric(alpha)) {
@@ -353,6 +358,7 @@ checkAlpha <- function(alpha) {
 #' @examples
 #' checkClonalPrev(data.frame(timepoint=c(1), clone_id=c(2), clonal_prev=c(0.1)))
 #' @export
+#' @rdname helpers
 #' @return Clonal prevalence data after checkint it for column names and content types
 checkClonalPrev <- function(clonal_prev) {
 
@@ -360,8 +366,8 @@ checkClonalPrev <- function(clonal_prev) {
   if (!("timepoint" %in% colnames(clonal_prev)) ||
       !("clone_id" %in% colnames(clonal_prev)) ||
       !("clonal_prev" %in% colnames(clonal_prev))) {
-    stop(paste("Clonal prevalence data frame must have the following column names: ", 
-        "\"timepoint\", \"clone_id\", \"clonal_prev\"", sep=""))
+    stop("Clonal prevalence data frame must have the following column names: ", 
+        "\"timepoint\", \"clone_id\", \"clonal_prev\"")
   }
 
   # ensure data is of the correct type
@@ -378,14 +384,15 @@ checkClonalPrev <- function(clonal_prev) {
 #' @examples
 #' checkTreeEdges(data.frame(source = c("1","1","2","2","5","6"), target=c("2","5","3","4","6","7")))
 #' @export
+#' @rdname helpers
 #' @return Tree edges data after checkint it for column names and content types
 checkTreeEdges <- function(tree_edges) {
 
   # ensure column names are correct
   if (!("source" %in% colnames(tree_edges)) ||
       !("target" %in% colnames(tree_edges))) {
-    stop(paste("Tree edges data frame must have the following column names: ", 
-        "\"source\", \"target\"", sep=""))
+    stop("Tree edges data frame must have the following column names: ", 
+        "\"source\", \"target\"")
   }
 
   # ensure data is of the correct type
@@ -407,8 +414,8 @@ checkTreeEdges <- function(tree_edges) {
 
   # if multiple roots are detected, throw error
   if (length(sources) > 1) {
-    stop(paste("Multiple roots detected in tree (",paste(sources,collapse=", "),
-      ") - tree must have only one root.",sep=""))
+    stop("Multiple roots detected in tree (",paste(sources,collapse=", "),
+      ") - tree must have only one root.")
   }
 
   # if an edge is found whose source and target are equal, throw an error
@@ -426,6 +433,7 @@ checkTreeEdges <- function(tree_edges) {
 #' @examples
 #' checkGtypePositioning("centre")
 #' @export
+#' @rdname helpers
 #' @return None
 checkGtypePositioning <- function(genotype_position) {
   if (!(genotype_position %in% c("stack", "centre", "space"))) {
@@ -439,6 +447,7 @@ checkGtypePositioning <- function(genotype_position) {
 #' @examples
 #' checkCloneColours(data.frame(clone_id = c("1","2","3", "4"), colour = c("#beaed4", "#fdc086", "#beaed4", "#beaed4")))
 #' @export
+#' @rdname helpers
 #' @return None
 checkCloneColours <- function(clone_colours) {
   if (is.data.frame(clone_colours)) {
@@ -446,8 +455,8 @@ checkCloneColours <- function(clone_colours) {
     # ensure column names are correct
     if (!("clone_id" %in% colnames(clone_colours)) ||
         !("colour" %in% colnames(clone_colours))) {
-      stop(paste("Node colour data frame must have the following column names: ", 
-          "\"clone_id\", \"colour\"", sep=""))
+      stop("Node colour data frame must have the following column names: ", 
+          "\"clone_id\", \"colour\"")
     }
   }
 }
@@ -458,6 +467,7 @@ checkCloneColours <- function(clone_colours) {
 #' @examples
 #' checkPerts(data.frame(pert_name = c("New Drug"), prev_tp = c("Diagnosis"), frac = c(0.1)))
 #' @export
+#' @rdname helpers
 #' @return Perturbations after checking them for content types and column names
 checkPerts <- function(perturbations) {
 
@@ -467,8 +477,8 @@ checkPerts <- function(perturbations) {
     if (!("pert_name" %in% colnames(perturbations)) ||
         !("prev_tp" %in% colnames(perturbations)) ||
         !("frac" %in% colnames(perturbations))) {
-      stop(paste("Perturbations data frame must have the following column names: ", 
-          "\"pert_name\", \"prev_tp\", \"frac\"", sep=""))
+      stop("Perturbations data frame must have the following column names: ", 
+          "\"pert_name\", \"prev_tp\", \"frac\"")
     }
 
     # check that columns are of the correct type
@@ -490,6 +500,7 @@ checkPerts <- function(perturbations) {
 #' data.frame(source = c("1","1","2","2","5","6"), target=c("2","5","3","4","6","7")), 
 #' data.frame(timepoint = c(rep("Diagnosis", 6), rep("Relapse", 1)), clone_id = c("1","2","3","4","5","6","7"), clonal_prev = c("0.12","0.12","0.18","0.13","0.009","0.061","1")))
 #' @export
+#' @rdname helpers
 #' @return List of mutation information and mutation prevalences
 getMutationsData <- function(mutations, tree_edges, clonal_prev) {
 
@@ -501,8 +512,8 @@ getMutationsData <- function(mutations, tree_edges, clonal_prev) {
         !("clone_id" %in% colnames(mutations)) ||
         !("timepoint" %in% colnames(mutations)) ||
         !("VAF" %in% colnames(mutations))) {
-      stop(paste("Mutations data frame must have the following column names: ", 
-          "\"chrom\", \"coord\", \"clone_id\", \"timepoint\", \"VAF\".", sep=""))
+      stop("Mutations data frame must have the following column names: ", 
+          "\"chrom\", \"coord\", \"clone_id\", \"timepoint\", \"VAF\".")
     }
 
     # ensure data is of the correct type
@@ -521,9 +532,9 @@ getMutationsData <- function(mutations, tree_edges, clonal_prev) {
     tree_edges_clone_ids <- c(unique(tree_edges$source), unique(tree_edges$target))
     clone_ids_missing_from_tree_edges_data <- setdiff(mutations_clone_ids, tree_edges_clone_ids)
     if (length(clone_ids_missing_from_tree_edges_data) > 0) {
-      stop(paste("The following clone ID(s) are present in the mutations data but ",
+      stop("The following clone ID(s) are present in the mutations data but ",
         "are missing from the tree edges data: ",
-        paste(clone_ids_missing_from_tree_edges_data, collapse=", "), ".", sep=""))
+        paste(clone_ids_missing_from_tree_edges_data, collapse=", "), ".")
     }
 
     # check that all TIMEPOINTS in the mutations data are present in the clonal prev data
@@ -531,9 +542,9 @@ getMutationsData <- function(mutations, tree_edges, clonal_prev) {
     clonal_prev_tps <- unique(clonal_prev$timepoint)
     tps_missing_from_clonal_prev_data <- setdiff(mutations_tps, clonal_prev_tps)
     if (length(tps_missing_from_clonal_prev_data) > 0) {
-      stop(paste("The following timepoint(s) are present in the mutations data but ",
+      stop("The following timepoint(s) are present in the mutations data but ",
         "are missing from the clonal prevalence data: ",
-        paste(tps_missing_from_clonal_prev_data, collapse=", "), ".", sep=""))
+        paste(tps_missing_from_clonal_prev_data, collapse=", "), ".")
     }
 
     # create a location column, combining the chromosome and the coordinate
@@ -545,8 +556,8 @@ getMutationsData <- function(mutations, tree_edges, clonal_prev) {
     # check X & Y chromosomes are labelled "X" and "Y", not "23", "24"
     num_23 <- mutations[which(mutations$chrom == "23"),]
     if (nrow(num_23) > 0) {
-      stop(paste("Chromosome numbered \"23\" was detected in mutations data frame - X and Y chromosomes ",
-        "must be labelled \"X\" and \"Y\".", sep=""))
+      stop("Chromosome numbered \"23\" was detected in mutations data frame - X and Y chromosomes ",
+        "must be labelled \"X\" and \"Y\".")
     }
 
 
@@ -598,6 +609,7 @@ getMutationsData <- function(mutations, tree_edges, clonal_prev) {
 #' @param mutations -- mutations data from user
 #' @param mutation_prevalences -- mutation_prevalences data from user
 #' @export
+#' @rdname helpers
 #' @examples
 #' replaceSpaces(mutations = data.frame(chrom = c("11"), coord = c(104043), VAF = c(0.1), clone_id=c(1), timepoint=c("Relapse")), 
 #' tree_edges = data.frame(source = c("1","1","2","2","5","6"), target=c("2","5","3","4","6","7")), 

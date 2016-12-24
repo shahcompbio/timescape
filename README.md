@@ -5,11 +5,9 @@ To run TimeScape, type the following commands in R:
 
 
 ```r
-install.packages("devtools") # if not already installed  
-library(devtools)  
-install_bitbucket("MO_BCCRC/timescape")  
-library(timescape)  
-example(timescape) # to run example
+# try http:// if https:// URLs are not supported
+source("https://bioconductor.org/biocLite.R")
+biocLite("timescape")
 ```
 
 And the following visualizations will appear in your browser (optimized for Chrome):
@@ -26,8 +24,16 @@ To view the documentation for TimeScape, type the following command in R:
 
 
 ```r
-?timescape
+?timescape 
 ```
+
+or:
+
+
+```r
+browseVignettes("timescape") 
+```
+
 
 TimeScape was developed at the Shah Lab for Computational Cancer Biology at the BC Cancer Research Centre.
 
