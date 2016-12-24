@@ -11,56 +11,56 @@ timescape(clonal_prev, tree_edges, mutations = "NA", clone_colours = "NA",
   show_warnings = TRUE, width = 900, height = NULL)
 }
 \arguments{
-\item{clonal_prev}{{Data Frame} Clonal prevalence. Note: timepoints will be alphanumerically sorted in the view.
-Format: columns are (1) {String} "timepoint" - time point
-                    (2) {String} "clone_id" - clone id
-                    (3) {Number} "clonal_prev" - clonal prevalence.}
+\item{clonal_prev}{(Data Frame) Clonal prevalence. Note: timepoints will be alphanumerically sorted in the view.
+Format: columns are (1) character() "timepoint" - time point
+                    (2) character() "clone_id" - clone id
+                    (3) numeric() "clonal_prev" - clonal prevalence.}
 
-\item{tree_edges}{{Data Frame} Tree edges of a rooted tree.
-Format: columns are (1) {String} "source" - source node id
-                    (2) {String} "target" - target node id.}
+\item{tree_edges}{(Data Frame) Tree edges of a rooted tree.
+Format: columns are (1) character() "source" - source node id
+                    (2) character() "target" - target node id.}
 
-\item{mutations}{{Data Frame} (Optional) Mutations occurring at each clone. Any additional field will be shown in the mutation table.
-Format: columns are (1) {String} "chrom" - chromosome number
-                    (2) {Number} "coord" - coordinate of mutation on chromosome
-                    (3) {String} "clone_id" - clone id
-                    (4) {String} "timepoint" - time point
-                    (5) {Number} "VAF" - variant allele frequency of the mutation in the corresponding timepoint.}
+\item{mutations}{(Data Frame) (Optional) Mutations occurring at each clone. Any additional field will be shown in the mutation table.
+Format: columns are (1) character() "chrom" - chromosome number
+                    (2) numeric() "coord" - coordinate of mutation on chromosome
+                    (3) character() "clone_id" - clone id
+                    (4) character() "timepoint" - time point
+                    (5) numeric() "VAF" - variant allele frequency of the mutation in the corresponding timepoint.}
 
-\item{clone_colours}{{Data Frame} (Optional) Clone ids and their corresponding colours 
-Format: columns are (1) {String} "clone_id" - the clone ids
-                    (2) {String} "colour" - the corresponding Hex colour for each clone id.}
+\item{clone_colours}{(Data Frame) (Optional) Clone ids and their corresponding colours 
+Format: columns are (1) character() "clone_id" - the clone ids
+                    (2) character() "colour" - the corresponding Hex colour for each clone id.}
 
-\item{xaxis_title}{{String} (Optional) x-axis title. Default is "Time Point".}
+\item{xaxis_title}{character() (Optional) x-axis title. Default is "Time Point".}
 
-\item{yaxis_title}{{String} (Optional) y-axis title. Default is "Clonal Prevalence".}
+\item{yaxis_title}{character() (Optional) y-axis title. Default is "Clonal Prevalence".}
 
-\item{phylogeny_title}{{String} (Optional) Legend phylogeny title. Default is "Clonal Phylogeny".}
+\item{phylogeny_title}{character() (Optional) Legend phylogeny title. Default is "Clonal Phylogeny".}
 
-\item{alpha}{{Number} (Optional) Alpha value for sweeps, range [0, 100].}
+\item{alpha}{numeric() (Optional) Alpha value for sweeps, range [0, 100].}
 
-\item{genotype_position}{{String} (Optional) How to position the genotypes from ["centre", "stack", "space"] 
+\item{genotype_position}{character() (Optional) How to position the genotypes from ["centre", "stack", "space"] 
 "centre" -- genotypes are centred with respect to their ancestors
 "stack" -- genotypes are stacked such that no genotype is split at any time point
 "space" -- genotypes are stacked but with a bit of spacing at the bottom}
 
-\item{perturbations}{{Data Frame} (Optional) Any perturbations that occurred between two time points, 
+\item{perturbations}{(Data Frame) (Optional) Any perturbations that occurred between two time points, 
 and the fraction of total tumour content remaining.
-Format: columns are (1) {String} "pert_name" - the perturbation name
-                    (2) {String} "prev_tp" - the time point (as labelled in clonal prevalence data) 
+Format: columns are (1) character() "pert_name" - the perturbation name
+                    (2) character() "prev_tp" - the time point (as labelled in clonal prevalence data) 
                                              BEFORE perturbation
-                    (3) {Number} "frac" - the fraction of total tumour content remaining at the 
+                    (3) numeric() "frac" - the fraction of total tumour content remaining at the 
                                           time of perturbation, range [0, 1].}
 
-\item{sort}{{Boolean} (Optional) Whether (TRUE) or not (FALSE) to vertically sort the genotypes by their emergence values (descending). 
+\item{sort}{logical() (Optional) Whether (TRUE) or not (FALSE) to vertically sort the genotypes by their emergence values (descending). 
 Default is FALSE. 
 Note that genotype sorting will always retain the phylogenetic hierarchy, and this parameter will only affect the ordering of siblings.}
 
-\item{show_warnings}{{Boolean} (Optional) Whether or not to show any warnings. Default is TRUE.}
+\item{show_warnings}{logical() (Optional) Whether or not to show any warnings. Default is TRUE.}
 
-\item{width}{{Number} (Optional) Width of the plot. Minimum width is 450.}
+\item{width}{numeric() (Optional) Width of the plot. Minimum width is 450.}
 
-\item{height}{{Number} (Optional) Height of the plot. Minimum height with and without mutations is 500 and 260, respectively.}
+\item{height}{numeric() (Optional) Height of the plot. Minimum height with and without mutations is 500 and 260, respectively.}
 }
 \value{
 None
