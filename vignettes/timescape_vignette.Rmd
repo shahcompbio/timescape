@@ -197,6 +197,10 @@ perturbations <- data.frame( pert_name = c("Chemotherapy"),
 timescape(clonal_prev = clonal_prev, tree_edges = tree_edges, perturbations = perturbations)
 ```
 
+# Obtaining the data 
+
+To transform mutational variant allele frequency information into clonal prevalences, first use PyClone (Roth et al., 2014) to obtain mutation clusters, then input these mutation clusters into CITUP (Malikic et al., 2016), which will provide a clonal phylogeny and the prevalences of each clone.
+
 # Documentation 
 
 To view the documentation for TimeScape, type the following command in R:
