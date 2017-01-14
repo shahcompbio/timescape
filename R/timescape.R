@@ -2,79 +2,162 @@
 #'
 #' \code{timescape} is a tool for visualizing temporal clonal evolution data.
 #'
-#' Interactive components: \cr
+#' Interactive components:
+#'   \enumerate{
+#' 
+#'     \item Mouseover any clone to view its (i) clone ID and (ii) clonal
+#'     prevalence at each time point.
+#' 
+#'     \item Click the view switch button to switch from the traditional
+#'     timescape view to the clonal trajectory view, where each clone
+#'     changes prevalence on its own track.
+#' 
+#'     \item Click the download buttons to download a PNG or SVG of the
+#'     view.
+#' 
+#'   }
 #'
-#' 1. Mouseover any clone to view its (i) clone ID and (ii) clonal prevalence at each time point. \cr
-#' 2. Click the view switch button to switch from the traditional timescape view to the clonal trajectory view, where each clone changes prevalence on its own track. \cr
-#' 3. Click the download buttons to download a PNG or SVG of the view. \cr
+#' @param clonal_prev \code{data.frame} Clonal prevalence. 
+#'     Required columns are:
+#'     \describe{
 #'
-#' @param clonal_prev (Data Frame) Clonal prevalence. Note: timepoints will be alphanumerically sorted in the view.
-#'   Format: columns are (1) character() "timepoint" - time point
-#'                       (2) character() "clone_id" - clone id
-#'                       (3) numeric() "clonal_prev" - clonal prevalence.
-#' @param tree_edges (Data Frame) Tree edges of a rooted tree.
-#'   Format: columns are (1) character() "source" - source node id
-#'                       (2) character() "target" - target node id.
-#' @param mutations (Data Frame) (Optional) Mutations occurring at each clone. Any additional field will be shown in the mutation table.
-#'   Format: columns are (1) character() "chrom" - chromosome number
-#'                       (2) numeric() "coord" - coordinate of mutation on chromosome
-#'                       (3) character() "clone_id" - clone id
-#'                       (4) character() "timepoint" - time point
-#'                       (5) numeric() "VAF" - variant allele frequency of the mutation in the corresponding timepoint. 
-#' @param clone_colours (Data Frame) (Optional) Clone ids and their corresponding colours 
-#'   Format: columns are (1) character() "clone_id" - the clone ids
-#'                       (2) character() "colour" - the corresponding Hex colour for each clone id.
-#' @param xaxis_title character() (Optional) x-axis title. Default is "Time Point".
-#' @param yaxis_title character() (Optional) y-axis title. Default is "Clonal Prevalence".
-#' @param phylogeny_title character() (Optional) Legend phylogeny title. Default is "Clonal Phylogeny".
-#' @param alpha numeric() (Optional) Alpha value for sweeps, range [0, 100].
-#' @param genotype_position character() (Optional) How to position the genotypes from ["centre", "stack", "space"] 
-#'   "centre" -- genotypes are centred with respect to their ancestors
-#'   "stack" -- genotypes are stacked such that no genotype is split at any time point
-#'   "space" -- genotypes are stacked but with a bit of spacing at the bottom
-#' @param perturbations (Data Frame) (Optional) Any perturbations that occurred between two time points, 
-#'   and the fraction of total tumour content remaining.
-#'   Format: columns are (1) character() "pert_name" - the perturbation name
-#'                       (2) character() "prev_tp" - the time point (as labelled in clonal prevalence data) 
-#'                                                BEFORE perturbation
-#'                       (3) numeric() "frac" - the fraction of total tumour content remaining at the 
-#'                                             time of perturbation, range [0, 1].
-#' @param sort logical() (Optional) Whether (TRUE) or not (FALSE) to vertically sort the genotypes by their emergence values (descending). 
-#'                       Default is FALSE. 
-#'                       Note that genotype sorting will always retain the phylogenetic hierarchy, and this parameter will only affect the ordering of siblings.
-#' @param show_warnings logical() (Optional) Whether or not to show any warnings. Default is TRUE.
-#' @param width numeric() (Optional) Width of the plot. Minimum width is 450.
-#' @param height numeric() (Optional) Height of the plot. Minimum height with and without mutations is 500 and 260, respectively. 
+#'       \item{timepoint:}{\code{character()} time point. Time
+#'          points will be alphanumerically sorted in the view.}
+#' 
+#'       \item{clone_id:}{\code{character()} clone id.}
+#' 
+#'       \item{clonal_prev:}{\code{numeric()} clonal prevalence.}
+#'
+#'     }
+#' @param tree_edges \code{data.frame} Tree edges of a rooted tree. 
+#'     Required columns are:
+#'     \describe{
+#'
+#'       \item{source:}{\code{character()} source node id.}
+#' 
+#'       \item{target:}{\code{character()} target node id.}
+#'
+#'     }
+#' @param mutations \code{data.frame} (Optional)  Mutations 
+#'     occurring at each clone. Required columns are:
+#'     \describe{
+#'
+#'       \item{chrom:}{\code{character()} chromosome number.}
+#' 
+#'       \item{coord:}{\code{numeric()} coordinate of mutation 
+#'          on chromosome.}
+#'
+#'       \item{clone_id:}{\code{character()} clone id.}
+#'
+#'       \item{timepoint:}{\code{character()} time point.}
+#'
+#'       \item{VAF:}{\code{numeric()} variant allele frequency 
+#'          of the mutation in the corresponding timepoint.}
+#'
+#'     }
+#'     Any additional field will be shown in the mutation table.
+#' @param clone_colours \code{data.frame} Clone ids and their 
+#'     corresponding colours. Required columns are:
+#'     \describe{
+#'
+#'       \item{clone_id:}{\code{character()} clone id.}
+#' 
+#'       \item{colour:}{\code{character()} the corresponding Hex 
+#'          colour for each clone id.}
+#'
+#'     }
+#' @param xaxis_title \code{character()} (Optional) x-axis title. 
+#'     Default is "Time Point".
+#' @param yaxis_title \code{character()} (Optional) y-axis title. 
+#'     Default is "Clonal Prevalence".
+#' @param phylogeny_title \code{character()} (Optional) Legend 
+#'     phylogeny title. Default is "Clonal Phylogeny".
+#' @param alpha \code{numeric()} (Optional) Alpha value for clonal 
+#'     sweeps, range [0, 100].
+#' @param genotype_position \code{character()} (Optional) How to 
+#'     position the genotypes from ["centre", "stack", "space"].
+#'   \enumerate{
+#' 
+#'       \item centre: genotypes are centred with
+#'          respect to their ancestors.
+#'
+#'       \item stack: genotypes are stacked such  
+#'          that nogenotype is split at any time point.
+#'
+#'       \item space: genotypes are stacked but  
+#'          with a bit of spacing at the bottom.
+#'
+#'     }
+#' @param perturbations \code{data.frame} (Optional) Any  
+#'     perturbations that occurred between two time points, 
+#'     and the fraction of total tumour content remaining
+#'     at the time of perturbation. Required columns are:
+#'     \describe{
+#'
+#'       \item{pert_name:}{\code{character()} the perturbation name.}
+#' 
+#'       \item{prev_tp:}{\code{character()} the time point (as labelled 
+#'          in clonal prevalence data) BEFORE perturbation.}
+#'
+#'       \item{frac:}{\code{numeric()} the fraction of total tumour 
+#'          content remaining at the time of perturbation, range [0, 1].}
+#'
+#'     }
+#' @param sort \code{logical()} (Optional) Whether (TRUE) or not (FALSE) 
+#'     to vertically sort the genotypes by their emergence values 
+#'     (descending). Default is FALSE. Note that genotype sorting will 
+#'     always retain the phylogenetic hierarchy, and this parameter will 
+#'     only affect the ordering of siblings.
+#' @param show_warnings \code{logical()} (Optional) Whether or not to show 
+#'     any warnings. Default is TRUE.
+#' @param width \code{numeric()} (Optional) Width of the plot. Minimum 
+#'     width is 450.
+#' @param height \code{numeric()} (Optional) Height of the plot. Minimum  
+#'     height with and without mutations is 500 and 260, respectively. 
 #' @export
 #' @examples
 #'
 #' # EXAMPLE 1 - Acute myeloid leukemia patient, Ding et al., 2012
 #'
 #' # genotype tree edges
-#' tree_edges <- read.csv(system.file("extdata", "AML_tree_edges.csv", package = "timescape"))
+#' tree_edges <- read.csv(system.file("extdata", "AML_tree_edges.csv", 
+#'     package = "timescape"))
+#'
 #' # clonal prevalences
-#' clonal_prev <- read.csv(system.file("extdata", "AML_clonal_prev.csv", package = "timescape"))
+#' clonal_prev <- read.csv(system.file("extdata", "AML_clonal_prev.csv",
+#'     package = "timescape"))
+#'
 #' # targeted mutations
-#' mutations <- read.csv(system.file("extdata", "AML_mutations.csv", package = "timescape"))
+#' mutations <- read.csv(system.file("extdata", "AML_mutations.csv", 
+#'     package = "timescape"))
+#'
 #' # perturbations
 #' perturbations <- data.frame( pert_name = c("Chemotherapy"), 
 #'                              prev_tp = c("Diagnosis"),
 #'                               frac = c(0.1))
+#'
 #' # run timescape
-#' timescape(clonal_prev = clonal_prev, tree_edges = tree_edges, perturbations = perturbations, mutations = mutations)
+#' timescape(clonal_prev = clonal_prev, tree_edges = tree_edges, 
+#'     perturbations = perturbations, mutations = mutations)
 #'
 #' # EXAMPLE 2 - Patient 7, McPherson and Roth et al., 2016
 #'
-#'
 #' # genotype tree edges
-#' tree_edges <- read.csv(system.file("extdata", "px7_tree_edges.csv", package = "timescape"))
+#' tree_edges <- read.csv(system.file("extdata", "px7_tree_edges.csv", 
+#'     package = "timescape"))
+#'
 #' # clonal prevalences
-#' clonal_prev <- read.csv(system.file("extdata", "px7_clonal_prev.csv", package = "timescape"))
+#' clonal_prev <- read.csv(system.file("extdata", "px7_clonal_prev.csv", 
+#'     package = "timescape"))
+#'
 #' # clone colours
 #' clone_colours <- data.frame(clone_id = c("A","B","C","D","E"), 
-#'                             colour = c("d0ced0", "2CD0AB", "FFD94B", "FD8EE5", "F8766D"))
+#'                             colour = c("d0ced0", "2CD0AB", "FFD94B", 
+#'                                      "FD8EE5", "F8766D"))
+#'
 #' # run timescape
-#' timescape(clonal_prev = clonal_prev, tree_edges = tree_edges, clone_colours = clone_colours, height=260, alpha=15)
+#' timescape(clonal_prev = clonal_prev, tree_edges = tree_edges, 
+#'     clone_colours = clone_colours, height=260, alpha=15)
 #' @return None
 timescape <- function(clonal_prev, 
                       tree_edges, 

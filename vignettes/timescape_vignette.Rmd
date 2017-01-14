@@ -34,7 +34,8 @@ The second visualization is of the metastatic ovarian cancer patient 7 from McPh
 
 ```{r, echo=FALSE}
 library(devtools)  
-#install_bitbucket("shahlabbcca/timescape")  
+source("https://bioconductor.org/biocLite.R")
+biocLite("timescape")
 library(timescape)  
 ```
 ```{r, echo=FALSE}
@@ -203,7 +204,7 @@ timescape(clonal_prev = clonal_prev, tree_edges = tree_edges, perturbations = pe
 
 # Obtaining the data 
 
-To transform mutational variant allele frequency information into clonal prevalences, first use PyClone (Roth et al., 2014) to obtain mutation clusters, then input these mutation clusters into CITUP (Malikic et al., 2016), which will provide a clonal phylogeny and the prevalences of each clone.
+To transform mutational variant allele frequency information into clonal prevalences, first use PyClone (Roth et al., 2014; source code available at https://bitbucket.org/aroth85/pyclone/wiki/Home) to obtain mutation clusters, then input these mutation clusters into CITUP (Malikic et al., 2016; source code available at https://github.com/sfu-compbio/citup), which will provide a clonal phylogeny and the prevalences of each clone.
 
 # Interactivity
 
