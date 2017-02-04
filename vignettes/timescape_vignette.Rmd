@@ -51,14 +51,9 @@ perturbations <- data.frame( pert_name = c("Chemotherapy"),
                              prev_tp = c("Diagnosis"),
                               frac = c(0.1))
 # run timescape
-timescape(clonal_prev = clonal_prev, tree_edges = tree_edges, perturbations = perturbations)
+timescape(clonal_prev = clonal_prev, tree_edges = tree_edges, perturbations = perturbations, height=260)
 ```
 
-<br>
-<br>
-<br>
-<br>
-<br>
 
 ```{r, echo=FALSE}
 # EXAMPLE 2 - Patient 7, McPherson and Roth et al., 2016
@@ -188,7 +183,7 @@ clonal_prev <- read.csv(system.file("extdata", "AML_clonal_prev.csv", package = 
 mutations <- read.csv(system.file("extdata", "AML_mutations.csv", package = "timescape"))
 
 # run timescape
-timescape(clonal_prev = clonal_prev, tree_edges = tree_edges)
+timescape(clonal_prev = clonal_prev, tree_edges = tree_edges, height=260)
 ```
 
 ### With perturbation (reduces the tumour to 10% of its original size)
@@ -199,7 +194,7 @@ perturbations <- data.frame( pert_name = c("Chemotherapy"),
                              prev_tp = c("Diagnosis"),
                               frac = c(0.1))
 # run timescape
-timescape(clonal_prev = clonal_prev, tree_edges = tree_edges, perturbations = perturbations)
+timescape(clonal_prev = clonal_prev, tree_edges = tree_edges, perturbations = perturbations, height=260)
 ```
 
 # Obtaining the data 
@@ -213,6 +208,7 @@ Interactive components:
 1. Mouseover any clone to view its (i) clone ID and (ii) clonal prevalence at each time point. 
 2. Click the view switch button to switch from the traditional timescape view to the clonal trajectory view, where each clone changes prevalence on its own track. 
 3. Click the download buttons to download a PNG or SVG of the view. 
+4. If a mutation table is present, click a clone in the phylogeny to filter the mutation table by the selected clone.
 
 # Documentation 
 
@@ -220,6 +216,12 @@ To view the documentation for TimeScape, type the following command in R:
 
 ```{r, eval=FALSE}
 ?timescape
+```
+
+or:
+
+```{r, eval=FALSE}
+browseVignettes("timescape") 
 ```
 
 # References
